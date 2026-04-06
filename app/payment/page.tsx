@@ -1,9 +1,9 @@
 "use client";
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import * as PortOne from "@portone/browser-sdk/v2";
 
-export default function PaymentPage() {
+function PaymentContent() {
   const [email, setEmail] = useState("");
   const [consentGeometry, setConsentGeometry] = useState(false);
   const [consentLocation, setConsentLocation] = useState(false);
@@ -12,19 +12,17 @@ export default function PaymentPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // GHA에서 넘겨주는 파라미터
   const totalCount = Number(searchParams.get("count") || 10);
   const baseAmountUSD = Math.max(5.0, totalCount * 0.15);
   const vatUSD = baseAmountUSD * 0.1;
   const totalAmountUSD = baseAmountUSD + vatUSD;
-  // 원화 환산 (1달러 = 1350원 고정, 나중에 실시간 환율로 교체 가능)
   const exchangeRate = 1350;
   const totalAmountKRW = Math.round(totalAmountUSD * exchangeRate);
 
   const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) {
-      setError("이메일을 입력해주세요.");
+      setError("Please enter your email.");
       return;
     }
     setLoading(true);
@@ -41,35 +39,24 @@ export default function PaymentPage() {
         totalAmount: totalAmountKRW,
         currency: "KRW",
         payMethod: "CARD",
-        customer: {
-          email,
-        },
+        customer: { email },
         redirectUrl: `${window.location.origin}/payment/complete?paymentId=${paymentId}&email=${encodeURIComponent(email)}`,
       });
 
       if (response?.code) {
-        setError("결제가 취소되었거나 오류가 발생했습니다.");
+        setError("Payment was cancelled or failed. Please try again.");
         setLoading(false);
       }
     } catch (err) {
-      setError("결제 중 오류가 발생했습니다. 다시 시도해주세요.");
+      setError("An error occurred during payment. Please try again.");
       setLoading(false);
     }
   };
 
   return (
-    <main style={{
-      fontFamily: "-apple-system, 'Helvetica Neue', sans-serif",
-      background: "#ffffff",
-      color: "#1a1a1a",
-      minHeight: "100vh",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-    }}>
+    <div style={{ width: "100%", maxWidth: "420px", padding: "0 24px" }}>
       <style>{`
         * { box-sizing: border-box; margin: 0; padding: 0; }
-
         .input-field {
           width: 100%;
           padding: 10px 12px;
@@ -84,7 +71,6 @@ export default function PaymentPage() {
         }
         .input-field:focus { border-color: #aaa; }
         .input-field::placeholder { color: #bbb; }
-
         .pay-btn {
           width: 100%;
           padding: 12px;
@@ -100,7 +86,6 @@ export default function PaymentPage() {
         }
         .pay-btn:hover { background: #333; }
         .pay-btn:disabled { background: #ccc; cursor: not-allowed; }
-
         .back-btn {
           background: none;
           border: none;
@@ -112,7 +97,6 @@ export default function PaymentPage() {
           transition: color 0.2s;
         }
         .back-btn:hover { color: #1a1a1a; }
-
         .consent-row {
           display: flex;
           align-items: flex-start;
@@ -125,129 +109,126 @@ export default function PaymentPage() {
         .consent-row:hover { background: #f0f0f0; }
       `}</style>
 
-      <div style={{ width: "100%", maxWidth: "420px", padding: "0 24px" }}>
+      <button className="back-btn" onClick={() => router.back()} style={{ marginBottom: "28px" }}>
+        ← Back
+      </button>
 
-        {/* 뒤로가기 */}
-        <button className="back-btn" onClick={() => router.back()} style={{ marginBottom: "28px" }}>
-          ← Back
+      <div style={{ marginBottom: "28px" }}>
+        <h1 style={{ fontSize: "1.5rem", fontWeight: 700, letterSpacing: "-0.02em", marginBottom: "6px" }}>
+          Checkout
+        </h1>
+        <p style={{ fontSize: "0.82rem", color: "#888" }}>
+          Enter your email to receive your receipt.
+        </p>
+      </div>
+
+      {/* 금액 요약 */}
+      <div style={{ background: "#f8f8f8", borderRadius: "10px", padding: "16px", marginBottom: "24px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+          <span style={{ fontSize: "0.82rem", color: "#666" }}>Surfaces</span>
+          <span style={{ fontSize: "0.82rem" }}>{totalCount} × $0.15</span>
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+          <span style={{ fontSize: "0.82rem", color: "#666" }}>Subtotal</span>
+          <span style={{ fontSize: "0.82rem" }}>${baseAmountUSD.toFixed(2)}</span>
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px" }}>
+          <span style={{ fontSize: "0.82rem", color: "#666" }}>VAT (10%)</span>
+          <span style={{ fontSize: "0.82rem" }}>${vatUSD.toFixed(2)}</span>
+        </div>
+        <div style={{ borderTop: "1px solid #e8e8e8", paddingTop: "12px", display: "flex", justifyContent: "space-between" }}>
+          <span style={{ fontSize: "0.95rem", fontWeight: 600 }}>Total</span>
+          <div style={{ textAlign: "right" }}>
+            <div style={{ fontSize: "0.95rem", fontWeight: 700 }}>${totalAmountUSD.toFixed(2)}</div>
+            <div style={{ fontSize: "0.72rem", color: "#aaa" }}>≈ ₩{totalAmountKRW.toLocaleString()}</div>
+          </div>
+        </div>
+      </div>
+
+      <form onSubmit={handlePayment}>
+        <div style={{ marginBottom: "20px" }}>
+          <label style={{ fontSize: "0.82rem", fontWeight: 500, display: "block", marginBottom: "6px" }}>
+            Email address
+          </label>
+          <input
+            className="input-field"
+            type="email"
+            placeholder="Enter your email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </div>
+
+        <div style={{ marginBottom: "20px" }}>
+          <div style={{ fontSize: "0.82rem", fontWeight: 500, marginBottom: "10px" }}>
+            Data Collection (Optional)
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            <label className="consent-row">
+              <input
+                type="checkbox"
+                checked={consentGeometry}
+                onChange={(e) => setConsentGeometry(e.target.checked)}
+                style={{ marginTop: "1px", cursor: "pointer" }}
+              />
+              <div>
+                <div style={{ fontSize: "0.82rem", fontWeight: 500, marginBottom: "2px" }}>Geometry data</div>
+                <div style={{ fontSize: "0.72rem", color: "#888", lineHeight: 1.5 }}>
+                  Share anonymized geometry data to help improve the tool.
+                </div>
+              </div>
+            </label>
+            <label className="consent-row">
+              <input
+                type="checkbox"
+                checked={consentLocation}
+                onChange={(e) => setConsentLocation(e.target.checked)}
+                style={{ marginTop: "1px", cursor: "pointer" }}
+              />
+              <div>
+                <div style={{ fontSize: "0.82rem", fontWeight: 500, marginBottom: "2px" }}>Country / Location</div>
+                <div style={{ fontSize: "0.72rem", color: "#888", lineHeight: 1.5 }}>
+                  Share your country to help us understand our users better.
+                </div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        {error && (
+          <div style={{ fontSize: "0.8rem", color: "#e53e3e", marginBottom: "12px" }}>{error}</div>
+        )}
+
+        <button className="pay-btn" type="submit" disabled={loading}>
+          {loading ? "Processing..." : `Pay $${totalAmountUSD.toFixed(2)}`}
         </button>
 
-        {/* 헤더 */}
-        <div style={{ marginBottom: "28px" }}>
-          <h1 style={{ fontSize: "1.5rem", fontWeight: 700, letterSpacing: "-0.02em", marginBottom: "6px" }}>
-            Checkout
-          </h1>
-          <p style={{ fontSize: "0.82rem", color: "#888" }}>
-            Enter your email to receive your receipt.
-          </p>
+        <p style={{ fontSize: "0.72rem", color: "#bbb", textAlign: "center", marginTop: "12px", lineHeight: 1.6 }}>
+          By completing payment, you agree to our terms & policy. Receipts will be sent to your email.
+        </p>
+      </form>
+    </div>
+  );
+}
+
+export default function PaymentPage() {
+  return (
+    <main style={{
+      fontFamily: "-apple-system, 'Helvetica Neue', sans-serif",
+      background: "#ffffff",
+      color: "#1a1a1a",
+      minHeight: "100vh",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+    }}>
+      <Suspense fallback={
+        <div style={{ textAlign: "center" }}>
+          <p style={{ fontSize: "0.88rem", color: "#888" }}>Loading...</p>
         </div>
-
-        {/* 금액 요약 */}
-        <div style={{
-          background: "#f8f8f8",
-          borderRadius: "10px",
-          padding: "16px",
-          marginBottom: "24px",
-        }}>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
-            <span style={{ fontSize: "0.82rem", color: "#666" }}>Surfaces</span>
-            <span style={{ fontSize: "0.82rem", color: "#1a1a1a" }}>{totalCount} × $0.15</span>
-          </div>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
-            <span style={{ fontSize: "0.82rem", color: "#666" }}>Subtotal</span>
-            <span style={{ fontSize: "0.82rem", color: "#1a1a1a" }}>${baseAmountUSD.toFixed(2)}</span>
-          </div>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px" }}>
-            <span style={{ fontSize: "0.82rem", color: "#666" }}>VAT (10%)</span>
-            <span style={{ fontSize: "0.82rem", color: "#1a1a1a" }}>${vatUSD.toFixed(2)}</span>
-          </div>
-          <div style={{ borderTop: "1px solid #e8e8e8", paddingTop: "12px", display: "flex", justifyContent: "space-between" }}>
-            <span style={{ fontSize: "0.95rem", fontWeight: 600 }}>Total</span>
-            <div style={{ textAlign: "right" }}>
-              <div style={{ fontSize: "0.95rem", fontWeight: 700 }}>${totalAmountUSD.toFixed(2)}</div>
-              <div style={{ fontSize: "0.72rem", color: "#aaa" }}>≈ ₩{totalAmountKRW.toLocaleString()}</div>
-            </div>
-          </div>
-        </div>
-
-        {/* 폼 */}
-        <form onSubmit={handlePayment}>
-
-          {/* 이메일 */}
-          <div style={{ marginBottom: "20px" }}>
-            <label style={{ fontSize: "0.82rem", fontWeight: 500, display: "block", marginBottom: "6px" }}>
-              Email address
-            </label>
-            <input
-              className="input-field"
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
-
-          {/* 데이터 수집 동의 */}
-          <div style={{ marginBottom: "20px" }}>
-            <div style={{ fontSize: "0.82rem", fontWeight: 500, marginBottom: "10px" }}>
-              Data Collection (Optional)
-            </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              <label className="consent-row">
-                <input
-                  type="checkbox"
-                  checked={consentGeometry}
-                  onChange={(e) => setConsentGeometry(e.target.checked)}
-                  style={{ marginTop: "1px", cursor: "pointer" }}
-                />
-                <div>
-                  <div style={{ fontSize: "0.82rem", fontWeight: 500, marginBottom: "2px" }}>
-                    Geometry data
-                  </div>
-                  <div style={{ fontSize: "0.72rem", color: "#888", lineHeight: 1.5 }}>
-                    Share anonymized geometry data to help improve the tool.
-                  </div>
-                </div>
-              </label>
-
-              <label className="consent-row">
-                <input
-                  type="checkbox"
-                  checked={consentLocation}
-                  onChange={(e) => setConsentLocation(e.target.checked)}
-                  style={{ marginTop: "1px", cursor: "pointer" }}
-                />
-                <div>
-                  <div style={{ fontSize: "0.82rem", fontWeight: 500, marginBottom: "2px" }}>
-                    Country / Location
-                  </div>
-                  <div style={{ fontSize: "0.72rem", color: "#888", lineHeight: 1.5 }}>
-                    Share your country to help us understand our users better.
-                  </div>
-                </div>
-              </label>
-            </div>
-          </div>
-
-          {/* 오류 메시지 */}
-          {error && (
-            <div style={{ fontSize: "0.8rem", color: "#e53e3e", marginBottom: "12px" }}>
-              {error}
-            </div>
-          )}
-
-          {/* 결제 버튼 */}
-          <button className="pay-btn" type="submit" disabled={loading}>
-            {loading ? "Processing..." : `Pay $${totalAmountUSD.toFixed(2)}`}
-          </button>
-
-          <p style={{ fontSize: "0.72rem", color: "#bbb", textAlign: "center", marginTop: "12px", lineHeight: 1.6 }}>
-            By completing payment, you agree to our terms & policy.
-            Receipts will be sent to your email.
-          </p>
-        </form>
-      </div>
+      }>
+        <PaymentContent />
+      </Suspense>
     </main>
   );
 }
