@@ -5,10 +5,9 @@ import * as PortOne from "@portone/browser-sdk/v2";
 
 function PaymentContent() {
   const [email, setEmail] = useState("");
-  const [consentGeometry, setConsentGeometry] = useState(false);
-  const [consentLocation, setConsentLocation] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showTerms, setShowTerms] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -35,7 +34,7 @@ function PaymentContent() {
         storeId: "store-ad54a018-057e-4d48-b98f-920b6d0fa05c",
         channelKey: "channel-key-921d3c16-446e-4129-8f84-7fd884b1eb21",
         paymentId,
-        orderName: `LaserFish - ${totalCount} surfaces`,
+        orderName: `LaserFish Drawing`,
         totalAmount: totalAmountKRW,
         currency: "KRW",
         payMethod: "CARD",
@@ -55,160 +54,232 @@ function PaymentContent() {
   };
 
   return (
-    <div style={{ width: "100%", maxWidth: "420px", padding: "0 24px" }}>
+    <>
       <style>{`
         * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 100vh;
+          background: #f5f5f5;
+        }
+
+        .payment-box {
+          background: #fff;
+          border-radius: 16px;
+          padding: 28px 28px 24px;
+          width: 100%;
+          max-width: 360px;
+          box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+        }
+
         .input-field {
           width: 100%;
-          padding: 10px 12px;
+          padding: 9px 12px;
           border: 1px solid #e0e0e0;
           border-radius: 8px;
-          font-size: 0.88rem;
+          font-size: 0.85rem;
           font-family: inherit;
           color: #1a1a1a;
           background: #ffffff;
           outline: none;
           transition: border-color 0.2s;
+          margin-top: 6px;
         }
         .input-field:focus { border-color: #aaa; }
         .input-field::placeholder { color: #bbb; }
+
         .pay-btn {
           width: 100%;
-          padding: 12px;
+          padding: 11px;
           background: #1a1a1a;
           color: #fff;
           border: none;
           border-radius: 8px;
-          font-size: 0.9rem;
+          font-size: 0.88rem;
           font-weight: 600;
           font-family: inherit;
           cursor: pointer;
           transition: background 0.2s;
+          margin-top: 16px;
         }
         .pay-btn:hover { background: #333; }
         .pay-btn:disabled { background: #ccc; cursor: not-allowed; }
-        .back-btn {
+
+        .terms-link {
+          color: #4a90e2;
+          text-decoration: underline;
+          cursor: pointer;
           background: none;
           border: none;
-          font-size: 0.82rem;
-          color: #888;
-          cursor: pointer;
           font-family: inherit;
+          font-size: inherit;
           padding: 0;
-          transition: color 0.2s;
         }
-        .back-btn:hover { color: #1a1a1a; }
-        .consent-row {
+        .terms-link:hover { opacity: 0.7; }
+
+        /* 모달 */
+        .modal-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(0,0,0,0.4);
           display: flex;
-          align-items: flex-start;
-          gap: 8px;
-          padding: 12px;
-          background: #f8f8f8;
-          border-radius: 8px;
-          cursor: pointer;
+          align-items: center;
+          justify-content: center;
+          z-index: 100;
+          padding: 24px;
         }
-        .consent-row:hover { background: #f0f0f0; }
+        .modal-box {
+          background: #fff;
+          border-radius: 14px;
+          padding: 28px;
+          max-width: 440px;
+          width: 100%;
+          max-height: 75vh;
+          overflow-y: auto;
+          position: relative;
+        }
+        .modal-close {
+          position: absolute;
+          top: 14px;
+          right: 18px;
+          background: none;
+          border: none;
+          font-size: 1.3rem;
+          cursor: pointer;
+          color: #aaa;
+          line-height: 1;
+        }
+        .modal-close:hover { color: #1a1a1a; }
+        .modal-section { margin-bottom: 20px; }
+        .modal-section h3 {
+          font-size: 0.88rem;
+          font-weight: 600;
+          margin-bottom: 8px;
+          color: #1a1a1a;
+        }
+        .modal-section p, .modal-section li {
+          font-size: 0.78rem;
+          color: #666;
+          line-height: 1.7;
+        }
+        .modal-section ul { padding-left: 14px; }
+        .modal-section li { margin-bottom: 3px; }
       `}</style>
 
-      <button className="back-btn" onClick={() => router.back()} style={{ marginBottom: "28px" }}>
-        ← Back
-      </button>
+      {/* 약관 모달 */}
+      {showTerms && (
+        <div className="modal-overlay" onClick={() => setShowTerms(false)}>
+          <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setShowTerms(false)}>×</button>
+            <h2 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "20px" }}>
+              Privacy Policy
+            </h2>
 
-      <div style={{ marginBottom: "28px" }}>
-        <h1 style={{ fontSize: "1.5rem", fontWeight: 700, letterSpacing: "-0.02em", marginBottom: "6px" }}>
-          Checkout
-        </h1>
-        <p style={{ fontSize: "0.82rem", color: "#888" }}>
-          Enter your email to receive your receipt.
-        </p>
-      </div>
+            <div className="modal-section">
+              <h3>1. Email</h3>
+              <p>Your email is collected solely to send a payment receipt. It will be permanently deleted after 30 days.</p>
+            </div>
 
-      {/* 금액 요약 */}
-      <div style={{ background: "#f8f8f8", borderRadius: "10px", padding: "16px", marginBottom: "24px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
-          <span style={{ fontSize: "0.82rem", color: "#666" }}>Surfaces</span>
-          <span style={{ fontSize: "0.82rem" }}>{totalCount} × $0.15</span>
-        </div>
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
-          <span style={{ fontSize: "0.82rem", color: "#666" }}>Subtotal</span>
-          <span style={{ fontSize: "0.82rem" }}>${baseAmountUSD.toFixed(2)}</span>
-        </div>
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px" }}>
-          <span style={{ fontSize: "0.82rem", color: "#666" }}>VAT (10%)</span>
-          <span style={{ fontSize: "0.82rem" }}>${vatUSD.toFixed(2)}</span>
-        </div>
-        <div style={{ borderTop: "1px solid #e8e8e8", paddingTop: "12px", display: "flex", justifyContent: "space-between" }}>
-          <span style={{ fontSize: "0.95rem", fontWeight: 600 }}>Total</span>
-          <div style={{ textAlign: "right" }}>
-            <div style={{ fontSize: "0.95rem", fontWeight: 700 }}>${totalAmountUSD.toFixed(2)}</div>
-            <div style={{ fontSize: "0.72rem", color: "#aaa" }}>≈ ₩{totalAmountKRW.toLocaleString()}</div>
+            <div className="modal-section">
+              <h3>2. Country / Region</h3>
+              <p>We collect your country of access to understand our user base and improve the service. No personal identification is involved.</p>
+            </div>
+
+            <div className="modal-section">
+              <h3>3. Generated Output Data</h3>
+              <p>Anonymized geometry output data may be collected to improve the tool's accuracy and performance. This data contains no personal information.</p>
+            </div>
+
+            <button
+              style={{
+                width: "100%",
+                padding: "10px",
+                background: "#1a1a1a",
+                color: "#fff",
+                border: "none",
+                borderRadius: "8px",
+                fontSize: "0.85rem",
+                fontWeight: 500,
+                fontFamily: "inherit",
+                cursor: "pointer",
+                marginTop: "8px",
+              }}
+              onClick={() => setShowTerms(false)}
+            >
+              Close
+            </button>
           </div>
         </div>
-      </div>
+      )}
 
-      <form onSubmit={handlePayment}>
+      <div className="payment-box">
+        {/* 헤더 */}
         <div style={{ marginBottom: "20px" }}>
-          <label style={{ fontSize: "0.82rem", fontWeight: 500, display: "block", marginBottom: "6px" }}>
-            Email address
-          </label>
-          <input
-            className="input-field"
-            type="email"
-            placeholder="Enter your email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
+          <h1 style={{ fontSize: "1.3rem", fontWeight: 700, letterSpacing: "-0.02em", marginBottom: "4px" }}>
+            Complete Your Drawing
+          </h1>
         </div>
 
-        <div style={{ marginBottom: "20px" }}>
-          <div style={{ fontSize: "0.82rem", fontWeight: 500, marginBottom: "10px" }}>
-            Data Collection (Optional)
+        {/* 금액 */}
+        <div style={{
+          background: "#f8f8f8",
+          borderRadius: "10px",
+          padding: "14px",
+          marginBottom: "20px",
+        }}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
+            <span style={{ fontSize: "0.78rem", color: "#666" }}>Subtotal</span>
+            <span style={{ fontSize: "0.78rem" }}>${baseAmountUSD.toFixed(2)}</span>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            <label className="consent-row">
-              <input
-                type="checkbox"
-                checked={consentGeometry}
-                onChange={(e) => setConsentGeometry(e.target.checked)}
-                style={{ marginTop: "1px", cursor: "pointer" }}
-              />
-              <div>
-                <div style={{ fontSize: "0.82rem", fontWeight: 500, marginBottom: "2px" }}>Geometry data</div>
-                <div style={{ fontSize: "0.72rem", color: "#888", lineHeight: 1.5 }}>
-                  Share anonymized geometry data to help improve the tool.
-                </div>
-              </div>
-            </label>
-            <label className="consent-row">
-              <input
-                type="checkbox"
-                checked={consentLocation}
-                onChange={(e) => setConsentLocation(e.target.checked)}
-                style={{ marginTop: "1px", cursor: "pointer" }}
-              />
-              <div>
-                <div style={{ fontSize: "0.82rem", fontWeight: 500, marginBottom: "2px" }}>Country / Location</div>
-                <div style={{ fontSize: "0.72rem", color: "#888", lineHeight: 1.5 }}>
-                  Share your country to help us understand our users better.
-                </div>
-              </div>
-            </label>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px" }}>
+            <span style={{ fontSize: "0.78rem", color: "#666" }}>VAT (10%)</span>
+            <span style={{ fontSize: "0.78rem" }}>${vatUSD.toFixed(2)}</span>
+          </div>
+          <div style={{ borderTop: "1px solid #e8e8e8", paddingTop: "10px", display: "flex", justifyContent: "space-between" }}>
+            <span style={{ fontSize: "0.9rem", fontWeight: 600 }}>Total</span>
+            <span style={{ fontSize: "0.9rem", fontWeight: 700 }}>${totalAmountUSD.toFixed(2)}</span>
           </div>
         </div>
 
-        {error && (
-          <div style={{ fontSize: "0.8rem", color: "#e53e3e", marginBottom: "12px" }}>{error}</div>
-        )}
+        {/* 폼 */}
+        <form onSubmit={handlePayment}>
+          <div style={{ marginBottom: "16px" }}>
+            <label style={{ fontSize: "0.82rem", fontWeight: 500 }}>
+              Email address
+            </label>
+            <p style={{ fontSize: "0.72rem", color: "#aaa", margin: "3px 0 0" }}>
+              Enter your email to receive your receipt.
+            </p>
+            <input
+              className="input-field"
+              type="email"
+              placeholder="your@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
 
-        <button className="pay-btn" type="submit" disabled={loading}>
-          {loading ? "Processing..." : `Pay $${totalAmountUSD.toFixed(2)}`}
-        </button>
+          {error && (
+            <div style={{ fontSize: "0.78rem", color: "#e53e3e", marginBottom: "10px" }}>{error}</div>
+          )}
 
-        <p style={{ fontSize: "0.72rem", color: "#bbb", textAlign: "center", marginTop: "12px", lineHeight: 1.6 }}>
-          By completing payment, you agree to our terms & policy. Receipts will be sent to your email.
-        </p>
-      </form>
-    </div>
+          <button className="pay-btn" type="submit" disabled={loading}>
+            {loading ? "Processing..." : `Pay $${totalAmountUSD.toFixed(2)}`}
+          </button>
+
+          <p style={{ fontSize: "0.68rem", color: "#bbb", textAlign: "center", marginTop: "10px", lineHeight: 1.6 }}>
+            By paying, you agree to our{" "}
+            <button className="terms-link" type="button" onClick={() => setShowTerms(true)}>
+              terms & policy
+            </button>
+            .
+          </p>
+        </form>
+      </div>
+    </>
   );
 }
 
@@ -216,7 +287,7 @@ export default function PaymentPage() {
   return (
     <main style={{
       fontFamily: "-apple-system, 'Helvetica Neue', sans-serif",
-      background: "#ffffff",
+      background: "#f5f5f5",
       color: "#1a1a1a",
       minHeight: "100vh",
       display: "flex",
