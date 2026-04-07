@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, message: "paymentId is required" }, { status: 400 });
     }
 
-    const response = await fetch(`https://api.portone.io/payments/${paymentId}`, {
+    const response = await fetch(`https://api.portone.io/v2/payments/${paymentId}`, {
       headers: {
         "Authorization": `PortOne ${process.env.PORTONE_SECRET_KEY}`,
       },
