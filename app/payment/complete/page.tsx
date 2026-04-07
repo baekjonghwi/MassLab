@@ -21,11 +21,11 @@ useEffect(() => {
       try {
         // 이미 저장된 payment_id인지 확인
         const checkRes = await fetch(
-          `https://arymzgsayptprrbdnzwd.supabase.co/rest/v1/payments?payment_id=eq.${paymentId}`,
+          `https://arymzgsayptprrbdnzwd.supabase.co/rest/v1/payments`,
           {
             headers: {
-              "apikey": process.env.NEXT_PUBLIC_SUPABASE_KEY!,
-              "Authorization": `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_KEY}`,
+              "apikey": "sb_publishable_47O2B2PfD3X_5yOX-P-cTA_wGcpaeU6",
+              "Authorization": "Bearer sb_publishable_47O2B2PfD3X_5yOX-P-cTA_wGcpaeU6",
             },
           }
         );
@@ -42,8 +42,8 @@ useEffect(() => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "apikey": process.env.NEXT_PUBLIC_SUPABASE_KEY!,
-            "Authorization": `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_KEY}`,
+            "apikey": "sb_publishable_47O2B2PfD3X_5yOX-P-cTA_wGcpaeU6",
+            "Authorization": "Bearer sb_publishable_47O2B2PfD3X_5yOX-P-cTA_wGcpaeU6",
             "Prefer": "return=minimal",
           },
           body: JSON.stringify({
