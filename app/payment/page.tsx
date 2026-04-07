@@ -5,6 +5,7 @@ import * as PortOne from "@portone/browser-sdk/v2";
 
 function PaymentContent() {
   const [email, setEmail] = useState("");
+  const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showTerms, setShowTerms] = useState(false);
@@ -58,14 +59,6 @@ function PaymentContent() {
       <style>{`
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
-        body {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          min-height: 100vh;
-          background: #f5f5f5;
-        }
-
         .payment-box {
           background: #fff;
           border-radius: 16px;
@@ -103,7 +96,7 @@ function PaymentContent() {
           font-family: inherit;
           cursor: pointer;
           transition: background 0.2s;
-          margin-top: 16px;
+          margin-top: 12px;
         }
         .pay-btn:hover { background: #333; }
         .pay-btn:disabled { background: #ccc; cursor: not-allowed; }
@@ -119,6 +112,18 @@ function PaymentContent() {
           padding: 0;
         }
         .terms-link:hover { opacity: 0.7; }
+
+        .agree-row {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 10px 12px;
+          background: #f8f8f8;
+          border-radius: 8px;
+          margin-top: 14px;
+          cursor: pointer;
+        }
+        .agree-row:hover { background: #f0f0f0; }
 
         /* 모달 */
         .modal-overlay {
@@ -218,7 +223,7 @@ function PaymentContent() {
       <div className="payment-box">
         {/* 헤더 */}
         <div style={{ marginBottom: "20px" }}>
-          <h1 style={{ fontSize: "1.3rem", fontWeight: 700, letterSpacing: "-0.02em", marginBottom: "4px" }}>
+          <h1 style={{ fontSize: "1.3rem", fontWeight: 700, letterSpacing: "-0.02em" }}>
             Complete Your Drawing
           </h1>
         </div>
@@ -230,8 +235,13 @@ function PaymentContent() {
           padding: "14px",
           marginBottom: "20px",
         }}>
+          {/* 조각 개수 */}
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
-            <span style={{ fontSize: "0.78rem", color: "#666" }}>Subtotal</span>
+            <span style={{ fontSize: "0.78rem", color: "#666" }}>Pieces</span>
+            <span style={{ fontSize: "0.78rem", color: "#1a1a1a" }}>{totalCount}</span>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
+            <span style={{ fontSize: "0.78rem", color: "#666" }}>Cost</span>
             <span style={{ fontSize: "0.78rem" }}>${baseAmountUSD.toFixed(2)}</span>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px" }}>
@@ -246,7 +256,7 @@ function PaymentContent() {
 
         {/* 폼 */}
         <form onSubmit={handlePayment}>
-          <div style={{ marginBottom: "16px" }}>
+          <div style={{ marginBottom: "4px" }}>
             <label style={{ fontSize: "0.82rem", fontWeight: 500 }}>
               Email address
             </label>
@@ -262,21 +272,35 @@ function PaymentContent() {
             />
           </div>
 
+          {/* terms & policy 체크박스 */}
+          <label className="agree-row" onClick={() => setAgreed(!agreed)}>
+            <input
+              type="checkbox"
+              checked={agreed}
+              onChange={(e) => setAgreed(e.target.checked)}
+              onClick={(e) => e.stopPropagation()}
+              style={{ width: "14px", height: "14px", cursor: "pointer", flexShrink: 0 }}
+            />
+            <span style={{ fontSize: "0.78rem", color: "#555" }}>
+              I agree to the{" "}
+              <button
+                className="terms-link"
+                type="button"
+                onClick={(e) => { e.stopPropagation(); setShowTerms(true); }}
+              >
+                terms & policy
+              </button>
+            </span>
+          </label>
+
           {error && (
-            <div style={{ fontSize: "0.78rem", color: "#e53e3e", marginBottom: "10px" }}>{error}</div>
+            <div style={{ fontSize: "0.78rem", color: "#e53e3e", marginTop: "10px" }}>{error}</div>
           )}
 
-          <button className="pay-btn" type="submit" disabled={loading}>
+          {/* Pay 버튼 */}
+          <button className="pay-btn" type="submit" disabled={loading || !agreed}>
             {loading ? "Processing..." : `Pay $${totalAmountUSD.toFixed(2)}`}
           </button>
-
-          <p style={{ fontSize: "0.68rem", color: "#bbb", textAlign: "center", marginTop: "10px", lineHeight: 1.6 }}>
-            By paying, you agree to our{" "}
-            <button className="terms-link" type="button" onClick={() => setShowTerms(true)}>
-              terms & policy
-            </button>
-            .
-          </p>
         </form>
       </div>
     </>
