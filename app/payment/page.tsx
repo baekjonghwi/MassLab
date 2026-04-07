@@ -14,7 +14,7 @@ function PaymentContent() {
 
   const totalCount = Number(searchParams.get("count") || 10);
   const paymentId = searchParams.get("paymentId") || `payment-${Date.now()}`;
-  console.log("받아온 paymentId:", paymentId);  const baseAmountUSD = Math.max(5.0, totalCount * 0.15);
+  const baseAmountUSD = Math.max(5.0, totalCount * 0.15);
   const vatUSD = baseAmountUSD * 0.1;
   const totalAmountUSD = baseAmountUSD + vatUSD;
   const exchangeRate = 1350;
