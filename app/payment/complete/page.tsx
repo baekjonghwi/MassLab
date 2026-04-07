@@ -24,7 +24,7 @@ function PaymentCompleteContent() {
       try {
         // 이미 저장된 payment_id인지 확인
         const checkRes = await fetch(
-          `${SUPABASE_URL}/rest/v1/payments?payment_id=eq.${paymentId}`,
+          `${SUPABASE_URL}/rest/v1/payments?payment_id=eq.${paymentId}&status=in.(paid,used)`,
           {
             headers: {
               "apikey": SUPABASE_KEY,
