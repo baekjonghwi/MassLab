@@ -14,7 +14,7 @@ function PaymentContent() {
 
   const totalCount = Number(searchParams.get("count") || 10);
   const paymentId = searchParams.get("paymentId") || `payment-${Date.now()}`;
-  const baseAmountUSD = Math.max(5.0, totalCount * 0.15);
+  console.log("받아온 paymentId:", paymentId);  const baseAmountUSD = Math.max(5.0, totalCount * 0.15);
   const vatUSD = baseAmountUSD * 0.1;
   const totalAmountUSD = baseAmountUSD + vatUSD;
   const exchangeRate = 1350;
@@ -39,6 +39,7 @@ function PaymentContent() {
         currency: "KRW",
         payMethod: "CARD",
         customer: { email },
+        redirectUrl: `${window.location.origin}/payment/complete?paymentId=${paymentId}&email=${encodeURIComponent(email)}&count=${totalCount}`,
       });
 
       if (response?.code) {
