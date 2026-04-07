@@ -24,8 +24,8 @@ useEffect(() => {
           `https://arymzgsayptprrbdnzwd.supabase.co/rest/v1/payments?payment_id=eq.${paymentId}`,
           {
             headers: {
-              "apikey": "sb_publishable_47O2B2PfD3X_5yOX-P-cTA_wGcpaeU6",
-              "Authorization": "Bearer sb_publishable_47O2B2PfD3X_5yOX-P-cTA_wGcpaeU6",
+              "apikey": process.env.NEXT_PUBLIC_SUPABASE_KEY!,
+              "Authorization": `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_KEY}`,
             },
           }
         );
@@ -38,12 +38,12 @@ useEffect(() => {
         }
 
         // 새 결제 저장
-        await fetch("https://arymzgsayptprrbdnzwd.supabase.co/rest/v1/payments", {
+        await fetch("`${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/payments`", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "apikey": "sb_publishable_47O2B2PfD3X_5yOX-P-cTA_wGcpaeU6",
-            "Authorization": "Bearer sb_publishable_47O2B2PfD3X_5yOX-P-cTA_wGcpaeU6",
+            "apikey": process.env.NEXT_PUBLIC_SUPABASE_KEY!,
+            "Authorization": `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_KEY}`,
             "Prefer": "return=minimal",
           },
           body: JSON.stringify({
