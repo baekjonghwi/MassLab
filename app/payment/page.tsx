@@ -189,7 +189,7 @@ function PaymentContent() {
             </div>
 
             <div className="modal-section">
-              <h3>2. Country / Region</h3>
+              <h3>2. Country</h3>
               <p>We collect your country of access to understand our user base and improve the service. No personal identification is involved.</p>
             </div>
 
