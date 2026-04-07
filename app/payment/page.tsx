@@ -13,6 +13,7 @@ function PaymentContent() {
   const searchParams = useSearchParams();
 
   const totalCount = Number(searchParams.get("count") || 10);
+  const paymentId = searchParams.get("paymentId") || `payment-${Date.now()}`;
   const baseAmountUSD = Math.max(5.0, totalCount * 0.15);
   const vatUSD = baseAmountUSD * 0.1;
   const totalAmountUSD = baseAmountUSD + vatUSD;
@@ -29,8 +30,6 @@ function PaymentContent() {
     setError("");
 
     try {
-      const paymentId = `payment-${Date.now()}`;
-
       const response = await PortOne.requestPayment({
         storeId: "store-ad54a018-057e-4d48-b98f-920b6d0fa05c",
         channelKey: "channel-key-921d3c16-446e-4129-8f84-7fd884b1eb21",
