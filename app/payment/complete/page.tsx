@@ -18,6 +18,25 @@ useEffect(() => {
 
     const savePayment = async () => {
       try {
+        // 이미 저장된 payment_id인지 확인
+        const checkRes = await fetch(
+          `https://arymzgsayptprrbdnzwd.supabase.co/rest/v1/payments?payment_id=eq.${paymentId}`,
+          {
+            headers: {
+              "apikey": "sb_publishable_47O2B2PfD3X_5yOX-P-cTA_wGcpaeU6",
+              "Authorization": "Bearer sb_publishable_47O2B2PfD3X_5yOX-P-cTA_wGcpaeU6",
+            },
+          }
+        );
+        const existing = await checkRes.json();
+
+        // 이미 있는 payment_id면 실패 처리
+        if (existing.length > 0) {
+          setStatus("fail");
+          return;
+        }
+
+        // 새 결제 저장
         await fetch("https://arymzgsayptprrbdnzwd.supabase.co/rest/v1/payments", {
           method: "POST",
           headers: {
@@ -32,10 +51,12 @@ useEffect(() => {
             status: "paid",
           }),
         });
+
+        setStatus("success");
       } catch (err) {
         console.error("Failed to save payment:", err);
+        setStatus("fail");
       }
-      setStatus("success");
     };
 
     savePayment();
@@ -141,7 +162,7 @@ useEffect(() => {
         <div style={{ fontSize: "0.82rem", fontWeight: 600, marginBottom: "8px" }}>Next steps</div>
         <div style={{ fontSize: "0.78rem", color: "#666", lineHeight: 1.8 }}>
           <div>1. Return to Grasshopper</div>
-          <div>2. The drawing will generate automatically</div>
+          <div>2. The drawing will generate automatically within 1 minute</div>
           <div>3. Check your Rhino viewport for results</div>
         </div>
       </div>
