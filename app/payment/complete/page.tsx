@@ -2,6 +2,9 @@
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 
+const SUPABASE_URL = "https://arymzgsayptprrbdnzwd.supabase.co";
+const SUPABASE_KEY = "sb_publishable_47O2B2PfD3X_5yOX-P-cTA_wGcpaeU6";
+
 function PaymentCompleteContent() {
   const [status, setStatus] = useState<"loading" | "success" | "fail">("loading");
   const searchParams = useSearchParams();
@@ -11,7 +14,7 @@ function PaymentCompleteContent() {
   const email = searchParams.get("email");
   const count = searchParams.get("count");
 
-useEffect(() => {
+  useEffect(() => {
     if (!paymentId) {
       setStatus("fail");
       return;
@@ -21,11 +24,11 @@ useEffect(() => {
       try {
         // 이미 저장된 payment_id인지 확인
         const checkRes = await fetch(
-          `https://arymzgsayptprrbdnzwd.supabase.co/rest/v1/payments`,
+          `${SUPABASE_URL}/rest/v1/payments?payment_id=eq.${paymentId}`,
           {
             headers: {
-              "apikey": "sb_publishable_47O2B2PfD3X_5yOX-P-cTA_wGcpaeU6",
-              "Authorization": "Bearer sb_publishable_47O2B2PfD3X_5yOX-P-cTA_wGcpaeU6",
+              "apikey": SUPABASE_KEY,
+              "Authorization": `Bearer ${SUPABASE_KEY}`,
             },
           }
         );
@@ -38,12 +41,12 @@ useEffect(() => {
         }
 
         // 새 결제 저장
-        await fetch("`${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/payments`", {
+        await fetch(`${SUPABASE_URL}/rest/v1/payments`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "apikey": "sb_publishable_47O2B2PfD3X_5yOX-P-cTA_wGcpaeU6",
-            "Authorization": "Bearer sb_publishable_47O2B2PfD3X_5yOX-P-cTA_wGcpaeU6",
+            "apikey": SUPABASE_KEY,
+            "Authorization": `Bearer ${SUPABASE_KEY}`,
             "Prefer": "return=minimal",
           },
           body: JSON.stringify({
