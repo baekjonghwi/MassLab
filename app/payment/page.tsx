@@ -46,7 +46,7 @@ function PaymentContent() {
         setError("Payment was cancelled or failed. Please try again.");
         setLoading(false);
       } else {
-        router.push(`/payment/complete?paymentId=${paymentId}&email=${encodeURIComponent(email)}`);
+        router.push(`/payment/complete?paymentId=${paymentId}&email=${encodeURIComponent(email)}&count=${totalCount}`);
       }
     } catch (err) {
       setError("An error occurred during payment. Please try again.");

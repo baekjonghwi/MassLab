@@ -9,6 +9,7 @@ function PaymentCompleteContent() {
 
   const paymentId = searchParams.get("paymentId");
   const email = searchParams.get("email");
+  const count = searchParams.get("count");
 
 useEffect(() => {
     if (!paymentId) {
@@ -48,6 +49,7 @@ useEffect(() => {
           body: JSON.stringify({
             payment_id: paymentId,
             email: email,
+            count: count ? Number(count) : null,
             status: "paid",
           }),
         });
