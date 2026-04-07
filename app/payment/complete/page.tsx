@@ -10,12 +10,35 @@ function PaymentCompleteContent() {
   const paymentId = searchParams.get("paymentId");
   const email = searchParams.get("email");
 
-  useEffect(() => {
+useEffect(() => {
     if (!paymentId) {
       setStatus("fail");
       return;
     }
-    setStatus("success");
+
+    const savePayment = async () => {
+      try {
+        await fetch("https://arymzgsayptprrbdnzwd.supabase.co/rest/v1/payments", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "apikey": "sb_publishable_47O2B2PfD3X_5yOX-P-cTA_wGcpaeU6",
+            "Authorization": "Bearer sb_publishable_47O2B2PfD3X_5yOX-P-cTA_wGcpaeU6",
+            "Prefer": "return=minimal",
+          },
+          body: JSON.stringify({
+            payment_id: paymentId,
+            email: email,
+            status: "paid",
+          }),
+        });
+      } catch (err) {
+        console.error("Failed to save payment:", err);
+      }
+      setStatus("success");
+    };
+
+    savePayment();
   }, [paymentId]);
 
   if (status === "loading") {
