@@ -22,44 +22,23 @@ function PaymentCompleteContent() {
 
     const savePayment = async () => {
       try {
-        // 이미 저장된 payment_id인지 확인
-        const checkRes = await fetch(
-          `${SUPABASE_URL}/rest/v1/payments?payment_id=eq.${paymentId}&status=in.(paid,used)`,
-          {
-            headers: {
-              "apikey": SUPABASE_KEY,
-              "Authorization": `Bearer ${SUPABASE_KEY}`,
-            },
-          }
-        );
-        const existing = await checkRes.json();
+        // 포트원으로 결제 검증
+        const verifyRes = await fetch("/api/verify-payment", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ paymentId }),
+        });
 
-        // 이미 있는 payment_id면 실패 처리
-        if (existing.length > 0) {
+        const verifyData = await verifyRes.json();
+
+        if (!verifyData.success) {
           setStatus("fail");
           return;
         }
 
-        // 새 결제 저장
-        await fetch(`${SUPABASE_URL}/rest/v1/payments`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "apikey": SUPABASE_KEY,
-            "Authorization": `Bearer ${SUPABASE_KEY}`,
-            "Prefer": "return=minimal",
-          },
-          body: JSON.stringify({
-            payment_id: paymentId,
-            email: email,
-            count: count ? Number(count) : null,
-            status: "paid",
-          }),
-        });
-
         setStatus("success");
       } catch (err) {
-        console.error("Failed to save payment:", err);
+        console.error("Failed to verify payment:", err);
         setStatus("fail");
       }
     };
