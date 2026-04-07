@@ -40,12 +40,13 @@ function PaymentContent() {
         currency: "KRW",
         payMethod: "CARD",
         customer: { email },
-        redirectUrl: `${window.location.origin}/payment/complete?paymentId=${paymentId}&email=${encodeURIComponent(email)}`,
       });
 
       if (response?.code) {
         setError("Payment was cancelled or failed. Please try again.");
         setLoading(false);
+      } else {
+        router.push(`/payment/complete?paymentId=${paymentId}&email=${encodeURIComponent(email)}`);
       }
     } catch (err) {
       setError("An error occurred during payment. Please try again.");
