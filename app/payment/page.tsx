@@ -184,17 +184,10 @@ function PaymentContent() {
             </h2>
 
             <div className="modal-section">
-              <h3>1. Email</h3>
-              <p>Your email is collected solely to send a payment receipt. It will be permanently deleted after 30 days.</p>
+              <p>Basic payment records are retained to process your transaction and provide support if needed. In the event of a refund request, payment records will be used to verify and process the refund.</p>
             </div>
 
             <div className="modal-section">
-              <h3>2. Country</h3>
-              <p>We collect your country of access to understand our user base and improve the service. No personal identification is involved.</p>
-            </div>
-
-            <div className="modal-section">
-              <h3>3. Generated Output Data</h3>
               <p>Anonymized geometry output data may be collected to improve the tool's accuracy and performance. This data contains no personal information.</p>
             </div>
 
