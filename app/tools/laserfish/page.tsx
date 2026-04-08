@@ -118,9 +118,9 @@ export default function LaserFishPage() {
           justifyContent: "center",
           overflow: "hidden",
           // 이미지 준비되면:
-          backgroundImage: "url(/images/LaserFish_Main.png)",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
+          //backgroundImage: "url(/images/LaserFish_Main.png)",
+          //backgroundSize: "cover",
+          //backgroundPosition: "center",
         }}>
           <span style={{ opacity: 0.2, fontSize: "0.75rem", letterSpacing: "0.1em", textTransform: "uppercase" }}>
             image
