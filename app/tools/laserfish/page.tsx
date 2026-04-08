@@ -171,11 +171,14 @@ export default function LaserFishPage() {
             <p style={{ marginBottom: "12px" }}>
                 <strong style={{ color: "#1a1a1a" }}>2.</strong> Enter the scale and material size in the panel.
             </p>
+            <p style={{ marginBottom: "12px", color: "#888", fontSize: "0.85rem" }}>
+              ** Please set the slab thickness to the same ratio as the original **
+            </p>
             <p style={{ marginBottom: "12px" }}>
                 <strong style={{ color: "#1a1a1a" }}>3.</strong> Double-click the toggle to set it to true.
             </p>
             <p>
-                <strong style={{ color: "#1a1a1a" }}>4.</strong> Wait 30 seconds to 1 minute for the drawings to generate.
+                <strong style={{ color: "#1a1a1a" }}>4.</strong> Wait few minute for the drawings to generate.
             </p>
             </div>
 
@@ -196,7 +199,7 @@ export default function LaserFishPage() {
                   <polyline points="7 10 12 15 17 10"/>
                   <line x1="12" y1="15" x2="12" y2="3"/>
                 </svg>
-                Rhino 8 version
+                Rhino 8 version(win)
               </a>
 
               {/* Rhino 7 - 비활성 */}
