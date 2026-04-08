@@ -209,11 +209,10 @@ export default function Home() {
               <div style={{
                 width: "100%",
                 aspectRatio: "4/3",
-                background: "#e0e0e0",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                backgroundImage: "url(public/images/LaserFish_Main.png)",
+                backgroundImage: "url(/images/LaserFish_Main.png)",
                 backgroundSize: "cover",
               }}>
                 <span style={{ fontSize: "0.6rem", opacity: 0.3, letterSpacing: "0.08em", textTransform: "uppercase" }}>
