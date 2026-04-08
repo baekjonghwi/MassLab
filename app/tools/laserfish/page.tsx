@@ -1,8 +1,54 @@
 "use client";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+
+const slides = [
+  {
+    title: "LaserFish",
+    subtitle: "Output",
+    src: "/images/laserFish_slide_1.jpg"
+  },
+  {
+    title: "LaserFish",
+    subtitle: "Wall Drawings",
+    src: "/images/laserFish_slide_2.jpg"
+  },
+  {
+    title: "LaserFish",
+    subtitle: "Slab Drawings",
+    src: "/images/laserFish_slide_3.jpg"
+  },
+  {
+    title: "LaserFish",
+    subtitle: "Before & After",
+    src: "/images/laserFish_slide_4.jpg"
+  },
+];
 
 export default function LaserFishPage() {
   const router = useRouter();
+  const [current, setCurrent] = useState(0);
+  const [fading, setFading] = useState(false);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setFading(true);
+      setTimeout(() => {
+        setCurrent((prev) => (prev + 1) % slides.length);
+        setFading(false);
+      }, 400);
+    }, 3500);
+    return () => clearInterval(timer);
+  }, []);
+
+  const goTo = (i: number) => {
+    if (i === current) return;
+    setFading(true);
+    setTimeout(() => {
+      setCurrent(i);
+      setFading(false);
+    }, 400);
+  };
 
   return (
     <main style={{
@@ -13,6 +59,24 @@ export default function LaserFishPage() {
     }}>
       <style>{`
         * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        .fade {
+          transition: opacity 0.4s ease;
+        }
+        .fade.out { opacity: 0; }
+        .fade.in { opacity: 1; }
+
+        .dot {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: rgba(0,0,0,0.25);
+          cursor: pointer;
+          transition: background 0.2s;
+          border: none;
+          padding: 0;
+        }
+        .dot.active { background: #1a1a1a; }
 
         .download-btn {
           display: flex;
@@ -106,25 +170,65 @@ export default function LaserFishPage() {
           </p>
         </div>
 
-        {/* 메인 이미지 */}
+        {/* 메인 슬라이더 */}
         <div style={{
           width: "100%",
-          aspectRatio: "16/7",
-          background: "#f0f0f0",
+          aspectRatio: "16/9",
           borderRadius: "14px",
           marginBottom: "64px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
           overflow: "hidden",
-          // 이미지 준비되면:
-          //backgroundImage: "url(/images/LaserFish_Main.png)",
-          //backgroundSize: "cover",
-          //backgroundPosition: "center",
+          position: "relative",
+          background: "#f0f0f0",
         }}>
-          <span style={{ opacity: 0.2, fontSize: "0.75rem", letterSpacing: "0.1em", textTransform: "uppercase" }}>
-            image
-          </span>
+          {/* 배경 */}
+          <div
+            className={`fade ${fading ? "out" : "in"}`}
+            style={{
+              position: "absolute",
+              inset: 0,
+              backgroundImage: `url(${slides[current].src})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }}
+          />
+
+          {/* 텍스트 오버레이 */}
+          <div
+            className={`fade ${fading ? "out" : "in"}`}
+            style={{
+              position: "absolute",
+              bottom: 0,
+              left: 0,
+              right: 0,
+              padding: "48px 28px 20px",
+              background: "linear-gradient(transparent, rgba(0,0,0,0.15))",
+            }}
+          >
+            <div style={{ fontSize: "1rem", fontWeight: 600, color: "#1a1a1a" }}>
+              {slides[current].title}
+            </div>
+            <div style={{ fontSize: "0.82rem", color: "#555" }}>
+              {slides[current].subtitle}
+            </div>
+          </div>
+
+          {/* 도트 인디케이터 */}
+          <div style={{
+            position: "absolute",
+            bottom: "14px",
+            right: "18px",
+            display: "flex",
+            gap: "5px",
+            zIndex: 2,
+          }}>
+            {slides.map((_, i) => (
+              <button
+                key={i}
+                className={`dot${i === current ? " active" : ""}`}
+                onClick={() => goTo(i)}
+              />
+            ))}
+          </div>
         </div>
 
         {/* 2단 레이아웃 */}
@@ -142,20 +246,6 @@ export default function LaserFishPage() {
               Tutorial
             </h2>
             <div className="youtube-embed">
-              {/* 유튜브 링크 준비되면 아래 주석 해제 */}
-              {/* <iframe
-                width="100%"
-                height="100%"
-                src="https://www.youtube.com/embed/YOUR_VIDEO_ID"
-                title="LaserFish Tutorial"
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              /> */}
-              <div style={{ textAlign: "center" }}>
-                <div style={{ fontSize: "2rem", marginBottom: "8px" }}>▶</div>
-                <div style={{ fontSize: "0.78rem", color: "#aaa" }}>유튜브 링크 준비 중</div>
-              </div>
             </div>
           </div>
 
