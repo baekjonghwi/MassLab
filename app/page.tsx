@@ -213,8 +213,8 @@ export default function Home() {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                // backgroundImage: "url(/images/laserfish-thumb.jpg)",
-                // backgroundSize: "cover",
+                backgroundImage: "url(public/images/LaserFish_Main.png)",
+                backgroundSize: "cover",
               }}>
                 <span style={{ fontSize: "0.6rem", opacity: 0.3, letterSpacing: "0.08em", textTransform: "uppercase" }}>
                   image
