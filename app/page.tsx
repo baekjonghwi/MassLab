@@ -215,9 +215,7 @@ export default function Home() {
                 backgroundImage: "url(/images/LaserFish_Main.png)",
                 backgroundSize: "cover",
               }}>
-                <span style={{ fontSize: "0.6rem", opacity: 0.3, letterSpacing: "0.08em", textTransform: "uppercase" }}>
-                  image
-                </span>
+
               </div>
               <div style={{ padding: "11px 13px 13px" }}>
                 <div style={{ fontSize: "0.9rem", fontWeight: 600, marginBottom: "3px" }}>
@@ -243,26 +241,26 @@ export default function Home() {
                 MassLab
               </div>
               <div style={{ fontSize: "0.72rem", color: "#bbb", lineHeight: 2 }}>
-                <div>Instagram :</div>
-                <div>Youtube :</div>
+                <div>Instagram : masslab_arch</div>
+                <div>Youtube : @MassLab-d8c</div>
               </div>
             </div>
 
             {/* 소셜 아이콘 */}
             <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
-              <button className="social-btn">
+              <a href="https://www.instagram.com/masslab_arch/" target="_blank" className="social-btn">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#333" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="2" y="2" width="20" height="20" rx="5"/>
                   <circle cx="12" cy="12" r="4"/>
                   <circle cx="17.5" cy="6.5" r="0.8" fill="#333" stroke="none"/>
                 </svg>
-              </button>
-              <button className="social-btn">
+              </a>
+              <a href="https://www.youtube.com/@MassLab-d8c" target="_blank" className="social-btn">
                 <svg width="13" height="13" viewBox="0 0 24 24">
                   <path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 0 0-1.95 1.96A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58A2.78 2.78 0 0 0 3.41 19.6C5.12 20 12 20 12 20s6.88 0 8.59-.4a2.78 2.78 0 0 0 1.95-1.95A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z" fill="#FF0000"/>
                   <polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="white"/>
                 </svg>
-              </button>
+              </a>
             </div>
           </div>
         </footer>
