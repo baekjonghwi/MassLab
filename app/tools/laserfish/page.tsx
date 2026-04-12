@@ -23,6 +23,11 @@ const slides = [
     subtitle: "Before & After",
     src: "/images/laserFish_slide_4.jpg"
   },
+  {
+    title: "LaserFish",
+    subtitle: "components",
+    src: "/images/laserFish_slide_5.png"
+  },
 ];
 
 export default function LaserFishPage() {
@@ -37,7 +42,7 @@ export default function LaserFishPage() {
         setCurrent((prev) => (prev + 1) % slides.length);
         setFading(false);
       }, 400);
-    }, 3500);
+    }, 5000);
     return () => clearInterval(timer);
   }, []);
 
@@ -173,10 +178,9 @@ export default function LaserFishPage() {
         {/* 메인 슬라이더 */}
         <div style={{
           width: "100%",
-          aspectRatio: "16/9",
+          paddingTop: "56.25%",
           borderRadius: "14px",
           marginBottom: "64px",
-          overflow: "hidden",
           position: "relative",
           background: "#f0f0f0",
         }}>
@@ -189,6 +193,8 @@ export default function LaserFishPage() {
               backgroundImage: `url(${slides[current].src})`,
               backgroundSize: "cover",
               backgroundPosition: "center",
+              borderRadius: "14px",
+              overflow: "hidden",
             }}
           />
 
@@ -212,6 +218,60 @@ export default function LaserFishPage() {
             </div>
           </div>
 
+          {/* 왼쪽 화살표 */}
+          <button
+            onClick={() => goTo((current - 1 + slides.length) % slides.length)}
+            style={{
+              position: "absolute",
+              left: "16px",
+              top: "calc(50% - 18px)",
+              zIndex: 2,
+              background: "rgba(255,255,255,0.7)",
+              border: "none",
+              borderRadius: "50%",
+              width: "36px",
+              height: "36px",
+              cursor: "pointer",
+              padding: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              backdropFilter: "blur(4px)",
+              transition: "background 0.2s",
+            }}
+            onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.95)")}
+            onMouseLeave={e => (e.currentTarget.style.background = "rgba(255,255,255,0.7)")}
+          >
+            <svg width="10" height="16" viewBox="0 0 10 16" fill="none"><polyline points="8,2 2,8 8,14" stroke="#333" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </button>
+
+          {/* 오른쪽 화살표 */}
+          <button
+            onClick={() => goTo((current + 1) % slides.length)}
+            style={{
+              position: "absolute",
+              right: "16px",
+              top: "calc(50% - 18px)",
+              zIndex: 2,
+              background: "rgba(255,255,255,0.7)",
+              border: "none",
+              borderRadius: "50%",
+              width: "36px",
+              height: "36px",
+              cursor: "pointer",
+              padding: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              backdropFilter: "blur(4px)",
+              transition: "background 0.2s",
+            }}
+            onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.95)")}
+            onMouseLeave={e => (e.currentTarget.style.background = "rgba(255,255,255,0.7)")}
+          >
+            <svg width="10" height="16" viewBox="0 0 10 16" fill="none"><polyline points="2,2 8,8 2,14" stroke="#333" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </button>
+
           {/* 도트 인디케이터 */}
           <div style={{
             position: "absolute",
@@ -231,12 +291,12 @@ export default function LaserFishPage() {
           </div>
         </div>
 
-        {/* 2단 레이아웃 */}
+{/* 2단 레이아웃 - Tutorial + Download */}
         <div style={{
           display: "grid",
           gridTemplateColumns: "1fr 1fr",
           gap: "64px",
-          marginBottom: "64px",
+          marginBottom: "80px",
           alignItems: "start",
         }}>
 
@@ -249,50 +309,20 @@ export default function LaserFishPage() {
             </div>
           </div>
 
-          {/* 오른쪽: 소개 + 다운로드 */}
+          {/* 오른쪽: 다운로드 */}
           <div>
-            <h2 style={{ fontSize: "1.1rem", fontWeight: 600, marginBottom: "16px", letterSpacing: "-0.01em" }}>
-              How to Use
-            </h2>
-            <div style={{ fontSize: "0.88rem", color: "#555", lineHeight: 1.8, marginBottom: "32px" }}>
-            <p style={{ marginBottom: "12px" }}>
-                <strong style={{ color: "#1a1a1a" }}>1.</strong> Connect your Brep geometry to the input.
-            </p>
-            <p style={{ marginBottom: "12px" }}>
-                <strong style={{ color: "#1a1a1a" }}>2.</strong> Enter the scale and material size in the panel.
-            </p>
-            <p style={{ marginBottom: "12px", color: "#888", fontSize: "0.85rem" }}>
-              ** Please set the slab thickness to the same ratio as the original **
-            </p>
-            <p style={{ marginBottom: "12px" }}>
-                <strong style={{ color: "#1a1a1a" }}>3.</strong> Double-click the toggle to set it to true.
-            </p>
-            <p>
-                <strong style={{ color: "#1a1a1a" }}>4.</strong> Wait few minute for the drawings to generate.
-            </p>
-            </div>
-
-            {/* 다운로드 */}
             <h2 style={{ fontSize: "1.1rem", fontWeight: 600, marginBottom: "16px", letterSpacing: "-0.01em" }}>
               Download
             </h2>
             <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-
-              {/* Rhino 8 - 활성 */}
-              <a
-                className="download-btn active"
-                href="/downloads/LaserFish_Rh8.gha"
-                download
-              >
+              <a className="download-btn active" href="/downloads/LaserFish_Rh8.gha" download>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                   <polyline points="7 10 12 15 17 10"/>
                   <line x1="12" y1="15" x2="12" y2="3"/>
                 </svg>
-                Rhino 8 version(win)
+                Rhino 8 version (win)
               </a>
-
-              {/* Rhino 7 - 비활성 */}
               <div className="download-btn disabled">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
@@ -301,8 +331,6 @@ export default function LaserFishPage() {
                 </svg>
                 Rhino 7 version - preparing
               </div>
-
-              {/* SketchUp - 비활성 */}
               <div className="download-btn disabled">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
@@ -311,8 +339,70 @@ export default function LaserFishPage() {
                 </svg>
                 SketchUp version - preparing
               </div>
-
             </div>
+          </div>
+        </div>
+
+        {/* How to Use 섹션 */}
+        <div style={{ marginBottom: "80px" }}>
+          <h2 style={{ fontSize: "1.1rem", fontWeight: 600, marginBottom: "32px", letterSpacing: "-0.01em" }}>
+            How to Use
+          </h2>
+
+          {/* 사진 자리 */}
+          <div style={{
+            width: "100%",
+            aspectRatio: "16/9",
+            borderRadius: "12px",
+            background: "#f0f0f0",
+            marginBottom: "28px",
+          }} />
+
+          {/* 설명 */}
+          <div style={{ fontSize: "0.88rem", color: "#555", lineHeight: 1.9 }}>
+            <p style={{ }}>
+              <strong style={{ color: "#1a1a1a" }}>1.</strong> Connect your Brep geometry to the input.
+            </p>
+            <p style={{ marginBottom: "10px", color: "#888", fontSize: "0.85rem" }}>
+              ** wall_1, wall_2, and window must be vertical to the XY plane. Slab must be horizontal to the XY plane **
+            </p>
+            <p style={{ }}>
+              <strong style={{ color: "#1a1a1a" }}>2.</strong> Enter the scale and curve distance, material size in the panel.
+            </p>
+            <p style={{ color: "#888", fontSize: "0.85rem" }}>
+              ** Please set the slab thickness to the same ratio as the original **
+            </p>
+            <p style={{ marginBottom: "10px", color: "#888", fontSize: "0.85rem" }}>
+              ** Curve Distance is the interval angle of curved surfaces. If there are no curved surfaces in your model, you can leave it as is **
+            </p>
+            <p style={{ marginBottom: "10px" }}>
+              <strong style={{ color: "#1a1a1a" }}>3.</strong> Double-click the toggle to set it to true.
+            </p>
+            <p>
+              <strong style={{ color: "#1a1a1a" }}>4.</strong> Wait a few minutes for the drawings to generate.
+            </p>
+          </div>
+        </div>
+
+        {/* Be Careful 섹션 */}
+        <div style={{
+          borderTop: "1px solid #eee",
+          paddingTop: "48px",
+          marginBottom: "80px",
+        }}>
+          <h2 style={{ fontSize: "1.1rem", fontWeight: 600, marginBottom: "20px", letterSpacing: "-0.01em" }}>
+            Be Careful
+          </h2>
+          <div style={{ fontSize: "0.88rem", color: "#555", lineHeight: 1.9 }}>
+            <p style={{ marginBottom: "10px" }}>
+              • Fields marked with ** in the add-on are required inputs.
+            </p>
+            <p style={{ marginBottom: "10px" }}>
+              • Breps must be joined together to be recognized as a single connected geometry. If they are touching but not boolean-unioned, they will be treated as separate objects.
+            </p>
+            <p>
+              • Results may not be perfect due to the condition of your model or geometry errors in Rhino. Please keep this in mind when reviewing the output.
+            </p>
           </div>
         </div>
 

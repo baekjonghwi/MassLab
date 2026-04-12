@@ -6,18 +6,18 @@ const slides = [
   {
     title: "LaserFish",
     subtitle: "Wall & Slab",
-    // src: "/images/slide1.jpg"
+    src: "/images/laserFish_mainslide_1.jpg"
+  },
+  {
+    title: "LaserFish",
+    subtitle: "Wall & Slab",
+    src: "/images/laserFish_slide_1.jpg"
   },
   {
     title: "LaserFish",
     subtitle: "Wall",
-    // src: "/images/slide2.jpg"
+    src: "/images/laserFish_slide_4.jpg"
   },
-  // {
-  //   title: "LaserFish",
-  //   subtitle: "Cut Drawing",
-  //    src: "/images/slide3.jpg"
-  // },
 ];
 
 export default function Home() {
@@ -32,7 +32,7 @@ export default function Home() {
         setCurrent((prev) => (prev + 1) % slides.length);
         setFading(false);
       }, 400);
-    }, 3500);
+    }, 5000);
     return () => clearInterval(timer);
   }, []);
 
@@ -146,10 +146,9 @@ export default function Home() {
               style={{
                 position: "absolute",
                 inset: 0,
-                background: "#e4e4e0",
-                // backgroundImage: `url(${slides[current].src})`,
-                // backgroundSize: "cover",
-                // backgroundPosition: "center",
+                backgroundImage: `url(${slides[current].src})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
               }}
             />
 
@@ -172,6 +171,60 @@ export default function Home() {
                 {slides[current].subtitle}
               </div>
             </div>
+
+            {/* 왼쪽 화살표 */}
+            <button
+              onClick={() => goTo((current - 1 + slides.length) % slides.length)}
+              style={{
+                position: "absolute",
+                left: "16px",
+                top: "calc(50% - 18px)",
+                zIndex: 2,
+                background: "rgba(255,255,255,0.7)",
+                border: "none",
+                borderRadius: "50%",
+                width: "36px",
+                height: "36px",
+                cursor: "pointer",
+                padding: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                backdropFilter: "blur(4px)",
+                transition: "background 0.2s",
+              }}
+              onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.95)")}
+              onMouseLeave={e => (e.currentTarget.style.background = "rgba(255,255,255,0.7)")}
+            >
+              <svg width="10" height="16" viewBox="0 0 10 16" fill="none"><polyline points="8,2 2,8 8,14" stroke="#333" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            </button>
+
+            {/* 오른쪽 화살표 */}
+            <button
+              onClick={() => goTo((current + 1) % slides.length)}
+              style={{
+                position: "absolute",
+                right: "16px",
+                top: "calc(50% - 18px)",
+                zIndex: 2,
+                background: "rgba(255,255,255,0.7)",
+                border: "none",
+                borderRadius: "50%",
+                width: "36px",
+                height: "36px",
+                cursor: "pointer",
+                padding: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                backdropFilter: "blur(4px)",
+                transition: "background 0.2s",
+              }}
+              onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.95)")}
+              onMouseLeave={e => (e.currentTarget.style.background = "rgba(255,255,255,0.7)")}
+            >
+              <svg width="10" height="16" viewBox="0 0 10 16" fill="none"><polyline points="2,2 8,8 2,14" stroke="#333" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            </button>
 
             {/* 도트 인디케이터 */}
             <div style={{

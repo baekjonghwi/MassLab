@@ -1,5 +1,5 @@
 "use client";
-import { useState, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import * as PortOne from "@portone/browser-sdk/v2";
 
@@ -9,16 +9,23 @@ function PaymentContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showTerms, setShowTerms] = useState(false);
+  const [exchangeRate, setExchangeRate] = useState<number | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const totalCount = Number(searchParams.get("count") || 10);
   const paymentId = searchParams.get("paymentId") || `payment-${Date.now()}`;
-  const baseAmountUSD = Math.max(5.0, totalCount * 0.15);
+  const baseAmountUSD = Math.max(5.0, totalCount * 0.1);
   const vatUSD = baseAmountUSD * 0.1;
   const totalAmountUSD = baseAmountUSD + vatUSD;
-  const exchangeRate = 1350;
-  const totalAmountKRW = Math.round(totalAmountUSD * exchangeRate);
+  const totalAmountKRW = exchangeRate ? Math.round(totalAmountUSD * exchangeRate) : null;
+
+  useEffect(() => {
+    fetch("/api/exchange-rate")
+      .then((r) => r.json())
+      .then((d) => setExchangeRate(d.rate))
+      .catch(() => setExchangeRate(1500));
+  }, []);
 
   const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,7 +42,7 @@ function PaymentContent() {
         channelKey: "channel-key-921d3c16-446e-4129-8f84-7fd884b1eb21",
         paymentId,
         orderName: `LaserFish Drawing`,
-        totalAmount: totalAmountKRW,
+        totalAmount: totalAmountKRW!,
         currency: "KRW",
         payMethod: "CARD",
         customer: { email },
@@ -291,7 +298,7 @@ function PaymentContent() {
           )}
 
           {/* Pay 버튼 */}
-          <button className="pay-btn" type="submit" disabled={loading || !agreed}>
+          <button className="pay-btn" type="submit" disabled={loading || !agreed || !totalAmountKRW}>
             {loading ? "Processing..." : `Pay $${totalAmountUSD.toFixed(2)}`}
           </button>
         </form>
