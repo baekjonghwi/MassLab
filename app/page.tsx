@@ -123,7 +123,7 @@ export default function Home() {
         margin: "0 auto",
       }}>
         <span style={{ fontSize: "1.2rem", fontWeight: 700, letterSpacing: "-0.01em" }}>
-          MassLab
+          MassLabs
         </span>
       </nav>
 
@@ -291,7 +291,7 @@ export default function Home() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <div>
               <div style={{ fontSize: "0.88rem", fontWeight: 700, marginBottom: "8px" }}>
-                MassLab
+                MassLabs
               </div>
               <div style={{ fontSize: "0.72rem", color: "#bbb", lineHeight: 2 }}>
                 <div>Instagram : masslab_arch</div>
