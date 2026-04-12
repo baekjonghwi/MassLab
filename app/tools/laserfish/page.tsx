@@ -150,7 +150,7 @@ export default function LaserFishPage() {
         margin: "0 auto",
       }}>
         <button className="back-btn" onClick={() => router.push("/")}>
-          ← MassLab
+          ← MassLabs
         </button>
         <span style={{ fontSize: "0.88rem", color: "#bbb" }}>LaserFish</span>
       </nav>
@@ -314,6 +314,11 @@ export default function LaserFishPage() {
             <h2 style={{ fontSize: "1.1rem", fontWeight: 600, marginBottom: "16px", letterSpacing: "-0.01em" }}>
               Download
             </h2>
+            <div style={{ marginBottom: "20px", padding: "16px 20px", background: "#f8f8f8", borderRadius: "10px" }}>
+              <p style={{ fontSize: "0.82rem", color: "#888", marginBottom: "4px" }}>Pricing</p>
+              <p style={{ fontSize: "1.2rem", fontWeight: 700, color: "#1a1a1a" }}>$0.10 <span style={{ fontSize: "0.82rem", fontWeight: 400, color: "#888" }}>/ piece</span></p>
+              <p style={{ fontSize: "0.78rem", color: "#aaa", marginTop: "4px" }}>Minimum $5.00 per order</p>
+            </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
               <a className="download-btn active" href="/downloads/LaserFish_Rh8.gha" download>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
