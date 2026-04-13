@@ -294,6 +294,7 @@ export default function Home() {
                 MassLabs
               </div>
               <div style={{ fontSize: "0.72rem", color: "#bbb", lineHeight: 2 }}>
+                <div>Gmail : masslabs.archi@gmail.com</div>
                 <div>Instagram : masslab_arch</div>
                 <div>Youtube : @MassLab-d8c</div>
               </div>
