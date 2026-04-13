@@ -290,10 +290,10 @@ export default function Home() {
         }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <div>
-              <div style={{ fontSize: "0.88rem", fontWeight: 700, marginBottom: "8px" }}>
+              <div style={{ fontSize: "0.88rem", fontWeight: 700, marginBottom: "3px" }}>
                 MassLabs
               </div>
-              <div style={{ fontSize: "0.72rem", color: "#bbb", lineHeight: 2 }}>
+              <div style={{ fontSize: "0.72rem", color: "#bbb", lineHeight: 1.5 }}>
                 <div>Gmail : masslabs.archi@gmail.com</div>
                 <div>Instagram : masslab_arch</div>
                 <div>Youtube : @MassLab-d8c</div>

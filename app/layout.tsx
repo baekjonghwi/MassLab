@@ -39,6 +39,11 @@ export default function RootLayout({
           fontFamily: "-apple-system, 'Helvetica Neue', sans-serif",
         }}>
           <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
+            {/* 사업자 정보 */}
+            <div style={{ fontSize: "0.72rem", color: "#999", lineHeight: 1.7, marginBottom: "20px" }}>
+              <p>상호명: MassLabs &nbsp;|&nbsp; 대표자: Baek Jonghwi &nbsp;|&nbsp; 사업자등록번호: 895-34-01789</p>
+              <p>주소: 서울특별시 성북구 정릉로8가길 12, 401호 &nbsp;|&nbsp; 전화: 070-8144-5867 &nbsp;|&nbsp; 이메일: masslabs.archi@gmail.com</p>
+            </div>
             {/* 정책 링크 */}
             <div style={{ display: "flex", gap: "24px", fontSize: "0.78rem" }}>
               <Link href="/policy/contact" style={{ color: "#666", textDecoration: "none" }}>Contact</Link>

@@ -1,6 +1,31 @@
+"use client";
+import { useRouter } from "next/navigation";
+
 export default function TermsAndPolicyPage() {
+  const router = useRouter();
+
   return (
     <main style={{ fontFamily: "-apple-system, 'Helvetica Neue', sans-serif", maxWidth: "800px", margin: "0 auto", padding: "60px 48px 80px" }}>
+
+      <button
+        onClick={() => router.back()}
+        style={{
+          background: "none",
+          border: "none",
+          fontSize: "0.82rem",
+          color: "#888",
+          cursor: "pointer",
+          fontFamily: "inherit",
+          display: "flex",
+          alignItems: "center",
+          gap: "4px",
+          padding: "0",
+          marginBottom: "40px",
+        }}
+      >
+        ← Back
+      </button>
+
       <h1 style={{ fontSize: "1.5rem", fontWeight: 700, marginBottom: "40px" }}>이용약관 및 환불정책</h1>
 
       <section style={{ marginBottom: "32px" }}>
