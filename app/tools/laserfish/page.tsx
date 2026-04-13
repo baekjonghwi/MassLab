@@ -22,12 +22,7 @@ const slides = [
     title: "LaserFish",
     subtitle: "Before & After",
     src: "/images/laserFish_slide_4.jpg"
-  },
-  {
-    title: "LaserFish",
-    subtitle: "components",
-    src: "/images/laserFish_slide_5.png"
-  },
+  }
 ];
 
 export default function LaserFishPage() {
@@ -317,7 +312,9 @@ export default function LaserFishPage() {
             <div style={{ marginBottom: "20px", padding: "16px 20px", background: "#f8f8f8", borderRadius: "10px" }}>
               <p style={{ fontSize: "0.82rem", color: "#888", marginBottom: "4px" }}>Pricing</p>
               <p style={{ fontSize: "1.2rem", fontWeight: 700, color: "#1a1a1a" }}>$0.10 <span style={{ fontSize: "0.82rem", fontWeight: 400, color: "#888" }}>/ piece</span></p>
+              <p style={{ fontSize: "0.78rem", color: "#aaa", marginTop: "2px" }}>150원 / 조각당</p>
               <p style={{ fontSize: "0.78rem", color: "#aaa", marginTop: "4px" }}>Minimum $5.00 per order</p>
+              <p style={{ fontSize: "0.78rem", color: "#aaa", marginTop: "8px" }}>Available immediately after purchase · 구매 후 즉시 사용 가능</p>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
               <a className="download-btn active" href="/downloads/LaserFish_Rh8.gha" download>
@@ -354,14 +351,18 @@ export default function LaserFishPage() {
             How to Use
           </h2>
 
-          {/* 사진 자리 */}
-          <div style={{
-            width: "100%",
-            aspectRatio: "16/9",
-            borderRadius: "12px",
-            background: "#f0f0f0",
-            marginBottom: "28px",
-          }} />
+          {/* 사진 */}
+          <img
+            src="/images/laserFish_wall&slab.png"
+            alt="LaserFish Wall & Slab"
+            style={{
+              width: "100%",
+              aspectRatio: "16/9",
+              borderRadius: "12px",
+              marginBottom: "28px",
+              objectFit: "cover",
+            }}
+          />
 
           {/* 설명 */}
           <div style={{ fontSize: "0.88rem", color: "#555", lineHeight: 1.9 }}>
