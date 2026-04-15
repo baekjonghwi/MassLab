@@ -29,6 +29,18 @@ export default function LaserFishPage() {
   const router = useRouter();
   const [current, setCurrent] = useState(0);
   const [fading, setFading] = useState(false);
+  const [krwPrice, setKrwPrice] = useState<number | null>(null);
+
+  useEffect(() => {
+    fetch("https://open.er-api.com/v6/latest/USD")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.rates?.KRW) {
+          setKrwPrice(Math.round(data.rates.KRW * 0.1));
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -312,7 +324,7 @@ export default function LaserFishPage() {
             <div style={{ marginBottom: "20px", padding: "16px 20px", background: "#f8f8f8", borderRadius: "10px" }}>
               <p style={{ fontSize: "0.82rem", color: "#888", marginBottom: "4px" }}>Pricing</p>
               <p style={{ fontSize: "1.2rem", fontWeight: 700, color: "#1a1a1a" }}>$0.10 <span style={{ fontSize: "0.82rem", fontWeight: 400, color: "#888" }}>/ piece</span></p>
-              <p style={{ fontSize: "0.78rem", color: "#aaa", marginTop: "2px" }}>150원 / 조각당</p>
+              <p style={{ fontSize: "0.78rem", color: "#aaa", marginTop: "2px" }}>{krwPrice != null ? `${krwPrice.toLocaleString()}원 / 조각당` : "...원 / 조각당"}</p>
               <p style={{ fontSize: "0.78rem", color: "#aaa", marginTop: "4px" }}>Minimum $5.00 per order</p>
               <p style={{ fontSize: "0.78rem", color: "#aaa", marginTop: "8px" }}>Available immediately after purchase · 구매 후 즉시 사용 가능</p>
             </div>
@@ -323,7 +335,7 @@ export default function LaserFishPage() {
                   <polyline points="7 10 12 15 17 10"/>
                   <line x1="12" y1="15" x2="12" y2="3"/>
                 </svg>
-                Rhino 8 version (win)
+                Rhino 8 (win)
               </a>
               <div className="download-btn disabled">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -331,7 +343,7 @@ export default function LaserFishPage() {
                   <polyline points="7 10 12 15 17 10"/>
                   <line x1="12" y1="15" x2="12" y2="3"/>
                 </svg>
-                Rhino 7 version - preparing
+                Rhino 8 (mac)
               </div>
               <div className="download-btn disabled">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -339,7 +351,7 @@ export default function LaserFishPage() {
                   <polyline points="7 10 12 15 17 10"/>
                   <line x1="12" y1="15" x2="12" y2="3"/>
                 </svg>
-                SketchUp version - preparing
+                Rhino 7 (win)
               </div>
             </div>
           </div>

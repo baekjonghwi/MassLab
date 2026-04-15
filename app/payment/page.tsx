@@ -187,15 +187,72 @@ function PaymentContent() {
           <div className="modal-box" onClick={(e) => e.stopPropagation()}>
             <button className="modal-close" onClick={() => setShowTerms(false)}>×</button>
             <h2 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "20px" }}>
-              Privacy Policy
+              Terms &  Policy
             </h2>
 
+            {/* Terms and Policy */}
             <div className="modal-section">
-              <p>Basic payment records are retained to process your transaction and provide support if needed. In the event of a refund request, payment records will be used to verify and process the refund.</p>
+              <h3>Terms and Policy</h3>
+              <p>This agreement governs the use of LaserFish, a laser cutting drawing automation plugin provided by MassLabs.</p>
             </div>
 
             <div className="modal-section">
-              <p>Anonymized geometry output data may be collected to improve the tool's accuracy and performance. This data contains no personal information.</p>
+              <h3>Service</h3>
+              <p>LaserFish is provided as a digital download for Rhino and Grasshopper environments. The download becomes available immediately upon payment completion.</p>
+            </div>
+
+            <div className="modal-section">
+              <h3>Compatibility</h3>
+              <p>LaserFish operates under the system requirements specified on the product page. MassLabs is not responsible for malfunctions caused by unsupported software environments.</p>
+            </div>
+
+            <div className="modal-section">
+              <h3>User Obligations</h3>
+              <p>Users must not engage in any of the following:</p>
+              <ul>
+                <li>Transferring, reselling, or distributing the purchased software to third parties</li>
+                <li>Reverse engineering, decompiling, or extracting the source code</li>
+                <li>Any illegal or unauthorized use of the service</li>
+              </ul>
+            </div>
+
+            <div className="modal-section">
+              <h3>Refund Policy</h3>
+              <p>As LaserFish is a digital product, refunds are not available after download. However, refunds are available in the following cases:</p>
+              <ul>
+                <li>Download is unavailable due to a technical error after payment</li>
+                <li>The output is not generated correctly due to a program error</li>
+              </ul>
+              <p style={{ marginTop: "8px" }}>Refund requests must be submitted within 7 days of payment to <strong>masslabs.archi@gmail.com</strong>, along with a receipt, reason, error screenshots, and original/output model files.</p>
+            </div>
+
+            {/* Privacy Policy */}
+            <div className="modal-section">
+              <h3>Privacy Policy</h3>
+              <p>MassLabs collects and processes the following information:</p>
+              <ul>
+                <li>Payment information: Processed securely through PortOne. Card details are handled by the payment provider and never stored by MassLabs.</li>
+                <li>Country information: Used for service analytics and improvement.</li>
+                <li>Output data: Anonymized geometry output samples and material thickness data may be collected to improve the tool's accuracy and performance. This data contains no personal information.</li>
+              </ul>
+            </div>
+
+            <div className="modal-section">
+              <h3>Data Retention</h3>
+              <ul>
+                <li>Payment records: Retained for 5 years in accordance with e-commerce regulations.</li>
+                <li>Country data: Retained in anonymized form after statistical processing.</li>
+                <li>Output data: Retained until the user withdraws consent, after which it is immediately deleted.</li>
+              </ul>
+            </div>
+
+            <div className="modal-section">
+              <h3>User Rights</h3>
+              <p>Users may request access, correction, deletion, or suspension of their personal data at any time. Consent to output data collection may also be withdrawn at any time by contacting <strong>masslabs.archi@gmail.com</strong>.</p>
+            </div>
+
+            <div className="modal-section">
+              <p style={{ color: "#aaa", fontSize: "0.72rem" }}>Effective date: April 13, 2026</p>
             </div>
 
             <button

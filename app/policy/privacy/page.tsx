@@ -36,7 +36,7 @@ export default function PrivacyPage() {
         <ul style={{ fontSize: "0.88rem", color: "#555", lineHeight: 2, marginTop: "8px", paddingLeft: "20px" }}>
           <li>결제 처리: 서비스 이용료 결제 및 환불 처리</li>
           <li>서비스 통계 분석: 이용자 국가 정보를 활용한 서비스 개선</li>
-          <li>학습 데이터 수집: 이용자가 결제 전 동의한 경우에 한하여 결과물 데이터를 수집</li>
+          <li>데이터 수집: 제품 수준의 향상을 위한 결과물 데이터를 수집</li>
         </ul>
       </section>
 
@@ -45,7 +45,7 @@ export default function PrivacyPage() {
         <ul style={{ fontSize: "0.88rem", color: "#555", lineHeight: 2, marginTop: "8px", paddingLeft: "20px" }}>
           <li>결제 정보: 결제 수단 정보 (카드번호 등 민감정보는 결제 대행사를 통해 처리되며 회사가 직접 저장하지 않음)</li>
           <li>국가 정보: 이용자의 접속 국가</li>
-          <li>결과물 데이터: Grasshopper 플러그인 결과물(점, 벡터값, 두께) 수집</li>
+          <li>결과물 데이터: 평면에 배치되는 조각들의 표본 및 재질 두께 수집</li>
         </ul>
         <p style={{ fontSize: "0.88rem", color: "#555", lineHeight: 1.9, marginTop: "8px" }}>
           회사는 이메일 주소를 수집하지 않으며, 별도의 회원가입 절차가 없습니다.
