@@ -298,10 +298,10 @@ export default function LaserFishPage() {
           </div>
         </div>
 
-{/* 2단 레이아웃 - Tutorial + Download */}
+        {/* 2단 레이아웃 - Tutorial + Download */}
         <div style={{
           display: "grid",
-          gridTemplateColumns: "1fr 1fr",
+          gridTemplateColumns: "2fr 1fr",
           gap: "64px",
           marginBottom: "80px",
           alignItems: "start",
@@ -313,6 +313,15 @@ export default function LaserFishPage() {
               Tutorial
             </h2>
             <div className="youtube-embed">
+              <iframe
+                width="100%"
+                height="100%"
+                src="https://www.youtube.com/embed/RfkjPYsBHcc"
+                title="LaserFish Tutorial"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
             </div>
           </div>
 
@@ -326,7 +335,9 @@ export default function LaserFishPage() {
               <p style={{ fontSize: "1.2rem", fontWeight: 700, color: "#1a1a1a" }}>$0.10 <span style={{ fontSize: "0.82rem", fontWeight: 400, color: "#888" }}>/ piece</span></p>
               <p style={{ fontSize: "0.78rem", color: "#aaa", marginTop: "2px" }}>{krwPrice != null ? `${krwPrice.toLocaleString()}원 / 조각당` : "...원 / 조각당"}</p>
               <p style={{ fontSize: "0.78rem", color: "#aaa", marginTop: "4px" }}>Minimum $5.00 per order</p>
-              <p style={{ fontSize: "0.78rem", color: "#aaa", marginTop: "8px" }}>Available immediately after purchase · 구매 후 즉시 사용 가능</p>
+              <p style={{ fontSize: "0.78rem", color: "#aaa", marginTop: "8px" }}>Available immediately after purchase</p>
+              <p style={{ fontSize: "0.78rem", color: "#aaa"}}>구매 후 즉시 사용 가능</p>
+
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
               <a className="download-btn active" href="/downloads/LaserFish_Rh8.gha" download>
@@ -381,8 +392,11 @@ export default function LaserFishPage() {
             <p style={{ }}>
               <strong style={{ color: "#1a1a1a" }}>1.</strong> Connect your Brep geometry to the input.
             </p>
-            <p style={{ marginBottom: "10px", color: "#888", fontSize: "0.85rem" }}>
+            <p style={{ color: "#888", fontSize: "0.85rem" }}>
               ** wall_1, wall_2, and window must be vertical to the XY plane. Slab must be horizontal to the XY plane **
+            </p>
+            <p style={{ marginBottom: "10px", color: "#888", fontSize: "0.85rem" }}>
+              ** If curved surfaces with different curvatures are continuously connected, separate them **
             </p>
             <p style={{ }}>
               <strong style={{ color: "#1a1a1a" }}>2.</strong> Enter the scale and curve distance, material size in the panel.
