@@ -15,8 +15,18 @@ const slides = [
   },
   {
     title: "LaserFish",
-    subtitle: "Wall",
+    subtitle: "Wall & Slab",
     src: "/images/laserFish_slide_4.jpg"
+  },
+    {
+    title: "LaserFish",
+    subtitle: "Wall & Slab",
+    src: "/images/laserFish_mainslide_2.jpg"
+  },
+    {
+    title: "LaserFish",
+    subtitle: "Wall & Slab",
+    src: "/images/laserFish_mainslide_3.jpg"
   },
 ];
 

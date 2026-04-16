@@ -88,21 +88,30 @@ export default function TermsAndPolicyPage() {
       </section>
 
       <section style={{ marginBottom: "32px" }}>
-        <h2 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "12px" }}>제10조 (환불 원칙)</h2>
+        <h2 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "12px" }}>제10조 (결제 금액 산정 기준)</h2>
+        <p style={{ fontSize: "0.88rem", color: "#555", lineHeight: 1.9 }}>
+          결제 금액은 LaserFish가 실제로 생성한 조각(Piece)의 개수를 기준으로 산정됩니다.
+          입력된 형상의 일부가 기술적 사유로 결과물에 포함되지 않은 경우, 해당 부분은 결제 금액 산정에서 제외됩니다.
+        </p>
+      </section>
+
+      <section style={{ marginBottom: "32px" }}>
+        <h2 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "12px" }}>제11조 (환불 원칙)</h2>
         <p style={{ fontSize: "0.88rem", color: "#555", lineHeight: 1.9 }}>LaserFish는 디지털 소프트웨어 상품으로, 결제 완료 후 즉시 다운로드가 제공됩니다. 「전자상거래 등에서의 소비자보호에 관한 법률」 제17조 제2항에 따라, 복제 가능한 디지털 콘텐츠의 특성상 다운로드 완료 후에는 원칙적으로 환불이 불가합니다.</p>
       </section>
 
       <section style={{ marginBottom: "32px" }}>
-        <h2 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "12px" }}>제11조 (환불 가능한 경우)</h2>
+        <h2 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "12px" }}>제12조 (환불 가능한 경우)</h2>
         <p style={{ fontSize: "0.88rem", color: "#555", lineHeight: 1.9 }}>다음의 경우 전액 환불이 가능합니다.</p>
         <ul style={{ fontSize: "0.88rem", color: "#555", lineHeight: 2, marginTop: "8px", paddingLeft: "20px" }}>
           <li>결제 후 기술적 오류로 인해 다운로드가 불가한 경우</li>
           <li>프로그램상 오류로 결과물이 제대로 출력되지 않는 경우</li>
+          <li>「제10조 (결제 금액 산정 기준)」에서 결제 금액에서 제외된 형상의 일부에 대한 환불을 요구하는 경우</li>
         </ul>
       </section>
 
       <section style={{ marginBottom: "32px" }}>
-        <h2 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "12px" }}>제12조 (환불 불가한 경우)</h2>
+        <h2 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "12px" }}>제13조 (환불 불가한 경우)</h2>
         <p style={{ fontSize: "0.88rem", color: "#555", lineHeight: 1.9 }}>다음의 경우 환불이 불가합니다.</p>
         <ul style={{ fontSize: "0.88rem", color: "#555", lineHeight: 2, marginTop: "8px", paddingLeft: "20px" }}>
           <li>다운로드 완료 후 단순 변심에 의한 환불 요청</li>
@@ -112,7 +121,7 @@ export default function TermsAndPolicyPage() {
       </section>
 
       <section style={{ marginBottom: "32px" }}>
-        <h2 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "12px" }}>제13조 (환불 신청 방법)</h2>
+        <h2 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "12px" }}>제14조 (환불 신청 방법)</h2>
         <p style={{ fontSize: "0.88rem", color: "#555", lineHeight: 1.9 }}>
           환불 요청은 결제일로부터 7일 이내에 <strong>masslabs.archi@gmail.com</strong>으로 아래 내용을 포함하여 접수해 주세요.<br /><br />
           결제일 및 결제 금액 영수증 / 환불 사유 / 오류 증거 사진 / 원본 모델링 파일 및 결과물 모델링 파일<br /><br />
@@ -121,12 +130,12 @@ export default function TermsAndPolicyPage() {
       </section>
 
       <section style={{ marginBottom: "32px" }}>
-        <h2 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "12px" }}>제14조 (분쟁 해결)</h2>
+        <h2 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "12px" }}>제15조 (분쟁 해결)</h2>
         <p style={{ fontSize: "0.88rem", color: "#555", lineHeight: 1.9 }}>서비스 이용과 관련하여 분쟁이 발생한 경우, 회사와 이용자는 원만한 해결을 위해 성실히 협의합니다. 전자상거래 분쟁과 관련하여 이용자의 피해구제 신청이 있는 경우 공정거래위원회 또는 관련 분쟁조정기관의 조정에 따를 수 있습니다. 협의가 이루어지지 않는 경우 대한민국 법을 적용하며, 관할 법원은 관련 법령에 따릅니다.</p>
       </section>
 
       <section style={{ marginBottom: "32px" }}>
-        <h2 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "12px" }}>제15조 (기타)</h2>
+        <h2 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "12px" }}>제16조 (기타)</h2>
         <p style={{ fontSize: "0.88rem", color: "#555", lineHeight: 1.9 }}>본 약관에 명시되지 않은 사항은 「전자상거래 등에서의 소비자보호에 관한 법률」, 「약관의 규제에 관한 법률」 및 관련 법령에 따릅니다.</p>
       </section>
 

@@ -36,7 +36,7 @@ export default function PrivacyPage() {
         <ul style={{ fontSize: "0.88rem", color: "#555", lineHeight: 2, marginTop: "8px", paddingLeft: "20px" }}>
           <li>결제 처리: 서비스 이용료 결제 및 환불 처리</li>
           <li>서비스 통계 분석: 이용자 국가 정보를 활용한 서비스 개선</li>
-          <li>데이터 수집: 제품 수준의 향상을 위한 결과물 데이터를 수집</li>
+          <li>데이터 수집: 환불요청 및 제품 수준 향상을 위한 결과물 데이터를 수집</li>
         </ul>
       </section>
 
