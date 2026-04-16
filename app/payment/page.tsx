@@ -28,6 +28,13 @@ useEffect(() => {
     .catch(() => setIsKorea(false));
 }, []);
 
+useEffect(() => {
+  fetch("/api/exchange-rate")
+    .then((r) => r.json())
+    .then((d) => setExchangeRate(d.rate))
+    .catch(() => setExchangeRate(1500));
+}, []);
+
   const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) {
@@ -364,7 +371,7 @@ useEffect(() => {
           className="pay-btn" 
           type="submit" 
             disabled={loading || !agreed || isKorea === null || (isKorea === true && !totalAmountKRW)}>
-            {loading ? "Processing..." : `Pay $${totalAmountUSD.toFixed(2)}`}
+             {loading ? "Processing..." : `Pay $${totalAmountUSD.toFixed(2)}`}
           </button>
         </form>
       </div>
