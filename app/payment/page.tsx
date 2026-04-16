@@ -10,6 +10,7 @@ function PaymentContent() {
   const [error, setError] = useState("");
   const [showTerms, setShowTerms] = useState(false);
   const [exchangeRate, setExchangeRate] = useState<number | null>(null);
+  const [isKorea, setIsKorea] = useState<boolean | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -20,12 +21,12 @@ function PaymentContent() {
   const totalAmountUSD = baseAmountUSD + vatUSD;
   const totalAmountKRW = exchangeRate ? Math.round(totalAmountUSD * exchangeRate) : null;
 
-  useEffect(() => {
-    fetch("/api/exchange-rate")
-      .then((r) => r.json())
-      .then((d) => setExchangeRate(d.rate))
-      .catch(() => setExchangeRate(1500));
-  }, []);
+useEffect(() => {
+  fetch("https://ipapi.co/json/")
+    .then((r) => r.json())
+    .then((d) => setIsKorea(d.country_code === "KR"))
+    .catch(() => setIsKorea(false));
+}, []);
 
   const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,14 +37,18 @@ function PaymentContent() {
     setLoading(true);
     setError("");
 
+    const isKorean = isKorea === true;
+
     try {
       const response = await PortOne.requestPayment({
         storeId: "store-ad54a018-057e-4d48-b98f-920b6d0fa05c",
-        channelKey: "channel-key-921d3c16-446e-4129-8f84-7fd884b1eb21",
+        channelKey: isKorean
+          ? "channel-key-b5054294-344b-4833-8f5a-7f3a445d4b40"   // 갤럭시아머니트리
+          : "channel-key-fd23e860-fe9f-4547-bdfb-27528ce69dab",  // 엑심베이
         paymentId,
-        orderName: `LaserFish Drawing`,
-        totalAmount: totalAmountKRW!,
-        currency: "KRW",
+        orderName: "LaserFish Drawing",
+        totalAmount: isKorean ? totalAmountKRW! : totalAmountUSD,
+        currency: isKorean ? "KRW" : "USD",
         payMethod: "CARD",
         customer: { email },
         redirectUrl: `${window.location.origin}/payment/complete?paymentId=${paymentId}&email=${encodeURIComponent(email)}&count=${totalCount}`,
@@ -355,7 +360,10 @@ function PaymentContent() {
           )}
 
           {/* Pay 버튼 */}
-          <button className="pay-btn" type="submit" disabled={loading || !agreed || !totalAmountKRW}>
+        <button 
+          className="pay-btn" 
+          type="submit" 
+            disabled={loading || !agreed || isKorea === null || (isKorea === true && !totalAmountKRW)}>
             {loading ? "Processing..." : `Pay $${totalAmountUSD.toFixed(2)}`}
           </button>
         </form>
