@@ -61,7 +61,7 @@ useEffect(() => {
         totalAmount: finalAmount,
         currency: finalCurrency,
         payMethod: "CARD",
-        customer: { email, fullName: email.split("@")[0] },    // 이메일 앞부분을 이름으로 사용
+        customer: { email, fullName: email.split("@")[0], customerId: email.split("@")[0].slice(0, 20)},
         redirectUrl: `${window.location.origin}/payment/complete?paymentId=${paymentId}&email=${encodeURIComponent(email)}&count=${totalCount}`,
       });
 
