@@ -340,7 +340,7 @@ export default function LaserFishPage() {
 
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-              <a className="download-btn active" href="/downloads/LaserFish_Rh8.gha" download>
+              <a className="download-btn active" href="/downloads/LaserFish_Rh8.zip" download>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                   <polyline points="7 10 12 15 17 10"/>
@@ -348,7 +348,7 @@ export default function LaserFishPage() {
                 </svg>
                 Rhino 8 (win)
               </a>
-              <a className="download-btn active" href="/downloads/LaserFish_Rh8_mac.gha" download>
+              <a className="download-btn active" href="/downloads/LaserFish_Rh8_mac.zip" download>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                   <polyline points="7 10 12 15 17 10"/>
@@ -356,7 +356,7 @@ export default function LaserFishPage() {
                 </svg>
                 Rhino 8 (mac)
               </a>
-              <a className="download-btn active" href="/downloads/LaserFish_Rh7.gha" download>
+              <a className="download-btn active" href="/downloads/LaserFish_Rh7.zip" download>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                   <polyline points="7 10 12 15 17 10"/>
