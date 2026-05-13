@@ -14,6 +14,14 @@ function PaymentContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, []);
+
   const totalCount = Number(searchParams.get("count") || 10);
   const paymentId = searchParams.get("paymentId") || `payment-${Date.now()}`;
   const baseAmountUSD = Math.max(5.0, totalCount * 0.1);
