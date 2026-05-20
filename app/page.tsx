@@ -1,6 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useLanguage } from "@/lib/i18n";
+import { t } from "@/lib/translations";
 
 const slides = [
   {
@@ -34,6 +36,8 @@ export default function Home() {
   const [current, setCurrent] = useState(0);
   const [fading, setFading] = useState(false);
   const router = useRouter();
+  const { lang } = useLanguage();
+  const tr = t[lang];
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -264,7 +268,7 @@ export default function Home() {
             letterSpacing: "-0.02em",
             marginBottom: "20px",
           }}>
-            Tools
+            {tr.home.tools}
           </h2>
 
           <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
@@ -285,7 +289,7 @@ export default function Home() {
                   LaserFish
                 </div>
                 <div style={{ fontSize: "0.72rem", color: "#888", lineHeight: 1.4 }}>
-                  architecture laser cut drawing
+                  {tr.home.toolDesc}
                 </div>
               </div>
             </div>
@@ -312,6 +316,13 @@ export default function Home() {
 
             {/* 소셜 아이콘 */}
             <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+              <a href="https://mail.google.com/mail/?view=cm&to=masslabs.archi@gmail.com" target="_blank" className="social-btn">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                  <path d="M2 6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6z" fill="#fff" stroke="#ddd" strokeWidth="1.2"/>
+                  <path d="M2 6l10 7L22 6" stroke="#EA4335" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                  <path d="M2 6v-.01L12 13 22 5.99V6" fill="none"/>
+                </svg>
+              </a>
               <a href="https://www.instagram.com/masslab_arch/" target="_blank" className="social-btn">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#333" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="2" y="2" width="20" height="20" rx="5"/>

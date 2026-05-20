@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { useLanguage } from "@/lib/i18n";
+import { t } from "@/lib/translations";
 
 const SUPABASE_URL = "https://arymzgsayptprrbdnzwd.supabase.co";
 const SUPABASE_KEY = "sb_publishable_47O2B2PfD3X_5yOX-P-cTA_wGcpaeU6";
@@ -9,10 +11,11 @@ function PaymentCompleteContent() {
   const [status, setStatus] = useState<"loading" | "success" | "fail">("loading");
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { lang } = useLanguage();
+  const tr = t[lang].paymentComplete;
 
   const paymentId = searchParams.get("paymentId");
   const email = searchParams.get("email");
-  const count = searchParams.get("count");
 
   useEffect(() => {
     if (!paymentId) {
@@ -22,7 +25,6 @@ function PaymentCompleteContent() {
 
     const savePayment = async () => {
       try {
-        // 포트원으로 결제 검증
         const verifyRes = await fetch("/api/verify-payment", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -50,7 +52,7 @@ function PaymentCompleteContent() {
     return (
       <div style={{ textAlign: "center" }}>
         <div style={{ fontSize: "1.5rem", marginBottom: "12px" }}>⏳</div>
-        <p style={{ fontSize: "0.88rem", color: "#888" }}>Verifying payment...</p>
+        <p style={{ fontSize: "0.88rem", color: "#888" }}>{tr.verifying}</p>
       </div>
     );
   }
@@ -60,10 +62,10 @@ function PaymentCompleteContent() {
       <div style={{ textAlign: "center", maxWidth: "360px", padding: "0 24px" }}>
         <div style={{ fontSize: "3rem", marginBottom: "16px" }}>✕</div>
         <h1 style={{ fontSize: "1.4rem", fontWeight: 700, marginBottom: "10px", letterSpacing: "-0.02em" }}>
-          Payment Failed
+          {tr.failTitle}
         </h1>
         <p style={{ fontSize: "0.85rem", color: "#888", lineHeight: 1.7, marginBottom: "28px" }}>
-          Something went wrong during payment. Please try again.
+          {tr.failDesc}
         </p>
         <button
           onClick={() => router.back()}
@@ -79,7 +81,7 @@ function PaymentCompleteContent() {
             cursor: "pointer",
           }}
         >
-          Try Again
+          {tr.tryAgain}
         </button>
       </div>
     );
@@ -124,14 +126,14 @@ function PaymentCompleteContent() {
       </div>
 
       <h1 style={{ fontSize: "1.5rem", fontWeight: 700, letterSpacing: "-0.02em", marginBottom: "10px" }}>
-        Payment Complete!
+        {tr.successTitle}
       </h1>
       <p style={{ fontSize: "0.85rem", color: "#888", lineHeight: 1.7, marginBottom: "8px" }}>
-        Thank you for your purchase.
+        {tr.thankYou}
       </p>
       {email && (
         <p style={{ fontSize: "0.85rem", color: "#888", lineHeight: 1.7, marginBottom: "28px" }}>
-          A receipt has been sent to{" "}
+          {tr.receiptSent}{" "}
           <span style={{ color: "#1a1a1a", fontWeight: 500 }}>{email}</span>.
         </p>
       )}
@@ -143,22 +145,25 @@ function PaymentCompleteContent() {
         marginBottom: "28px",
         textAlign: "left",
       }}>
-        <div style={{ fontSize: "0.82rem", fontWeight: 600, marginBottom: "8px" }}>Next steps</div>
+        <div style={{ fontSize: "0.82rem", fontWeight: 600, marginBottom: "8px" }}>{tr.nextSteps}</div>
         <div style={{ fontSize: "0.78rem", color: "#666", lineHeight: 1.8 }}>
-          <div>1. Return to Grasshopper</div>
-          <div>2. The drawing will generate automatically within 1 minute</div>
-          <div>3. Check your Rhino viewport for results</div>
+          <div>1. {tr.nextStep1}</div>
+          <div>2. {tr.nextStep2}</div>
+          <div>3. {tr.nextStep3}</div>
         </div>
       </div>
 
       <button className="home-btn" onClick={() => router.push("/")}>
-        Back to MassLab
+        {tr.backBtn}
       </button>
     </div>
   );
 }
 
 export default function PaymentCompletePage() {
+  const { lang } = useLanguage();
+  const tr = t[lang].paymentComplete;
+
   return (
     <main style={{
       fontFamily: "-apple-system, 'Helvetica Neue', sans-serif",
@@ -170,7 +175,7 @@ export default function PaymentCompletePage() {
     }}>
       <Suspense fallback={
         <div style={{ textAlign: "center" }}>
-          <p style={{ fontSize: "0.88rem", color: "#888" }}>Loading...</p>
+          <p style={{ fontSize: "0.88rem", color: "#888" }}>{tr.loading}</p>
         </div>
       }>
         <PaymentCompleteContent />

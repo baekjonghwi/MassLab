@@ -1,8 +1,12 @@
 "use client";
 import { useRouter } from "next/navigation";
+import { useLanguage } from "@/lib/i18n";
+import { t } from "@/lib/translations";
 
 export default function ContactPage() {
   const router = useRouter();
+  const { lang } = useLanguage();
+  const tr = t[lang].contact;
 
   return (
     <main style={{ fontFamily: "-apple-system, 'Helvetica Neue', sans-serif", maxWidth: "800px", margin: "0 auto", padding: "60px 48px 80px" }}>
@@ -23,27 +27,24 @@ export default function ContactPage() {
           marginBottom: "40px",
         }}
       >
-        ← Back
+        {tr.back}
       </button>
 
-      <h1 style={{ fontSize: "1.5rem", fontWeight: 700, marginBottom: "40px" }}>Contact & Business Info</h1>
+      <h1 style={{ fontSize: "1.5rem", fontWeight: 700, marginBottom: "40px" }}>{tr.title}</h1>
 
       <section style={{ marginBottom: "32px" }}>
-        <h2 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "12px" }}>Business Info</h2>
+        <h2 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "12px" }}>{tr.bizTitle}</h2>
         <p style={{ fontSize: "0.88rem", color: "#555", lineHeight: 2 }}>
-          Company: MassLabs<br />
-          Representative: Baek Jonghwi<br />
-          Business Registration No.: 895-34-01789<br />
-          Address: 12 Jeongnungaro 8ga-gil, Seongbuk-gu, Seoul, Korea, #401<br />
-          Phone: 070-8144-5867<br />
-          Email: masslabs.archi@gmail.com
+          {tr.bizContent.map((line, i) => (
+            <span key={i}>{line}<br /></span>
+          ))}
         </p>
       </section>
 
       <section style={{ marginBottom: "32px" }}>
-        <h2 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "12px" }}>Inquiries</h2>
+        <h2 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "12px" }}>{tr.inquiryTitle}</h2>
         <p style={{ fontSize: "0.88rem", color: "#555", lineHeight: 1.9 }}>
-          For service-related inquiries, please contact <strong>masslabs.archi@gmail.com</strong>.
+          {tr.inquiryText} <strong>masslabs.archi@gmail.com</strong>
         </p>
       </section>
     </main>

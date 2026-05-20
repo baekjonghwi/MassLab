@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import Link from "next/link";
+import { LanguageProvider } from "@/lib/i18n";
+import LanguageBar from "@/components/LanguageBar";
+import LayoutFooter from "@/components/LayoutFooter";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,30 +31,11 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        {children}
-
-        {/* 푸터 */}
-        <footer style={{
-          borderTop: "1px solid #eee",
-          padding: "40px 48px",
-          marginTop: "auto",
-          fontFamily: "-apple-system, 'Helvetica Neue', sans-serif",
-        }}>
-          <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
-            {/* 사업자 정보 */}
-            <div style={{ fontSize: "0.72rem", color: "#999", lineHeight: 1.7, marginBottom: "20px" }}>
-              <p>상호명: MassLabs &nbsp;|&nbsp; 대표자: Baek Jonghwi &nbsp;|&nbsp; 사업자등록번호: 895-34-01789</p>
-              <p>주소: 서울특별시 성북구 정릉로8가길 12, 401호 &nbsp;|&nbsp; 전화: 070-8144-5867</p>
-            </div>
-            {/* 정책 링크 */}
-            <div style={{ display: "flex", gap: "24px", fontSize: "0.78rem" }}>
-              <Link href="/policy/contact" style={{ color: "#666", textDecoration: "none" }}>Contact</Link>
-              <Link href="/policy/terms-and-policy" style={{ color: "#666", textDecoration: "none" }}>Terms and Policy</Link>
-              <Link href="/policy/privacy" style={{ color: "#666", textDecoration: "none" }}>Privacy</Link>
-            </div>
-
-          </div>
-        </footer>
+        <LanguageProvider>
+          <LanguageBar />
+          {children}
+          <LayoutFooter />
+        </LanguageProvider>
       </body>
     </html>
   );

@@ -1,6 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useLanguage } from "@/lib/i18n";
+import { t } from "@/lib/translations";
 
 const slides = [
   {
@@ -27,20 +29,23 @@ const slides = [
 
 export default function LaserFishPage() {
   const router = useRouter();
+  const { lang } = useLanguage();
+  const tr = t[lang].laserfish;
   const [current, setCurrent] = useState(0);
   const [fading, setFading] = useState(false);
-  const [krwPrice, setKrwPrice] = useState<number | null>(null);
+  const [krwRate, setKrwRate] = useState<number | null>(null);
+  const krwPrice = krwRate != null ? Math.round(krwRate * 0.1) : null;
+  const krwMinimum = krwRate != null ? Math.round(krwRate * 5) : null;
 
   useEffect(() => {
+    if (lang !== "ko") return;
     fetch("https://open.er-api.com/v6/latest/USD")
       .then((res) => res.json())
       .then((data) => {
-        if (data?.rates?.KRW) {
-          setKrwPrice(Math.round(data.rates.KRW * 0.1));
-        }
+        if (data?.rates?.KRW) setKrwRate(data.rates.KRW);
       })
       .catch(() => {});
-  }, []);
+  }, [lang]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -177,8 +182,7 @@ export default function LaserFishPage() {
             </h1>
           </div>
           <p style={{ fontSize: "0.95rem", color: "#666", lineHeight: 1.7, maxWidth: "560px" }}>
-            Grasshopper add-on for Rhino that automatically generates laser cutting drawings from architectural geometry. 
-            Breaks down complex geometry into flat pieces, arranges them within material boundaries, and outputs cut-ready drawings instantly.
+            {tr.description}
           </p>
         </div>
 
@@ -310,7 +314,7 @@ export default function LaserFishPage() {
           {/* 왼쪽: 유튜브 */}
           <div>
             <h2 style={{ fontSize: "1.1rem", fontWeight: 600, marginBottom: "16px", letterSpacing: "-0.01em" }}>
-              Tutorial
+              {tr.tutorial}
             </h2>
             <div className="youtube-embed">
               <iframe
@@ -328,16 +332,27 @@ export default function LaserFishPage() {
           {/* 오른쪽: 다운로드 */}
           <div>
             <h2 style={{ fontSize: "1.1rem", fontWeight: 600, marginBottom: "16px", letterSpacing: "-0.01em" }}>
-              Download
+              {tr.download}
             </h2>
             <div style={{ marginBottom: "20px", padding: "16px 20px", background: "#f8f8f8", borderRadius: "10px" }}>
-              <p style={{ fontSize: "0.82rem", color: "#888", marginBottom: "4px" }}>Pricing</p>
-              <p style={{ fontSize: "1.2rem", fontWeight: 700, color: "#1a1a1a" }}>$0.10 <span style={{ fontSize: "0.82rem", fontWeight: 400, color: "#888" }}>/ piece</span></p>
-              <p style={{ fontSize: "0.78rem", color: "#aaa", marginTop: "2px" }}>{krwPrice != null ? `${krwPrice.toLocaleString()}원 / 조각당` : "...원 / 조각당"}</p>
-              <p style={{ fontSize: "0.78rem", color: "#aaa", marginTop: "4px" }}>Minimum $5.00 per order</p>
-              <p style={{ fontSize: "0.78rem", color: "#aaa", marginTop: "8px" }}>Available immediately after purchase</p>
-              <p style={{ fontSize: "0.78rem", color: "#aaa"}}>구매 후 즉시 사용 가능</p>
-
+              <p style={{ fontSize: "0.82rem", color: "#888", marginBottom: "4px" }}>{tr.pricing}</p>
+              {lang === "ko" ? (
+                <p style={{ fontSize: "1.2rem", fontWeight: 700, color: "#1a1a1a" }}>
+                  {krwPrice != null ? `${krwPrice.toLocaleString()}원` : "...원"}{" "}
+                  <span style={{ fontSize: "0.82rem", fontWeight: 400, color: "#888" }}>{tr.pricingUnit}</span>
+                </p>
+              ) : (
+                <p style={{ fontSize: "1.2rem", fontWeight: 700, color: "#1a1a1a" }}>
+                  $0.10{" "}
+                  <span style={{ fontSize: "0.82rem", fontWeight: 400, color: "#888" }}>{tr.pricingUnit}</span>
+                </p>
+              )}
+              <p style={{ fontSize: "0.78rem", color: "#aaa", marginTop: "4px" }}>
+                {lang === "ko"
+                  ? `${tr.minimum} ${krwMinimum != null ? krwMinimum.toLocaleString() + "원" : "..."}`
+                  : tr.minimum}
+              </p>
+              <p style={{ fontSize: "0.78rem", color: "#aaa", marginTop: "8px" }}>{tr.available}</p>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
               <a className="download-btn active" href="/downloads/LaserFish_Rh8.zip" download>
@@ -371,10 +386,9 @@ export default function LaserFishPage() {
         {/* How to Use 섹션 */}
         <div style={{ marginBottom: "80px" }}>
           <h2 style={{ fontSize: "1.1rem", fontWeight: 600, marginBottom: "32px", letterSpacing: "-0.01em" }}>
-            How to Use
+            {tr.howToUse}
           </h2>
 
-          {/* 사진 */}
           <img
             src="/images/laserFish_wall&slab.png"
             alt="LaserFish Wall & Slab"
@@ -387,32 +401,15 @@ export default function LaserFishPage() {
             }}
           />
 
-          {/* 설명 */}
           <div style={{ fontSize: "0.88rem", color: "#555", lineHeight: 1.9 }}>
-            <p style={{ }}>
-              <strong style={{ color: "#1a1a1a" }}>1.</strong> Connect your Brep geometry to the input.
-            </p>
-            <p style={{ color: "#888", fontSize: "0.85rem" }}>
-              ** wall_1, wall_2, and window must be vertical to the XY plane. Slab must be horizontal to the XY plane **
-            </p>
-            <p style={{ marginBottom: "10px", color: "#888", fontSize: "0.85rem" }}>
-              ** If curved surfaces with different curvatures are continuously connected, separate them **
-            </p>
-            <p style={{ }}>
-              <strong style={{ color: "#1a1a1a" }}>2.</strong> Enter the scale and curve distance, material size in the panel.
-            </p>
-            <p style={{ color: "#888", fontSize: "0.85rem" }}>
-              ** Please set the slab thickness to the same ratio as the original **
-            </p>
-            <p style={{ marginBottom: "10px", color: "#888", fontSize: "0.85rem" }}>
-              ** Curve Distance is the interval angle of curved surfaces. If there are no curved surfaces in your model, you can leave it as is **
-            </p>
-            <p style={{ marginBottom: "10px" }}>
-              <strong style={{ color: "#1a1a1a" }}>3.</strong> Double-click the toggle to set it to true.
-            </p>
-            <p>
-              <strong style={{ color: "#1a1a1a" }}>4.</strong> Wait a few minutes for the drawings to generate.
-            </p>
+            <p><strong style={{ color: "#1a1a1a" }}>{tr.step1}</strong></p>
+            <p style={{ color: "#888", fontSize: "0.85rem" }}>{tr.step1n1}</p>
+            <p style={{ marginBottom: "10px", color: "#888", fontSize: "0.85rem" }}>{tr.step1n2}</p>
+            <p><strong style={{ color: "#1a1a1a" }}>{tr.step2}</strong></p>
+            <p style={{ color: "#888", fontSize: "0.85rem" }}>{tr.step2n1}</p>
+            <p style={{ marginBottom: "10px", color: "#888", fontSize: "0.85rem" }}>{tr.step2n2}</p>
+            <p style={{ marginBottom: "10px" }}><strong style={{ color: "#1a1a1a" }}>{tr.step3}</strong></p>
+            <p><strong style={{ color: "#1a1a1a" }}>{tr.step4}</strong></p>
           </div>
         </div>
 
@@ -423,18 +420,12 @@ export default function LaserFishPage() {
           marginBottom: "80px",
         }}>
           <h2 style={{ fontSize: "1.1rem", fontWeight: 600, marginBottom: "20px", letterSpacing: "-0.01em" }}>
-            Be Careful
+            {tr.beCareful}
           </h2>
           <div style={{ fontSize: "0.88rem", color: "#555", lineHeight: 1.9 }}>
-            <p style={{ marginBottom: "10px" }}>
-              • Fields marked with ** in the add-on are required inputs.
-            </p>
-            <p style={{ marginBottom: "10px" }}>
-              • Breps must be joined together to be recognized as a single connected geometry. If they are touching but not boolean-unioned, they will be treated as separate objects.
-            </p>
-            <p>
-              • Results may not be perfect due to the condition of your model or geometry errors in Rhino. Please keep this in mind when reviewing the output.
-            </p>
+            <p style={{ marginBottom: "10px" }}>{tr.careful1}</p>
+            <p style={{ marginBottom: "10px" }}>{tr.careful2}</p>
+            <p>{tr.careful3}</p>
           </div>
         </div>
 

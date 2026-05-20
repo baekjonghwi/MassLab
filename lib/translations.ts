@@ -1,0 +1,499 @@
+export const t = {
+  en: {
+    footer: {
+      businessInfo1: "Company: MassLabs | Representative: Baek Jonghwi | Business Reg. No.: 895-34-01789",
+      businessInfo2: "Address: 12 Jeongnungaro 8ga-gil, Seongbuk-gu, Seoul, Korea, #401 | Phone: 070-8144-5867",
+      contact: "Contact",
+      termsAndPolicy: "Terms and Policy",
+      privacy: "Privacy",
+    },
+    home: {
+      tools: "Tools",
+      toolDesc: "architecture laser cut drawing",
+    },
+    laserfish: {
+      description:
+        "Grasshopper add-on for Rhino that automatically generates laser cutting drawings from architectural geometry. Breaks down complex geometry into flat pieces, arranges them within material boundaries, and outputs cut-ready drawings instantly.",
+      tutorial: "Tutorial",
+      download: "Download",
+      pricing: "Pricing",
+      pricingUnit: "/ per piece",
+      krwUnit: "/ per piece",
+      minimum: "Minimum $5.00 per order",
+      available: "Available immediately after purchase",
+      howToUse: "How to Use",
+      step1: "1. Connect your Brep geometry to the input.",
+      step1n1: "** wall_1, wall_2, and window must be vertical to the XY plane. Slab must be horizontal to the XY plane **",
+      step1n2: "** If curved surfaces with different curvatures are continuously connected, separate them **",
+      step2: "2. Enter the scale and curve distance, material size in the panel.",
+      step2n1: "** Please set the slab thickness to the same ratio as the original **",
+      step2n2: "** Curve Distance is the interval angle of curved surfaces. If there are no curved surfaces in your model, you can leave it as is **",
+      step3: "3. Double-click the toggle to set it to true.",
+      step4: "4. Wait a few minutes for the drawings to generate.",
+      beCareful: "Be Careful",
+      careful1: "• Fields marked with ** in the add-on are required inputs.",
+      careful2: "• Breps must be joined together to be recognized as a single connected geometry. If they are touching but not boolean-unioned, they will be treated as separate objects.",
+      careful3: "• Results may not be perfect due to the condition of your model or geometry errors in Rhino. Please keep this in mind when reviewing the output.",
+    },
+    payment: {
+      title: "Complete Your Drawing",
+      pieces: "Pieces",
+      cost: "Cost",
+      vat: "VAT (10%)",
+      total: "Total",
+      info1: "You only pay for what’s generated.",
+      info2: "If any part fails, it won’t be charged.",
+      emailLabel: "Email address",
+      emailHint: "Enter your email to receive your receipt.",
+      emailPlaceholder: "your@email.com",
+      agreeText: "I agree to the",
+      termsLink: "terms & policy",
+      payBtn: "Pay",
+      processing: "Processing...",
+      emailError: "Please enter your email.",
+      payError: "Payment was cancelled or failed. Please try again.",
+      sysError: "An error occurred during payment. Please try again.",
+      termsTitle: "Terms & Policy",
+    },
+    paymentComplete: {
+      verifying: "Verifying payment...",
+      failTitle: "Payment Failed",
+      failDesc: "Something went wrong during payment. Please try again.",
+      tryAgain: "Try Again",
+      successTitle: "Payment Complete!",
+      thankYou: "Thank you for your purchase.",
+      receiptSent: "A receipt has been sent to",
+      nextSteps: "Next steps",
+      nextStep1: "Return to Grasshopper",
+      nextStep2: "The drawing will generate automatically within 1 minute",
+      nextStep3: "Check your Rhino viewport for results",
+      backBtn: "Back to MassLab",
+      loading: "Loading...",
+    },
+    contact: {
+      title: "Contact & Business Info",
+      bizTitle: "Business Info",
+      bizContent: [
+        "Company: MassLabs",
+        "Representative: Baek Jonghwi",
+        "Business Registration No.: 895-34-01789",
+        "Address: 12 Jeongnungaro 8ga-gil, Seongbuk-gu, Seoul, Korea, #401",
+        "Phone: 070-8144-5867",
+        "Email: masslabs.archi@gmail.com",
+      ],
+      inquiryTitle: "Inquiries",
+      inquiryText: "For service-related inquiries, please contact",
+      back: "← Back",
+    },
+    privacy: {
+      back: "← Back",
+      title: "Privacy Policy",
+      effectiveDate: "Effective date: April 13, 2026",
+      sections: [
+        {
+          title: "Article 1 (Purpose of Processing Personal Data)",
+          body: "MassLabs (\"the Company\") processes personal data for the following purposes. Personal data will not be used for purposes other than those listed below, and if the purpose changes, the necessary measures such as obtaining separate consent will be taken.",
+          list: [
+            "Payment processing: Service fee payment and refund handling",
+            "Service analytics: Service improvement using user country information",
+            "Data collection: Output data collected for refund verification and product improvement",
+          ],
+        },
+        {
+          title: "Article 2 (Categories of Personal Data Collected)",
+          list: [
+            "Payment information: Payment method details (sensitive data such as card numbers are processed through payment processors and never stored by the Company)",
+            "Country information: The user's country of access",
+            "Output data: Samples of flat-arranged pieces and material thickness",
+          ],
+          body2: "The Company does not collect email addresses, and there is no separate membership registration process.",
+        },
+        {
+          title: "Article 3 (Retention and Use Period)",
+          list: [
+            "Payment records: Retained for 5 years in accordance with e-commerce regulations, then destroyed",
+            "Country data: Retained in anonymized form after statistical processing",
+            "Output data: Retained until consent is withdrawn, then immediately destroyed",
+          ],
+        },
+        {
+          title: "Article 4 (Delegation of Personal Data Processing)",
+          body: "The Company delegates minimal information to payment processors including Galaxia Money Tree (Billgate) via PortOne for payment handling. Delegated companies are managed and supervised to process personal data safely in accordance with the Personal Information Protection Act.",
+        },
+        {
+          title: "Article 5 (Provision to Third Parties)",
+          body: "The Company does not, in principle, provide users' personal data to third parties. Exceptions apply when users have given prior consent or when required by law.",
+        },
+        {
+          title: "Article 6 (User Rights)",
+          body: "Users may request access, correction, deletion, or suspension of their personal data at any time. Consent to output data collection may also be withdrawn at any time. Please contact masslabs.archi@gmail.com for requests.",
+        },
+        {
+          title: "Article 7 (Destruction of Personal Data)",
+          body: "Personal data for which the retention period has elapsed or the processing purpose has been achieved will be destroyed without delay. Electronic files are permanently deleted in a manner that prevents recovery.",
+        },
+        {
+          title: "Article 8 (Data Protection Officer)",
+          body: "For inquiries regarding personal data processing, please contact: Representative: Baek Jonghwi | Email: masslabs.archi@gmail.com",
+        },
+        {
+          title: "Article 9 (Remedies for Rights Infringement)",
+          body: "You may contact the following organizations for remedies related to personal data infringement:",
+          list: [
+            "Personal Information Dispute Mediation Committee: 1833-6972 / www.kopico.go.kr",
+            "Personal Information Infringement Report Center: 118 / privacy.kisa.or.kr",
+            "Supreme Prosecutors’ Office: 1301 / www.spo.go.kr",
+            "National Police Agency: 182 / ecrm.cyber.go.kr",
+          ],
+        },
+        {
+          title: "Article 10 (Changes to This Policy)",
+          body: "This policy takes effect from the date of enforcement. Any changes will be announced at least 7 days in advance through the service screen.",
+        },
+      ],
+    },
+    terms: {
+      back: "← Back",
+      title: "Terms of Service and Refund Policy",
+      effectiveDate: "Effective date: April 13, 2026",
+      sections: [
+        {
+          title: "Article 1 (Purpose)",
+          body: "These Terms govern the conditions and procedures for using the LaserFish software service (\"Service\") provided by MassLabs (\"the Company\"), and define the rights, obligations, and responsibilities of the Company and users.",
+        },
+        {
+          title: "Article 2 (Definitions)",
+          body: "\"Service\" refers to the Grasshopper plug-in download service provided by the Company.\n\"User\" refers to any person who uses the Service under these Terms.\n\"Digital Product\" refers to digital content such as Grasshopper plug-ins provided through the Service.",
+        },
+        {
+          title: "Article 3 (Effect and Amendment of Terms)",
+          body: "These Terms take effect upon posting on the service screen. The Company may amend the Terms within the scope permitted by applicable law, and will provide notice of changes at least 7 days in advance. For changes unfavorable to users, a grace period of at least 30 days will be given.",
+        },
+        {
+          title: "Article 4 (Service Description)",
+          body: "The Company provides LaserFish, a laser cutting drawing automation plug-in for Rhino and Grasshopper, as a digital download. The download is available immediately upon payment completion; no physical delivery is involved.",
+        },
+        {
+          title: "Article 5 (Compatibility and System Requirements)",
+          body: "The operating environment for LaserFish (Rhino version, Grasshopper version, etc.) is based on the specifications listed on the product page. Operation in unlisted environments is not guaranteed, and the Company is not responsible for malfunctions caused by the user’s software environment.",
+        },
+        {
+          title: "Article 6 (Formation of Agreement)",
+          body: "The service agreement is formed when the user agrees to these Terms and completes payment.",
+        },
+        {
+          title: "Article 7 (User Obligations)",
+          body: "Users must comply with applicable laws and these Terms, and must not engage in the following:",
+          list: [
+            "Transferring, reselling, or distributing the purchased software to third parties without authorization",
+            "Reverse engineering, decompiling, or extracting the source code of the software",
+            "Interfering with the stable operation of the Service",
+            "Any other illegal or unauthorized acts",
+          ],
+        },
+        {
+          title: "Article 8 (Copyright)",
+          body: "All copyrights to software and content within the Service belong to MassLabs. Users may use the purchased software only for personal or business purposes, and may not transfer, resell, or distribute it to third parties.",
+        },
+        {
+          title: "Article 9 (Disclaimer)",
+          body: "The Company is not liable in the following cases:",
+          list: [
+            "Malfunctions caused by the user’s modeling conditions, Rhino/Grasshopper version, plug-in conflicts, or other user environment factors",
+            "Service disruptions caused by reasons attributable to the user",
+            "Service interruptions due to force majeure events such as natural disasters, war, or communication failures",
+          ],
+          body2: "However, if the product does not operate normally in the environment specified on the product page, the Company will take corrective or refund measures.",
+        },
+        {
+          title: "Article 10 (Pricing Basis)",
+          body: "The payment amount is calculated based on the number of pieces actually generated by LaserFish. If part of the input geometry is not included in the output for technical reasons, that portion will not be counted toward the payment amount.",
+        },
+        {
+          title: "Article 11 (Refund Policy)",
+          body: "LaserFish is a digital software product and download is available immediately upon payment. In accordance with Article 17(2) of the Act on Consumer Protection in Electronic Commerce, refunds are not available in principle after the download is complete due to the reproducible nature of digital content.",
+        },
+        {
+          title: "Article 12 (Refundable Cases)",
+          body: "A full refund is available in the following cases:",
+          list: [
+            "Download is unavailable due to a technical error after payment",
+            "The output is not generated correctly due to a program error",
+            "A refund is requested for geometry excluded from the output per Article 10 (Pricing Basis)",
+          ],
+        },
+        {
+          title: "Article 13 (Non-Refundable Cases)",
+          body: "Refunds are not available in the following cases:",
+          list: [
+            "Refund requests based on a change of mind after the download is complete",
+            "Dissatisfaction with results due to the user’s modeling condition or environment",
+            "The user’s Rhino/Grasshopper version differs from the specified requirements",
+          ],
+        },
+        {
+          title: "Article 14 (Refund Request Process)",
+          body: "Refund requests must be submitted within 7 days of payment to masslabs.archi@gmail.com, including the following:\n\nReceipt of payment date and amount / Reason for refund / Evidence screenshots of the error / Original and output modeling files\n\nUpon receipt, the Company will verify whether the program operates correctly based on the original model. If the output is generated correctly, the result will be sent to the requester’s email and no refund will be issued. If a program error is confirmed, the refund will be processed within 3–5 business days.",
+        },
+        {
+          title: "Article 15 (Dispute Resolution)",
+          body: "In the event of a dispute related to the use of the Service, the Company and the user will negotiate in good faith. If a user submits a damage relief request related to e-commerce disputes, the matter may be subject to mediation by the Korea Fair Trade Commission or relevant dispute resolution bodies. If no agreement is reached, Korean law applies and jurisdiction follows applicable regulations.",
+        },
+        {
+          title: "Article 16 (Miscellaneous)",
+          body: "Matters not specified in these Terms are governed by the Act on Consumer Protection in Electronic Commerce, the Act on Regulation of Terms and Conditions, and other applicable laws.",
+        },
+      ],
+    },
+  },
+
+  ko: {
+    footer: {
+      businessInfo1: "상호명: MassLabs | 대표자: Baek Jonghwi | 사업자등록번호: 895-34-01789",
+      businessInfo2: "주소: 서울특별시 성북구 정릉로8가길 12, 401호 | 전화: 070-8144-5867",
+      contact: "문의",
+      termsAndPolicy: "이용약관 및 환불정책",
+      privacy: "개인정보처리방침",
+    },
+    home: {
+      tools: "Tools",
+      toolDesc: "건축 레이저컷 도면 자동화",
+    },
+    laserfish: {
+      description:
+        "Rhino용 Grasshopper 애드온으로, 건축 형상에서 레이저 커팅 도면을 자동으로 생성합니다. 복잡한 형상을 평면 조각으로 분해하고, 재료 경계 내에 배치하여 즉시 커팅 가능한 도면을 출력합니다.",
+      tutorial: "튜토리얼",
+      download: "다운로드",
+      pricing: "가격",
+      pricingUnit: "/ 조각당",
+      krwUnit: "/ 조각당",
+      minimum: "최소 주문 금액",
+      available: "구매 후 즉시 사용 가능",
+      howToUse: "사용 방법",
+      step1: "1. Brep 형상을 입력에 연결하세요.",
+      step1n1: "** wall_1, wall_2, window는 XY 평면에 수직이어야 합니다. Slab는 XY 평면에 수평이어야 합니다 **",
+      step1n2: "** 곡률이 다른 곡면이 연속으로 연결된 경우 분리하세요 **",
+      step2: "2. 패널에 축척, 곡선 간격, 재료 크기를 입력하세요.",
+      step2n1: "** 슬래브 두께는 원본과 동일한 비율로 설정해 주세요 **",
+      step2n2: "** Curve Distance는 곡면의 간격 각도입니다. 모델에 곡면이 없으면 그대로 두어도 됩니다 **",
+      step3: "3. 토글을 더블클릭하여 true로 설정하세요.",
+      step4: "4. 도면이 생성될 때까지 몇 분 기다리세요.",
+      beCareful: "주의사항",
+      careful1: "• 애드온에서 **로 표시된 필드는 필수 입력항목입니다.",
+      careful2: "• Brep는 하나의 연결된 형상으로 인식되려면 서로 결합되어 있어야 합니다. 접촉은 하지만 Boolean Union이 되지 않은 경우 별개의 객체로 처리됩니다.",
+      careful3: "• 모델 상태나 Rhino의 형상 오류로 인해 결과물이 완벽하지 않을 수 있습니다. 결과물 검토 시 이 점을 참고해 주세요.",
+    },
+    payment: {
+      title: "도면 완성하기",
+      pieces: "조각 수",
+      cost: "비용",
+      vat: "부가세 (10%)",
+      total: "합계",
+      info1: "생성된 결과물에 대해서만 결제됩니다.",
+      info2: "오류가 발생한 부분은 청구되지 않습니다.",
+      emailLabel: "이메일 주소",
+      emailHint: "영수증을 받을 이메일을 입력하세요.",
+      emailPlaceholder: "your@email.com",
+      agreeText: "다음에 동의합니다:",
+      termsLink: "이용약관 및 정책",
+      payBtn: "결제하기",
+      processing: "처리 중...",
+      emailError: "이메일을 입력해 주세요.",
+      payError: "결제가 취소되었거나 실패했습니다. 다시 시도해 주세요.",
+      sysError: "결제 중 오류가 발생했습니다. 다시 시도해 주세요.",
+      termsTitle: "이용약관 및 정책",
+    },
+    paymentComplete: {
+      verifying: "결제 확인 중...",
+      failTitle: "결제 실패",
+      failDesc: "결제 처리 중 문제가 발생했습니다. 다시 시도해 주세요.",
+      tryAgain: "다시 시도",
+      successTitle: "결제 완료!",
+      thankYou: "구매해 주셔서 감사합니다.",
+      receiptSent: "영수증이 다음으로 전송되었습니다:",
+      nextSteps: "다음 단계",
+      nextStep1: "Grasshopper로 돌아가기",
+      nextStep2: "1분 이내에 도면이 자동으로 생성됩니다",
+      nextStep3: "Rhino 뷰포트에서 결과물 확인",
+      backBtn: "MassLab으로 돌아가기",
+      loading: "로딩 중...",
+    },
+    contact: {
+      title: "문의 및 사업자 정보",
+      bizTitle: "사업자 정보",
+      bizContent: [
+        "상호명: MassLabs",
+        "대표자: Baek Jonghwi",
+        "사업자등록번호: 895-34-01789",
+        "주소: 서울특별시 성북구 정릉로8가길 12, 401호",
+        "전화: 070-8144-5867",
+        "이메일: masslabs.archi@gmail.com",
+      ],
+      inquiryTitle: "문의",
+      inquiryText: "서비스 이용 관련 문의는 다음으로 연락해 주세요:",
+      back: "← 뒤로",
+    },
+    privacy: {
+      back: "← 뒤로",
+      title: "개인정보처리방침",
+      effectiveDate: "시행일: 2026년 4월 13일",
+      sections: [
+        {
+          title: "제1조 (개인정보의 처리 목적)",
+          body: "MassLabs(이하 \"회사\")는 다음의 목적을 위하여 개인정보를 처리합니다. 처리하는 개인정보는 아래 목적 이외의 용도로 이용되지 않으며, 이용 목적이 변경될 경우 별도의 동의를 받는 등 필요한 조치를 이행합니다.",
+          list: [
+            "결제 처리: 서비스 이용료 결제 및 환불 처리",
+            "서비스 통계 분석: 이용자 국가 정보를 활용한 서비스 개선",
+            "데이터 수집: 환불요청 및 제품 수준 향상을 위한 결과물 데이터를 수집",
+          ],
+        },
+        {
+          title: "제2조 (수집하는 개인정보 항목)",
+          list: [
+            "결제 정보: 결제 수단 정보 (카드번호 등 민감정보는 결제 대행사를 통해 처리되며 회사가 직접 저장하지 않음)",
+            "국가 정보: 이용자의 접속 국가",
+            "결과물 데이터: 평면에 배치되는 조각들의 표본 및 재질 두께 수집",
+          ],
+          body2: "회사는 이메일 주소를 수집하지 않으며, 별도의 회원가입 절차가 없습니다.",
+        },
+        {
+          title: "제3조 (개인정보의 보유 및 이용 기간)",
+          list: [
+            "결제 정보: 전자상거래법에 따라 5년간 보관 후 파기",
+            "국가 정보: 통계 처리 후 개인 식별이 불가능한 형태로 보관",
+            "결과물 데이터: 이용자가 동의를 철회하기 전까지 보관, 철회 시 지체 없이 파기",
+          ],
+        },
+        {
+          title: "제4조 (개인정보 처리의 위탁)",
+          body: "회사는 결제 처리를 위해 포트원(PortOne)을 통해 갤럭시아머니트리(빌게이트) 등 결제 대행사에 최소한의 정보를 위탁합니다. 위탁받은 업체는 개인정보보호법에 따라 개인정보를 안전하게 처리하도록 관리·감독됩니다.",
+        },
+        {
+          title: "제5조 (개인정보의 제3자 제공)",
+          body: "회사는 원칙적으로 이용자의 개인정보를 제3자에게 제공하지 않습니다. 다만, 이용자가 사전에 동의한 경우 또는 법령에 의한 요구가 있는 경우에는 예외로 합니다.",
+        },
+        {
+          title: "제6조 (이용자의 권리)",
+          body: "이용자는 언제든지 개인정보 열람, 정정, 삭제, 처리 정지를 요청할 수 있습니다. 결과물 데이터 수집에 대한 동의도 언제든지 철회할 수 있습니다. 요청은 masslabs.archi@gmail.com으로 문의해 주세요.",
+        },
+        {
+          title: "제7조 (개인정보의 파기)",
+          body: "보유 기간이 경과하거나 처리 목적이 달성된 개인정보는 지체 없이 파기합니다. 전자적 파일은 복원이 불가능한 방법으로 영구 삭제합니다.",
+        },
+        {
+          title: "제8조 (개인정보 보호책임자)",
+          body: "개인정보 처리에 관한 문의는 아래 책임자에게 연락해 주세요.\n대표: Baek Jonghwi | 이메일: masslabs.archi@gmail.com",
+        },
+        {
+          title: "제9조 (권익침해 구제 방법)",
+          body: "개인정보 침해로 인한 구제를 받기 위해 아래 기관에 문의하실 수 있습니다.",
+          list: [
+            "개인정보분쟁조정위원회: 1833-6972 / www.kopico.go.kr",
+            "개인정보침해신고센터: 118 / privacy.kisa.or.kr",
+            "대검찰청: 1301 / www.spo.go.kr",
+            "경찰청: 182 / ecrm.cyber.go.kr",
+          ],
+        },
+        {
+          title: "제10조 (개인정보처리방침 변경)",
+          body: "본 방침은 시행일로부터 적용되며, 변경 사항이 있을 경우 시행 7일 전부터 서비스 화면을 통해 고지합니다.",
+        },
+      ],
+    },
+    terms: {
+      back: "← 뒤로",
+      title: "이용약관 및 환불정책",
+      effectiveDate: "시행일: 2026년 4월 13일",
+      sections: [
+        {
+          title: "제1조 (목적)",
+          body: "본 약관은 MassLabs(이하 \"회사\")가 제공하는 LaserFish 소프트웨어 서비스(이하 \"서비스\") 이용에 관한 조건 및 절차, 회사와 이용자 간의 권리, 의무 및 책임사항을 규정함을 목적으로 합니다.",
+        },
+        {
+          title: "제2조 (정의)",
+          body: "\"서비스\"란 회사가 제공하는 Grasshopper 플러그인 다운로드 서비스를 말합니다.\n\"이용자\"란 본 약관에 따라 회사가 제공하는 서비스를 이용하는 자를 말합니다.\n\"디지털 상품\"이란 서비스를 통해 제공되는 Grasshopper 플러그인 등 디지털 콘텐츠를 말합니다.",
+        },
+        {
+          title: "제3조 (약관의 효력 및 변경)",
+          body: "본 약관은 서비스 화면에 게시함으로써 효력이 발생합니다. 회사는 관련 법령을 위반하지 않는 범위에서 약관을 변경할 수 있으며, 변경 시 적용일자 및 변경 사유를 7일 이전부터 공지합니다. 이용자에게 불리한 변경의 경우 최소 30일 이상의 사전 유예기간을 둡니다.",
+        },
+        {
+          title: "제4조 (서비스 내용)",
+          body: "회사는 Rhino 및 Grasshopper 환경에서 작동하는 레이저 커팅 도면 자동 생성 플러그인(LaserFish)을 디지털 다운로드 형태로 제공합니다. 결제 완료 즉시 다운로드가 가능하며, 별도의 배송은 없습니다.",
+        },
+        {
+          title: "제5조 (호환성 및 동작 환경)",
+          body: "LaserFish의 동작 환경은 상품 페이지에 명시된 사양을 기준으로 합니다. 명시되지 않은 환경에서의 동작은 보장하지 않으며, 이용자의 소프트웨어 환경 차이로 인한 오작동에 대해 회사는 책임지지 않습니다.",
+        },
+        {
+          title: "제6조 (이용계약 성립)",
+          body: "이용계약은 이용자가 본 약관에 동의하고 결제를 완료한 시점에 성립됩니다.",
+        },
+        {
+          title: "제7조 (이용자의 의무)",
+          body: "이용자는 서비스 이용 시 관계 법령 및 본 약관을 준수해야 하며, 다음 행위를 해서는 안 됩니다.",
+          list: [
+            "구매한 소프트웨어의 제3자 양도, 재판매, 무단 배포 및 공유",
+            "소프트웨어의 리버스 엔지니어링, 디컴파일, 소스 추출",
+            "서비스의 안정적 운영을 방해하는 행위",
+            "기타 불법적이거나 부당한 행위",
+          ],
+        },
+        {
+          title: "제8조 (저작권)",
+          body: "서비스 내 모든 소프트웨어 및 콘텐츠의 저작권은 MassLabs에 귀속됩니다. 이용자는 구매한 소프트웨어를 개인 또는 업무 목적으로만 사용할 수 있으며, 제3자에게 양도, 재판매, 배포할 수 없습니다.",
+        },
+        {
+          title: "제9조 (면책조항)",
+          body: "회사는 다음의 경우 책임을 지지 않습니다.",
+          list: [
+            "이용자의 모델링 상태, Rhino/Grasshopper 버전, 플러그인 충돌 등 사용자 환경으로 인한 오작동",
+            "이용자의 귀책사유로 인한 서비스 이용 장애",
+            "천재지변, 전쟁, 통신 장애 등 불가항력적 사유로 인한 서비스 중단",
+          ],
+          body2: "단, 상품 페이지에 명시된 환경에서 정상 작동하지 않는 경우 회사가 수정 또는 환불 조치를 취합니다.",
+        },
+        {
+          title: "제10조 (결제 금액 산정 기준)",
+          body: "결제 금액은 LaserFish가 실제로 생성한 조각(Piece)의 개수를 기준으로 산정됩니다. 입력된 형상의 일부가 기술적 사유로 결과물에 포함되지 않은 경우, 해당 부분은 결제 금액 산정에서 제외됩니다.",
+        },
+        {
+          title: "제11조 (환불 원칙)",
+          body: "LaserFish는 디지털 소프트웨어 상품으로, 결제 완료 후 즉시 다운로드가 제공됩니다. 「전자상거래 등에서의 소비자보호에 관한 법률」 제17조 제2항에 따라, 복제 가능한 디지털 콘텐츠의 특성상 다운로드 완료 후에는 원칙적으로 환불이 불가합니다.",
+        },
+        {
+          title: "제12조 (환불 가능한 경우)",
+          body: "다음의 경우 전액 환불이 가능합니다.",
+          list: [
+            "결제 후 기술적 오류로 인해 다운로드가 불가한 경우",
+            "프로그램상 오류로 결과물이 제대로 출력되지 않는 경우",
+            "제10조에서 결제 금액에서 제외된 형상의 일부에 대한 환불을 요구하는 경우",
+          ],
+        },
+        {
+          title: "제13조 (환불 불가한 경우)",
+          body: "다음의 경우 환불이 불가합니다.",
+          list: [
+            "다운로드 완료 후 단순 변심에 의한 환불 요청",
+            "이용자의 모델링 상태, 사용자 환경 등으로 인한 결과물 불만족",
+            "이용자의 Rhino/Grasshopper 버전이 명시된 요구 사양과 다른 경우",
+          ],
+        },
+        {
+          title: "제14조 (환불 신청 방법)",
+          body: "환불 요청은 결제일로부터 7일 이내에 masslabs.archi@gmail.com으로 아래 내용을 포함하여 접수해 주세요.\n\n결제일 및 결제 금액 영수증 / 환불 사유 / 오류 증거 사진 / 원본 모델링 파일 및 결과물 모델링 파일\n\n접수 후 원본 모델링을 바탕으로 프로그램 정상 작동 여부를 확인합니다. 결과물이 정상적으로 출력될 경우 해당 결과물을 요청자 이메일로 전달해 드리며, 이 경우 환불은 불가합니다. 프로그램 오류로 확인된 경우에는 영업일 기준 3~5일 이내에 환불 처리됩니다.",
+        },
+        {
+          title: "제15조 (분쟁 해결)",
+          body: "서비스 이용과 관련하여 분쟁이 발생한 경우, 회사와 이용자는 원만한 해결을 위해 성실히 협의합니다. 협의가 이루어지지 않는 경우 대한민국 법을 적용하며, 관할 법원은 관련 법령에 따릅니다.",
+        },
+        {
+          title: "제16조 (기타)",
+          body: "본 약관에 명시되지 않은 사항은 「전자상거래 등에서의 소비자보호에 관한 법률」, 「약관의 규제에 관한 법률」 및 관련 법령에 따릅니다.",
+        },
+      ],
+    },
+  },
+} as const;
+
+export type Lang = keyof typeof t;
