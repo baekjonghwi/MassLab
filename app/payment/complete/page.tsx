@@ -15,7 +15,6 @@ function PaymentCompleteContent() {
   const tr = t[lang].paymentComplete;
 
   const paymentId = searchParams.get("paymentId");
-  const email = searchParams.get("email");
 
   useEffect(() => {
     if (!paymentId) {
@@ -48,6 +47,15 @@ function PaymentCompleteContent() {
     savePayment();
   }, [paymentId]);
 
+  useEffect(() => {
+    if (status !== "success") return;
+    const timer = setTimeout(() => {
+      sessionStorage.setItem("reviewPaymentId", paymentId!);
+      router.push("/review");
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [status, paymentId, router]);
+
   if (status === "loading") {
     return (
       <div style={{ textAlign: "center" }}>
@@ -64,25 +72,9 @@ function PaymentCompleteContent() {
         <h1 style={{ fontSize: "1.4rem", fontWeight: 700, marginBottom: "10px", letterSpacing: "-0.02em" }}>
           {tr.failTitle}
         </h1>
-        <p style={{ fontSize: "0.85rem", color: "#888", lineHeight: 1.7, marginBottom: "28px" }}>
+        <p style={{ fontSize: "0.85rem", color: "#888", lineHeight: 1.7 }}>
           {tr.failDesc}
         </p>
-        <button
-          onClick={() => router.back()}
-          style={{
-            padding: "11px 28px",
-            background: "#1a1a1a",
-            color: "#fff",
-            border: "none",
-            borderRadius: "8px",
-            fontSize: "0.88rem",
-            fontWeight: 500,
-            fontFamily: "inherit",
-            cursor: "pointer",
-          }}
-        >
-          {tr.tryAgain}
-        </button>
       </div>
     );
   }
@@ -95,19 +87,18 @@ function PaymentCompleteContent() {
           to { transform: scale(1); opacity: 1; }
         }
         .checkmark { animation: checkmark 0.4s ease forwards; }
-        .home-btn {
-          padding: 11px 28px;
-          background: #1a1a1a;
-          color: #fff;
-          border: none;
-          border-radius: 8px;
-          font-size: 0.88rem;
-          font-weight: 500;
-          font-family: inherit;
-          cursor: pointer;
-          transition: background 0.2s;
+        @keyframes spin {
+          to { transform: rotate(360deg); }
         }
-        .home-btn:hover { background: #333; }
+        .spinner {
+          width: 20px;
+          height: 20px;
+          border: 2px solid #ddd;
+          border-top-color: #1a1a1a;
+          border-radius: 50%;
+          animation: spin 0.8s linear infinite;
+          margin: 0 auto;
+        }
       `}</style>
 
       <div className="checkmark" style={{
@@ -125,37 +116,17 @@ function PaymentCompleteContent() {
         </svg>
       </div>
 
-      <h1 style={{ fontSize: "1.5rem", fontWeight: 700, letterSpacing: "-0.02em", marginBottom: "10px" }}>
+      <h1 style={{ fontSize: "1.5rem", fontWeight: 700, letterSpacing: "-0.02em", marginBottom: "12px" }}>
         {tr.successTitle}
       </h1>
       <p style={{ fontSize: "0.85rem", color: "#888", lineHeight: 1.7, marginBottom: "8px" }}>
         {tr.thankYou}
       </p>
-      {email && (
-        <p style={{ fontSize: "0.85rem", color: "#888", lineHeight: 1.7, marginBottom: "28px" }}>
-          {tr.receiptSent}{" "}
-          <span style={{ color: "#1a1a1a", fontWeight: 500 }}>{email}</span>.
-        </p>
-      )}
+      <p style={{ fontSize: "0.9rem", color: "#555", lineHeight: 1.7, marginBottom: "32px" }}>
+        {tr.generating}
+      </p>
 
-      <div style={{
-        background: "#f8f8f8",
-        borderRadius: "10px",
-        padding: "16px",
-        marginBottom: "28px",
-        textAlign: "left",
-      }}>
-        <div style={{ fontSize: "0.82rem", fontWeight: 600, marginBottom: "8px" }}>{tr.nextSteps}</div>
-        <div style={{ fontSize: "0.78rem", color: "#666", lineHeight: 1.8 }}>
-          <div>1. {tr.nextStep1}</div>
-          <div>2. {tr.nextStep2}</div>
-          <div>3. {tr.nextStep3}</div>
-        </div>
-      </div>
-
-      <button className="home-btn" onClick={() => router.push("/")}>
-        {tr.backBtn}
-      </button>
+      <div className="spinner" />
     </div>
   );
 }
