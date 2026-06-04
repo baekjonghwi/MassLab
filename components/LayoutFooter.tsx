@@ -20,7 +20,6 @@ export default function LayoutFooter() {
           <p>{tr.businessInfo2}</p>
         </div>
         <div style={{ display: "flex", gap: "24px", fontSize: "0.78rem" }}>
-          <Link href="/policy/contact" style={{ color: "#666", textDecoration: "none" }}>{tr.contact}</Link>
           <Link href="/policy/terms-and-policy" style={{ color: "#666", textDecoration: "none" }}>{tr.termsAndPolicy}</Link>
           <Link href="/policy/privacy" style={{ color: "#666", textDecoration: "none" }}>{tr.privacy}</Link>
         </div>

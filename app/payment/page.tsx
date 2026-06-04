@@ -35,7 +35,7 @@ function PaymentContent() {
     }
   }, [isKo]);
 
-  const totalCount = Number(searchParams.get("count") || 10);
+  const totalCount = Number(searchParams.get("count") || 0);
   const paymentId = searchParams.get("paymentId") || `payment-${Date.now()}`;
   const baseAmountUSD = Math.max(5.0, totalCount * 0.1);
   const vatUSD = baseAmountUSD * 0.1;
@@ -67,6 +67,7 @@ function PaymentContent() {
         totalAmount: finalAmount,
         currency: finalCurrency,
         payMethod: "CARD",
+        locale: isKo ? "KO_KR" : "EN_US",
         customer: { email, fullName: email.split("@")[0], customerId: email.split("@")[0].slice(0, 20) },
         redirectUrl: `${window.location.origin}/payment/complete?paymentId=${paymentId}&email=${encodeURIComponent(email)}&count=${totalCount}`,
       });
@@ -86,6 +87,35 @@ function PaymentContent() {
   const formatKRW = (n: number | null) => n != null ? `${n.toLocaleString()}원` : "...";
 
   const termsModal = t[lang].terms;
+
+  if (totalCount === 0) {
+    return (
+      <div style={{
+        background: "#fff",
+        borderRadius: "16px",
+        padding: "40px 32px",
+        width: "100%",
+        maxWidth: "360px",
+        boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
+        textAlign: "center",
+      }}>
+        <div style={{
+          width: "48px", height: "48px", borderRadius: "50%", background: "#f2f2f2",
+          display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px",
+        }}>
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M4 4l12 12M16 4L4 16" stroke="#888" strokeWidth="2.2" strokeLinecap="round"/>
+          </svg>
+        </div>
+        <p style={{ fontSize: "1rem", fontWeight: 600, color: "#1a1a1a", marginBottom: "8px" }}>
+          {isKo ? "아무것도 만들어지지 않았습니다" : "Nothing was generated."}
+        </p>
+        <p style={{ fontSize: "0.82rem", color: "#888", lineHeight: 1.6 }}>
+          {isKo ? "생성된 조각이 없어 결제할 항목이 없습니다." : "There are no pieces to pay for."}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <>

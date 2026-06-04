@@ -33,16 +33,6 @@ export default function ContactPage() {
       <h1 style={{ fontSize: "1.5rem", fontWeight: 700, marginBottom: "40px" }}>{tr.title}</h1>
 
       <section style={{ marginBottom: "32px" }}>
-        <h2 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "12px" }}>{tr.bizTitle}</h2>
-        <p style={{ fontSize: "0.88rem", color: "#555", lineHeight: 2 }}>
-          {tr.bizContent.map((line, i) => (
-            <span key={i}>{line}<br /></span>
-          ))}
-        </p>
-      </section>
-
-      <section style={{ marginBottom: "32px" }}>
-        <h2 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "12px" }}>{tr.inquiryTitle}</h2>
         <p style={{ fontSize: "0.88rem", color: "#555", lineHeight: 1.9 }}>
           {tr.inquiryText} <strong>masslabs.archi@gmail.com</strong>
         </p>
