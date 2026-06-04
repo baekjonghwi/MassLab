@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "MassLabs",
-  description: "Grasshopper add-on for architectural laser cutting drawings",
+  description: "Rhino plug-in for architectural laser cutting drawings",
 };
 
 export default function RootLayout({

@@ -9,7 +9,12 @@ export default function TermsAndPolicyPage() {
   const tr = t[lang].terms;
 
   return (
-    <main style={{ fontFamily: "-apple-system, 'Helvetica Neue', sans-serif", maxWidth: "800px", margin: "0 auto", padding: "60px 48px 80px" }}>
+    <main className="policy-page" style={{ fontFamily: "-apple-system, 'Helvetica Neue', sans-serif", maxWidth: "800px", margin: "0 auto", padding: "60px 48px 80px" }}>
+      <style>{`
+        @media (max-width: 640px) {
+          .policy-page { padding-left: 20px !important; padding-right: 20px !important; }
+        }
+      `}</style>
 
       <button
         onClick={() => router.back()}

@@ -307,6 +307,19 @@ export default function Home() {
           .feature-img-box { width: 100%; }
           .feature-title { font-size: 1.4rem; }
         }
+
+        @media (max-width: 640px) {
+          .hnav-links { display: none; }
+          .main-nav-inner { padding-left: 16px !important; padding-right: 16px !important; }
+          .main-hero { padding: 72px 20px 80px !important; }
+          .main-features { padding-left: 20px !important; padding-right: 20px !important; }
+          .main-pricing { padding-left: 20px !important; padding-right: 20px !important; }
+          .main-contact { padding-left: 20px !important; padding-right: 20px !important; }
+          .tab-btn { padding: 10px 16px; font-size: 0.82rem; }
+          .feature-title { font-size: 1.2rem; }
+          .feature-desc { font-size: 0.9rem; }
+          .price-card { padding: 36px 24px; }
+        }
       `}</style>
 
       {/* ── NAV ── */}
@@ -318,7 +331,7 @@ export default function Home() {
         backdropFilter: "blur(12px)",
         borderBottom: "1px solid #ebebeb",
       }}>
-        <div style={{
+        <div className="main-nav-inner" style={{
           maxWidth: "1200px",
           margin: "0 auto",
           padding: "0 48px",
@@ -336,7 +349,7 @@ export default function Home() {
             </span>
           </button>
 
-          <div style={{ display: "flex", alignItems: "center", gap: "2px" }}>
+          <div className="hnav-links" style={{ display: "flex", alignItems: "center", gap: "2px" }}>
             <a href="/howtouse" className="hnav-link">
               {lang === "ko" ? "사용방법" : "How to Use"}
             </a>
@@ -354,7 +367,7 @@ export default function Home() {
       </nav>
 
       {/* ── HERO ── */}
-      <section style={{
+      <section className="main-hero" style={{
         background: "linear-gradient(150deg, #0c0c0c 0%, #1c1c2e 60%, #0c0c0c 100%)",
         color: "#fff",
         padding: "120px 48px 130px",
@@ -422,7 +435,7 @@ export default function Home() {
       </section>
 
       {/* ── PRODUCT TABS + FEATURES ── */}
-      <section id="features" style={{ maxWidth: "1200px", margin: "0 auto", padding: "88px 48px 80px" }}>
+      <section id="features" className="main-features" style={{ maxWidth: "1200px", margin: "0 auto", padding: "88px 48px 80px" }}>
 
         {/* Tab selector */}
         <div style={{
@@ -474,7 +487,7 @@ export default function Home() {
       </section>
 
       {/* ── PRICING ── */}
-      <section id="pricing" style={{
+      <section id="pricing" className="main-pricing" style={{
         background: "#f7f7f7",
         padding: "88px 48px",
         textAlign: "center",
@@ -510,7 +523,7 @@ export default function Home() {
       </section>
 
       {/* ── CONTACT / SOCIAL ── */}
-      <section style={{
+      <section className="main-contact" style={{
         maxWidth: "1200px",
         margin: "0 auto",
         padding: "64px 48px",
