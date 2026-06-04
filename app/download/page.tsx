@@ -27,20 +27,18 @@ export default function DownloadPage() {
       <style>{`
         * { box-sizing: border-box; }
 
-        .dl-back-btn {
-          display: flex;
-          align-items: center;
-          gap: 5px;
-          background: none;
-          border: none;
-          cursor: pointer;
-          font-family: inherit;
+        .hnav-link {
           font-size: 0.875rem;
-          color: #777;
-          padding: 0;
-          transition: color 0.15s;
+          color: #444;
+          text-decoration: none;
+          padding: 7px 14px;
+          border-radius: 8px;
+          font-weight: 500;
+          transition: background 0.15s, color 0.15s;
+          cursor: pointer;
+          white-space: nowrap;
         }
-        .dl-back-btn:hover { color: #111; }
+        .hnav-link:hover { background: #f2f2f2; color: #111; }
 
         .dl-row {
           display: flex;
@@ -68,6 +66,15 @@ export default function DownloadPage() {
           text-transform: uppercase;
           margin-bottom: 12px;
         }
+
+        @media (max-width: 640px) {
+          .hnav-links { display: none; }
+          .dl-nav-inner { padding-left: 16px !important; padding-right: 16px !important; }
+          .dl-content { padding: 40px 20px 80px !important; }
+          .dl-components-grid { flex-direction: column !important; }
+          .dl-banner { flex-direction: column !important; align-items: flex-start !important; }
+          .dl-banner button { width: 100% !important; margin-left: 0 !important; }
+        }
       `}</style>
 
       {/* ── NAV ── */}
@@ -79,25 +86,43 @@ export default function DownloadPage() {
         borderBottom: "1px solid #ebebeb",
         zIndex: 100,
       }}>
-        <div style={{
-          maxWidth: "900px",
+        <div className="dl-nav-inner" style={{
+          maxWidth: "1200px",
           margin: "0 auto",
           padding: "0 48px",
-          height: "56px",
+          height: "58px",
           display: "flex",
           alignItems: "center",
+          justifyContent: "space-between",
         }}>
-          <button className="dl-back-btn" onClick={() => router.push("/")}>
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M9 11L5 7l4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            MassLabs
+          <button
+            onClick={() => router.push("/")}
+            style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}
+          >
+            <span style={{ fontSize: "1.1rem", fontWeight: 800, letterSpacing: "-0.03em", color: "#111" }}>
+              MassLabs
+            </span>
           </button>
+
+          <div className="hnav-links" style={{ display: "flex", alignItems: "center", gap: "2px" }}>
+            <a href="/howtouse" className="hnav-link">
+              {lang === "ko" ? "사용방법" : "How to Use"}
+            </a>
+            <a href="/download" className="hnav-link" style={{ color: "#111", fontWeight: 700 }}>
+              {lang === "ko" ? "다운로드" : "Download"}
+            </a>
+            <a href="/#pricing" className="hnav-link">
+              {lang === "ko" ? "비용" : "Pricing"}
+            </a>
+            <a href="/contact" className="hnav-link">
+              {lang === "ko" ? "문의하기" : "Contact"}
+            </a>
+          </div>
         </div>
       </nav>
 
       {/* ── CONTENT ── */}
-      <div style={{ maxWidth: "900px", margin: "0 auto", padding: "60px 48px 100px" }}>
+      <div className="dl-content" style={{ maxWidth: "900px", margin: "0 auto", padding: "60px 48px 100px" }}>
 
         {/* Header */}
         <div style={{ marginBottom: "56px" }}>
@@ -120,7 +145,7 @@ export default function DownloadPage() {
           <div className="label-cap">
             {lang === "ko" ? "포함된 컴포넌트" : "Included components"}
           </div>
-          <div style={{ display: "flex", gap: "12px" }}>
+          <div className="dl-components-grid" style={{ display: "flex", gap: "12px" }}>
             {components.map(c => (
               <div key={c.name} style={{
                 flex: 1,
@@ -193,7 +218,7 @@ export default function DownloadPage() {
         </div>
 
         {/* How to Use link */}
-        <div style={{
+        <div className="dl-banner" style={{
           marginTop: "60px",
           padding: "24px 28px",
           background: "#f7f7f7",

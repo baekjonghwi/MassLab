@@ -19,12 +19,12 @@ const content = {
         { label: "CURVED LINE SPACING", desc: "Engraving interval for curved surfaces (if no curved surfaces, leave as is)" },
         { label: "LASER TOLERANCE", desc: "Laser kerf gap (typically 0.1 mm)" },
         { label: "WALL", desc: "Must be perpendicular to the XY plane. Open Brep not allowed" },
-        { label: "SLAB", desc: "The ratio of SLAB thickness to the original SLAB thickness should match the SCALE\n(e.g. original SLAB thickness = 300mm, SCALE = 1/100 → SLAB thickness = 3mm)\nOpen Brep not allowed" },
+        { label: "SLAB", desc: "Must be horizontal to the XY plane. Open Brep not allowed\nThe ratio of SLAB thickness to the original SLAB thickness should match the SCALE\n(e.g. original SLAB thickness = 300mm, SCALE = 1/100 → SLAB thickness = 3mm)" },
+        { label: "ROOF", desc: "Open Brep not allowed" },
         { label: "WINDOW", desc: "Must be perpendicular to the XY plane. Open Brep not allowed" },
-        { label: "Length × Width × Thickness", desc: "Material size you want to cut" },
+        { label: "length × width × thickness", desc: "Material size you want to cut" },
       ],
       tutorialLabel: "Tutorial",
-      youtubeId: "RfkjPYsBHcc",
     },
     terrain: {
       features: [
@@ -37,10 +37,11 @@ const content = {
         { label: "LASER TOLERANCE", desc: "Laser kerf gap (typically 0.1mm)" },
         { label: "TERRAIN", desc: "Surfaces only" },
         { label: "BUILDINGS", desc: "Surrounding buildings" },
-        { label: "ASSEMBLY", desc: "Assemble BUILDING" },
+        { label: "FOLDING", desc: "Folding BUILDING" },
         { label: "STACKING", desc: "Stack BUILDING" },
         { label: "Engrave building positions on terrain", desc: "Engrave building positions onto terrain" },
         { label: "Engrave upper terrain layer position on terrain", desc: "Engrave upper terrain positions onto lower terrain" },
+        { label: "length × width × thickness", desc: "Material size you want to cut" },
       ],
       tutorialLabel: "Tutorial",
       noVideo: "Tutorial video coming soon.",
@@ -59,12 +60,12 @@ const content = {
         { label: "CURVED LINE SPACING", desc: "곡면의 각인 간격 (곡면이 없으면 그대로 유지)" },
         { label: "LASER TOLERANCE", desc: "레이저의 간극 (일반적으로 0.1mm)" },
         { label: "WALL", desc: "XY 평면에 수직이어야 함. Open Brep 불가" },
-        { label: "SLAB", desc: "SLAB의 thickness와 원본 SLAB의 두께의 비율은 SCALE과 비슷해야 한다\n(예시: 원본 SLAB 두께 = 300mm, SCALE = 1/100 → SLAB thickness = 3mm)\nOpen Brep 불가" },
+        { label: "SLAB", desc: "XY 평면에 수평이어야 함. Open Brep 불가\nSLAB의 thickness와 원본 SLAB의 두께의 비율은 SCALE과 비슷해야 한다\n(예시: 원본 SLAB 두께 = 300mm, SCALE = 1/100 → SLAB thickness = 3mm)" },
+        { label: "ROOF", desc: "Open Brep 불가" },
         { label: "WINDOW", desc: "XY 평면에 수직이어야 함. Open Brep 불가" },
-        { label: "Length × Width × Thickness", desc: "자르고자 하는 재질의 크기" },
+        { label: "length × width × thickness", desc: "자르고자 하는 재질의 크기" },
       ],
       tutorialLabel: "튜토리얼",
-      youtubeId: "RfkjPYsBHcc",
     },
     terrain: {
       features: [
@@ -77,10 +78,11 @@ const content = {
         { label: "LASER TOLERANCE", desc: "레이저의 간극 (일반적으로 0.1mm)" },
         { label: "TERRAIN", desc: "서피스만 가능" },
         { label: "BUILDINGS", desc: "주변 건물" },
-        { label: "ASSEMBLY", desc: "BUILDING 조립하기" },
+        { label: "FOLDING", desc: "BUILDING 접기" },
         { label: "STACKING", desc: "BUILDING 쌓아올리기" },
         { label: "Engrave building positions on terrain", desc: "빌딩들의 위치를 지형 위에 각인하기" },
         { label: "Engrave upper terrain layer position on terrain", desc: "윗지형 위치를 아랫지형에 각인하기" },
+        { label: "length × width × thickness", desc: "자르고자 하는 재질의 크기" },
       ],
       tutorialLabel: "튜토리얼",
       noVideo: "튜토리얼 영상 준비 중입니다.",
@@ -90,11 +92,11 @@ const content = {
 
 function WallAndSlabWindow() {
   return (
-    <div style={{ border: "1px solid #c8c8c8", borderRadius: "4px", background: "#f0f0f0", fontFamily: "'Segoe UI', sans-serif", fontSize: "12px", maxWidth: "540px", userSelect: "none" }}>
+    <div style={{ border: "1px solid #c8c8c8", borderRadius: "4px", background: "#f0f0f0", fontFamily: "'Segoe UI', sans-serif", fontSize: "12px", maxWidth: "560px", userSelect: "none" }}>
       <div style={{ background: "#e0e0e0", borderBottom: "1px solid #c0c0c0", padding: "6px 10px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <span style={{ display: "flex", alignItems: "center", gap: "6px", fontWeight: 500 }}>
           <div style={{ width: 14, height: 14, background: "#ccc", borderRadius: 2 }} />
-          LaserFish
+          LaserFish - WallAndSlab
         </span>
         <div style={{ display: "flex", gap: "10px", color: "#777", fontSize: "11px" }}>
           <span>─</span><span>□</span><span style={{ color: "#c00" }}>✕</span>
@@ -103,34 +105,38 @@ function WallAndSlabWindow() {
       <div style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: "12px" }}>
         <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
           <label style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-            <span style={{ fontWeight: 600, fontSize: "11px" }}>SCALE :</span>
+            <span style={{ fontWeight: 700, fontSize: "11px" }}>SCALE :</span>
             <input readOnly value="1/100" style={{ width: 58, padding: "2px 5px", border: "1px solid #bbb", background: "#fff", fontSize: "12px" }} />
           </label>
           <label style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-            <span style={{ fontWeight: 600, fontSize: "11px" }}>CURVED LINE SPACING :</span>
+            <span style={{ fontWeight: 700, fontSize: "11px" }}>CURVED LINE SPACING :</span>
             <input readOnly value="10" style={{ width: 38, padding: "2px 5px", border: "1px solid #bbb", background: "#fff", fontSize: "12px" }} />
             <span style={{ fontSize: "11px" }}>mm</span>
           </label>
           <label style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-            <span style={{ fontWeight: 600, fontSize: "11px" }}>LASER TOLERANCE :</span>
+            <span style={{ fontWeight: 700, fontSize: "11px" }}>LASER TOLERANCE :</span>
             <input readOnly value="0.1" style={{ width: 34, padding: "2px 5px", border: "1px solid #bbb", background: "#fff", fontSize: "12px" }} />
             <span style={{ fontSize: "11px" }}>mm</span>
           </label>
         </div>
-        {["WALL", "SLAB", "WINDOW"].map(group => (
+        <div>
+          <div style={{ fontWeight: 700, fontSize: "11px", marginBottom: "5px" }}>WALL</div>
+          <div style={{ display: "flex", gap: "4px", alignItems: "center", marginBottom: "3px" }}>
+            <button className="panel-btn">-</button>
+            <select style={{ border: "1px solid #bbb", padding: "2px 4px", fontSize: "11px", minWidth: 90, cursor: "pointer" }}><option></option></select>
+            <input placeholder="length" style={{ width: 68, border: "1px solid #bbb", padding: "2px 8px", fontSize: "11px", background: "#fff" }} />
+            <span style={{ color: "#999", fontSize: "11px" }}>mm x</span>
+            <input placeholder="width" style={{ width: 62, border: "1px solid #bbb", padding: "2px 8px", fontSize: "11px", background: "#fff" }} />
+            <span style={{ color: "#999", fontSize: "11px" }}>mm x</span>
+            <input placeholder="thickness" style={{ width: 76, border: "1px solid #bbb", padding: "2px 8px", fontSize: "11px", background: "#fff" }} />
+            <span style={{ color: "#999", fontSize: "11px" }}>mm</span>
+          </div>
+          <button className="panel-btn">+</button>
+        </div>
+        {["SLAB", "ROOF", "WINDOW"].map(group => (
           <div key={group}>
             <div style={{ fontWeight: 700, fontSize: "11px", marginBottom: "5px" }}>{group}</div>
-            <div style={{ display: "flex", gap: "4px", alignItems: "center", marginBottom: "3px" }}>
-              <button style={{ padding: "1px 7px", border: "1px solid #bbb", background: "#fff", cursor: "default", fontSize: "11px" }}>-</button>
-              <select style={{ border: "1px solid #bbb", padding: "2px 4px", fontSize: "11px", minWidth: 90 }}><option></option></select>
-              <input readOnly placeholder="L" style={{ width: 44, border: "1px solid #bbb", padding: "2px 4px", fontSize: "11px" }} />
-              <span style={{ color: "#999", fontSize: "11px" }}>×</span>
-              <input readOnly placeholder="W" style={{ width: 40, border: "1px solid #bbb", padding: "2px 4px", fontSize: "11px" }} />
-              <span style={{ color: "#999", fontSize: "11px" }}>×</span>
-              <input readOnly placeholder="T" style={{ width: 40, border: "1px solid #bbb", padding: "2px 4px", fontSize: "11px" }} />
-              <span style={{ color: "#999", fontSize: "11px" }}>mm</span>
-            </div>
-            <button style={{ padding: "1px 7px", border: "1px solid #bbb", background: "#fff", cursor: "default", fontSize: "11px" }}>+</button>
+            <button className="panel-btn">+</button>
           </div>
         ))}
         <div style={{ display: "flex", justifyContent: "flex-end" }}>
@@ -143,11 +149,11 @@ function WallAndSlabWindow() {
 
 function TerrainWindow() {
   return (
-    <div style={{ border: "1px solid #c8c8c8", borderRadius: "4px", background: "#f0f0f0", fontFamily: "'Segoe UI', sans-serif", fontSize: "12px", maxWidth: "540px", userSelect: "none" }}>
+    <div style={{ border: "1px solid #c8c8c8", borderRadius: "4px", background: "#f0f0f0", fontFamily: "'Segoe UI', sans-serif", fontSize: "12px", maxWidth: "560px", userSelect: "none" }}>
       <div style={{ background: "#e0e0e0", borderBottom: "1px solid #c0c0c0", padding: "6px 10px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <span style={{ display: "flex", alignItems: "center", gap: "6px", fontWeight: 500 }}>
           <div style={{ width: 14, height: 14, background: "#ccc", borderRadius: 2 }} />
-          LaserFish — Terrain
+          LaserFish - Terrain
         </span>
         <div style={{ display: "flex", gap: "10px", color: "#777", fontSize: "11px" }}>
           <span>─</span><span>□</span><span style={{ color: "#c00" }}>✕</span>
@@ -156,25 +162,37 @@ function TerrainWindow() {
       <div style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: "12px" }}>
         <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
           <label style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-            <span style={{ fontWeight: 600, fontSize: "11px" }}>SCALE :</span>
+            <span style={{ fontWeight: 700, fontSize: "11px" }}>SCALE :</span>
             <input readOnly value="1/100" style={{ width: 58, padding: "2px 5px", border: "1px solid #bbb", background: "#fff", fontSize: "12px" }} />
           </label>
           <label style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-            <span style={{ fontWeight: 600, fontSize: "11px" }}>LASER TOLERANCE :</span>
+            <span style={{ fontWeight: 700, fontSize: "11px" }}>LASER TOLERANCE :</span>
             <input readOnly value="0.1" style={{ width: 34, padding: "2px 5px", border: "1px solid #bbb", background: "#fff", fontSize: "12px" }} />
             <span style={{ fontSize: "11px" }}>mm</span>
           </label>
         </div>
-        {["TERRAIN", "BUILDINGS"].map(group => (
-          <div key={group}>
-            <div style={{ fontWeight: 700, fontSize: "11px", marginBottom: "5px" }}>{group}</div>
-            <button style={{ padding: "1px 7px", border: "1px solid #bbb", background: "#fff", cursor: "default", fontSize: "11px" }}>+</button>
+        <div>
+          <div style={{ fontWeight: 700, fontSize: "11px", marginBottom: "5px" }}>TERRAIN</div>
+          <div style={{ display: "flex", gap: "4px", alignItems: "center", marginBottom: "3px" }}>
+            <button className="panel-btn">-</button>
+            <select style={{ border: "1px solid #bbb", padding: "2px 4px", fontSize: "11px", minWidth: 90, cursor: "pointer" }}><option></option></select>
+            <input placeholder="length" style={{ width: 68, border: "1px solid #bbb", padding: "2px 8px", fontSize: "11px", background: "#fff" }} />
+            <span style={{ color: "#999", fontSize: "11px" }}>mm x</span>
+            <input placeholder="width" style={{ width: 62, border: "1px solid #bbb", padding: "2px 8px", fontSize: "11px", background: "#fff" }} />
+            <span style={{ color: "#999", fontSize: "11px" }}>mm x</span>
+            <input placeholder="thickness" style={{ width: 76, border: "1px solid #bbb", padding: "2px 8px", fontSize: "11px", background: "#fff" }} />
+            <span style={{ color: "#999", fontSize: "11px" }}>mm</span>
           </div>
-        ))}
+          <button className="panel-btn">+</button>
+        </div>
+        <div>
+          <div style={{ fontWeight: 700, fontSize: "11px", marginBottom: "5px" }}>BUILDINGS</div>
+          <button className="panel-btn">+</button>
+        </div>
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <span style={{ fontWeight: 600, fontSize: "11px" }}>MODE :</span>
-          <button style={{ padding: "3px 14px", border: "1px solid #999", background: "#fff", fontWeight: 600, cursor: "default", fontSize: "11px" }}>ASSEMBLY</button>
-          <button style={{ padding: "3px 14px", border: "1px solid #999", background: "#fff", fontWeight: 600, cursor: "default", fontSize: "11px" }}>STACKING</button>
+          <button className="panel-mode-btn">FOLDING</button>
+          <button className="panel-mode-btn">STACKING</button>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
           {["Engrave building positions on terrain", "Engrave upper terrain layer positions on terrain"].map(label => (
@@ -210,20 +228,59 @@ export default function HowToUsePage() {
       <style>{`
         * { box-sizing: border-box; }
 
-        .htu-back-btn {
-          display: flex;
-          align-items: center;
-          gap: 5px;
-          background: none;
-          border: none;
-          cursor: pointer;
-          font-family: inherit;
+        .hnav-link {
           font-size: 0.875rem;
-          color: #777;
-          padding: 0;
-          transition: color 0.15s;
+          color: #444;
+          text-decoration: none;
+          padding: 7px 14px;
+          border-radius: 8px;
+          font-weight: 500;
+          transition: background 0.15s, color 0.15s;
+          cursor: pointer;
+          white-space: nowrap;
         }
-        .htu-back-btn:hover { color: #111; }
+        .hnav-link:hover { background: #f2f2f2; color: #111; }
+
+        .panel-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 22px;
+          height: 22px;
+          padding: 0;
+          border: 1px solid #bbb;
+          background: #fff;
+          cursor: pointer;
+          font-size: 11px;
+          flex-shrink: 0;
+          font-family: 'Segoe UI', sans-serif;
+          transition: background 0.1s, border-color 0.1s;
+        }
+        .panel-btn:hover {
+          background: #e0e0e0;
+          border-color: #999;
+        }
+        .panel-btn:active {
+          background: #ccc;
+        }
+
+        .panel-mode-btn {
+          padding: 3px 14px;
+          border: 1px solid #999;
+          background: #fff;
+          font-weight: 600;
+          cursor: pointer;
+          font-size: 11px;
+          font-family: 'Segoe UI', sans-serif;
+          transition: background 0.1s, border-color 0.1s;
+        }
+        .panel-mode-btn:hover {
+          background: #e0e0e0;
+          border-color: #777;
+        }
+        .panel-mode-btn:active {
+          background: #ccc;
+        }
 
         .htu-tab-btn {
           display: flex;
@@ -247,7 +304,7 @@ export default function HowToUsePage() {
           box-shadow: 0 2px 10px rgba(0,0,0,0.08);
         }
 
-.param-row {
+        .param-row {
           display: flex;
           gap: 14px;
           padding: 13px 0;
@@ -269,6 +326,15 @@ export default function HowToUsePage() {
           text-transform: uppercase;
           margin-bottom: 16px;
         }
+
+        @media (max-width: 640px) {
+          .hnav-links { display: none; }
+          .htu-nav-inner { padding-left: 16px !important; padding-right: 16px !important; }
+          .htu-content { padding: 40px 20px 80px !important; }
+          .htu-tabs { flex-wrap: wrap !important; }
+          .htu-tab-btn { padding: 9px 16px !important; font-size: 0.82rem !important; }
+          .htu-window-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        }
       `}</style>
 
       {/* ── NAV ── */}
@@ -280,42 +346,43 @@ export default function HowToUsePage() {
         borderBottom: "1px solid #ebebeb",
         zIndex: 100,
       }}>
-        <div style={{
-          maxWidth: "900px",
+        <div className="htu-nav-inner" style={{
+          maxWidth: "1200px",
           margin: "0 auto",
           padding: "0 48px",
-          height: "56px",
+          height: "58px",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
         }}>
-          <button className="htu-back-btn" onClick={() => router.push("/")}>
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M9 11L5 7l4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            MassLabs
-          </button>
           <button
-            onClick={() => router.push("/download")}
-            style={{
-              background: "#111",
-              color: "#fff",
-              border: "none",
-              padding: "8px 18px",
-              borderRadius: "9px",
-              fontSize: "0.82rem",
-              fontWeight: 600,
-              cursor: "pointer",
-              fontFamily: "inherit",
-            }}
+            onClick={() => router.push("/")}
+            style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}
           >
-            {lang === "ko" ? "다운로드" : "Download"}
+            <span style={{ fontSize: "1.1rem", fontWeight: 800, letterSpacing: "-0.03em", color: "#111" }}>
+              MassLabs
+            </span>
           </button>
+
+          <div className="hnav-links" style={{ display: "flex", alignItems: "center", gap: "2px" }}>
+            <a href="/howtouse" className="hnav-link" style={{ color: "#111", fontWeight: 700 }}>
+              {lang === "ko" ? "사용방법" : "How to Use"}
+            </a>
+            <a href="/download" className="hnav-link">
+              {lang === "ko" ? "다운로드" : "Download"}
+            </a>
+            <a href="/#pricing" className="hnav-link">
+              {lang === "ko" ? "비용" : "Pricing"}
+            </a>
+            <a href="/contact" className="hnav-link">
+              {lang === "ko" ? "문의하기" : "Contact"}
+            </a>
+          </div>
         </div>
       </nav>
 
       {/* ── CONTENT ── */}
-      <div style={{ maxWidth: "900px", margin: "0 auto", padding: "60px 48px 100px" }}>
+      <div className="htu-content" style={{ maxWidth: "900px", margin: "0 auto", padding: "60px 48px 100px" }}>
 
         {/* Header */}
         <div style={{ marginBottom: "48px" }}>
@@ -333,7 +400,7 @@ export default function HowToUsePage() {
         </div>
 
         {/* ── Tab selector ── */}
-        <div style={{ display: "flex", gap: "10px", marginBottom: "52px" }}>
+        <div className="htu-tabs" style={{ display: "flex", gap: "10px", marginBottom: "52px" }}>
           <button
             className={`htu-tab-btn${activeTab === "wall" ? " active" : ""}`}
             onClick={() => setActiveTab("wall")}
@@ -357,7 +424,9 @@ export default function HowToUsePage() {
         {/* ── UI Window ── */}
         <div style={{ marginBottom: "40px" }}>
           <div className="section-label">{lang === "ko" ? "패널 구성" : "Panel"}</div>
-          {activeTab === "wall" ? <WallAndSlabWindow /> : <TerrainWindow />}
+          <div className="htu-window-wrap">
+            {activeTab === "wall" ? <WallAndSlabWindow /> : <TerrainWindow />}
+          </div>
         </div>
 
         <hr className="section-divider" />
@@ -376,7 +445,9 @@ export default function HowToUsePage() {
                   {(p.desc as string).split("\n").map((line, j) =>
                     j === 0
                       ? <span key={j} style={{ fontSize: "0.875rem", color: "#666" }}> — {line}</span>
-                      : <div key={j} style={{ fontSize: "0.82rem", color: "#888", marginTop: "3px", paddingLeft: "1em" }}>{line}</div>
+                      : j === 1
+                      ? <div key={j} style={{ fontSize: "0.875rem", color: "#666", marginTop: "3px", paddingLeft: "4em" }}>{line}</div>
+                      : <div key={j} style={{ fontSize: "0.82rem", color: "#888", marginTop: "3px", paddingLeft: "4.3em" }}>{line}</div>
                   )}
                 </div>
               </div>
@@ -390,16 +461,19 @@ export default function HowToUsePage() {
         <div>
           <div className="section-label">{tabContent.tutorialLabel}</div>
           {activeTab === "wall" ? (
-            <div style={{ width: "100%", aspectRatio: "16/9", borderRadius: "14px", overflow: "hidden", background: "#f0f0f0" }}>
-              <iframe
-                width="100%"
-                height="100%"
-                src={`https://www.youtube.com/embed/${c.wallAndSlab.youtubeId}`}
-                title="LaserFish WallAndSlab Tutorial"
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
+            <div style={{
+              width: "100%",
+              aspectRatio: "16/9",
+              borderRadius: "14px",
+              background: "#f7f7f7",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              border: "1px solid #ebebeb",
+            }}>
+              <p style={{ fontSize: "0.875rem", color: "#bbb" }}>
+                {lang === "ko" ? "튜토리얼 영상 준비 중입니다." : "Tutorial video coming soon."}
+              </p>
             </div>
           ) : (
             <div style={{
