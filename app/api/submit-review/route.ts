@@ -50,6 +50,9 @@ export async function POST(request: Request) {
 
       if (uploadRes.ok) {
         photoUrl = `${SUPABASE_URL}/storage/v1/object/public/reviews/${fileName}`;
+      } else {
+        const upErr = await uploadRes.text();
+        console.error("Storage upload failed:", uploadRes.status, upErr);
       }
     }
 
