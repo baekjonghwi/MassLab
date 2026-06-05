@@ -30,7 +30,8 @@ export async function POST(request: Request) {
     let photoUrl: string | null = null;
 
     if (photo) {
-      const ext = photo.name.split(".").pop() ?? "jpg";
+      const rawExt = photo.name.split(".").pop() ?? "";
+      const ext = /^[a-zA-Z0-9]+$/.test(rawExt) ? rawExt.toLowerCase() : "jpg";
       const fileName = `${paymentId}-${Date.now()}.${ext}`;
       const arrayBuffer = await photo.arrayBuffer();
 
