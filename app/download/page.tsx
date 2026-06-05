@@ -2,20 +2,57 @@
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/lib/i18n";
 
-const downloads = [
-  { href: "/downloads/LaserFish_Rh8.zip", label: "Rhino 8", sub: "Windows" },
-  { href: "/downloads/LaserFish_Rh8_mac.zip", label: "Rhino 8", sub: "macOS" },
-  { href: "/downloads/LaserFish_Rh7.zip", label: "Rhino 7", sub: "Windows" },
-];
-
-const components = [
-  { icon: "/images/icon/WallAndSlab.svg", name: "WallAndSlab", desc: { ko: "벽·슬라브·창문·지붕", en: "Wall & Slab & Window & Roof" } },
-  { icon: "/images/icon/Terrain.svg", name: "Terrain", desc: { ko: "지형·주변 건물", en: "Terrain & Buildings" } },
+const steps: {
+  title: { ko: string; en: string };
+  desc: { ko: string; en: string };
+  img: string | null;
+}[] = [
+  {
+    title: { ko: 'Rhino에서 "PackageManager" 명령어 실행', en: 'Run "PackageManager" command in Rhino' },
+    desc: {
+      ko: 'Rhino 커맨드 창에 PackageManager를 입력하고 실행합니다.',
+      en: 'Type PackageManager in the Rhino command bar and press Enter.',
+    },
+    img: null,
+  },
+  {
+    title: { ko: 'Online 탭에서 LaserFish 검색 후 Install', en: 'Search for LaserFish in the Online tab and Install' },
+    desc: {
+      ko: 'Package Manager의 Online 탭에서 LaserFish를 검색한 뒤 Install 버튼을 클릭합니다.',
+      en: 'In the Package Manager, go to the Online tab, search for LaserFish, and click Install.',
+    },
+    img: "/images/download/slide_2.png",
+  },
+  {
+    title: { ko: '"Toolbar" 명령어 실행', en: 'Run the "Toolbar" command' },
+    desc: {
+      ko: '설치 완료 후 Rhino를 재시작하고, Toolbar 명령어를 실행합니다.',
+      en: 'After installation, restart Rhino and run the Toolbar command.',
+    },
+    img: "/images/download/slide_3.png",
+  },
+  {
+    title: { ko: 'Default 파일을 LaserFish로 변경', en: 'Set the default file to LaserFish' },
+    desc: {
+      ko: 'Toolbar 창에서 Default 파일을 LaserFish로 변경합니다.',
+      en: 'In the Toolbar dialog, change the default file to LaserFish.',
+    },
+    img: "/images/download/slide_4.png",
+  },
+  {
+    title: { ko: '체크박스 체크', en: 'Check the checkbox' },
+    desc: {
+      ko: 'LaserFish 항목 옆의 체크박스를 체크하면 설치가 완료됩니다.',
+      en: 'Check the checkbox next to LaserFish to complete the installation.',
+    },
+    img: "/images/download/slide_5.png",
+  },
 ];
 
 export default function DownloadPage() {
   const router = useRouter();
   const { lang } = useLanguage();
+  const L = (t: { ko: string; en: string }) => t[lang] ?? t.ko;
 
   return (
     <main style={{
@@ -67,13 +104,32 @@ export default function DownloadPage() {
           margin-bottom: 12px;
         }
 
+        .step-img-box {
+          width: 100%;
+          aspect-ratio: 16/9;
+          border-radius: 14px;
+          overflow: hidden;
+          background: #f4f4f4;
+          margin-top: 24px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #ccc;
+          font-size: 0.8rem;
+          letter-spacing: 0.04em;
+        }
+        .step-img-box img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+        }
+
         @media (max-width: 640px) {
           .hnav-links { display: none; }
           .dl-nav-inner { padding-left: 16px !important; padding-right: 16px !important; }
           .dl-content { padding: 40px 20px 80px !important; }
-          .dl-components-grid { flex-direction: column !important; }
-          .dl-banner { flex-direction: column !important; align-items: flex-start !important; }
-          .dl-banner button { width: 100% !important; margin-left: 0 !important; }
+          .dl-downloads { flex-direction: column !important; }
         }
       `}</style>
 
@@ -122,10 +178,10 @@ export default function DownloadPage() {
       </nav>
 
       {/* ── CONTENT ── */}
-      <div className="dl-content" style={{ maxWidth: "900px", margin: "0 auto", padding: "60px 48px 100px" }}>
+      <div className="dl-content" style={{ maxWidth: "760px", margin: "0 auto", padding: "60px 48px 100px" }}>
 
         {/* Header */}
-        <div style={{ marginBottom: "56px" }}>
+        <div style={{ marginBottom: "48px" }}>
           <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "#bbb", letterSpacing: "0.09em", textTransform: "uppercase", marginBottom: "14px" }}>
             LaserFish
           </div>
@@ -134,128 +190,75 @@ export default function DownloadPage() {
             fontWeight: 900,
             letterSpacing: "-0.04em",
             lineHeight: 1.1,
-            marginBottom: "16px",
+            marginBottom: "0",
           }}>
             {lang === "ko" ? "다운로드" : "Download"}
           </h1>
         </div>
 
-        {/* Includes */}
-        <div style={{ marginBottom: "52px" }}>
+        {/* Installation guide */}
+        <div>
           <div className="label-cap">
-            {lang === "ko" ? "포함된 컴포넌트" : "Included components"}
+            {lang === "ko" ? "설치 방법" : "Installation"}
           </div>
-          <div className="dl-components-grid" style={{ display: "flex", gap: "12px" }}>
-            {components.map(c => (
-              <div key={c.name} style={{
-                flex: 1,
-                display: "flex",
-                alignItems: "center",
-                gap: "14px",
-                padding: "16px 20px",
-                border: "1.5px solid #ebebeb",
-                borderRadius: "14px",
-                background: "#fafafa",
-              }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={c.icon} width="30" height="30" alt="" style={{ display: "block", flexShrink: 0 }} />
-                <div>
-                  <div style={{ fontSize: "0.9rem", fontWeight: 700, marginBottom: "3px" }}>{c.name}</div>
-                  <div style={{ fontSize: "0.75rem", color: "#999" }}>{c.desc[lang]}</div>
+
+          <div>
+            {steps.map((step, i) => (
+              <div
+                key={i}
+                style={{
+                  paddingBottom: "52px",
+                  marginBottom: "52px",
+                  borderBottom: i < steps.length - 1 ? "1px solid #f0f0f0" : "none",
+                }}
+              >
+                {/* Step number + title + desc */}
+                <div style={{ display: "flex", alignItems: "flex-start", gap: "20px" }}>
+                  <div style={{
+                    width: "36px",
+                    height: "36px",
+                    borderRadius: "50%",
+                    background: "#111",
+                    color: "#fff",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "0.8rem",
+                    fontWeight: 800,
+                    flexShrink: 0,
+                    marginTop: "2px",
+                  }}>
+                    {i + 1}
+                  </div>
+                  <div>
+                    <h3 style={{
+                      fontSize: "1.15rem",
+                      fontWeight: 800,
+                      letterSpacing: "-0.02em",
+                      lineHeight: 1.3,
+                      marginBottom: "8px",
+                      color: "#111",
+                    }}>
+                      {L(step.title)}
+                    </h3>
+                    <p style={{ fontSize: "0.9rem", color: "#666", lineHeight: 1.7, margin: 0 }}>
+                      {L(step.desc)}
+                    </p>
+                  </div>
                 </div>
+
+                {/* Photo (steps 2–5) */}
+                {i > 0 && (
+                  <div className="step-img-box">
+                    {step.img
+                      ? /* eslint-disable-next-line @next/next/no-img-element */ <img src={step.img} alt={L(step.title)} />
+                      : <span>{lang === "ko" ? "이미지 준비 중" : "Image coming soon"}</span>
+                    }
+                  </div>
+                )}
               </div>
             ))}
           </div>
-        </div>
-
-        {/* Downloads */}
-        <div style={{ maxWidth: "480px" }}>
-          <div>
-            <div className="label-cap">{lang === "ko" ? "다운로드" : "Download"}</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-              {downloads.map(({ href, label, sub }) => (
-                <a key={href} href={href} download className="dl-row">
-                  <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-                    <div style={{
-                      width: "38px",
-                      height: "38px",
-                      borderRadius: "10px",
-                      background: "#f0f0f0",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flexShrink: 0,
-                    }}>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                        <polyline points="7 10 12 15 17 10"/>
-                        <line x1="12" y1="15" x2="12" y2="3"/>
-                      </svg>
-                    </div>
-                    <div>
-                      <div style={{ fontSize: "0.92rem", fontWeight: 700 }}>{label}</div>
-                      <div style={{ fontSize: "0.75rem", color: "#999", marginTop: "2px" }}>{sub}</div>
-                    </div>
-                  </div>
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                    <path d="M5 3l4 4-4 4" stroke="#ccc" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </a>
-              ))}
-            </div>
-
-            <p style={{
-              fontSize: "0.75rem",
-              color: "#bbb",
-              marginTop: "16px",
-              lineHeight: 1.6,
-            }}>
-              {lang === "ko"
-                ? "Rhino 7 이상, Windows / macOS 지원"
-                : "Requires Rhino 7 or above · Windows & macOS"}
-            </p>
-          </div>
-        </div>
-
-        {/* How to Use link */}
-        <div className="dl-banner" style={{
-          marginTop: "60px",
-          padding: "24px 28px",
-          background: "#f7f7f7",
-          borderRadius: "14px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}>
-          <div>
-            <div style={{ fontSize: "0.92rem", fontWeight: 700, marginBottom: "4px" }}>
-              {lang === "ko" ? "사용 방법이 궁금하신가요?" : "Want to learn how to use it?"}
-            </div>
-            <div style={{ fontSize: "0.8rem", color: "#888" }}>
-              {lang === "ko"
-                ? "파라미터 설명과 튜토리얼 영상을 확인하세요"
-                : "Check the parameter guide and tutorial videos"}
-            </div>
-          </div>
-          <button
-            onClick={() => router.push("/howtouse")}
-            style={{
-              background: "#111",
-              color: "#fff",
-              border: "none",
-              padding: "10px 20px",
-              borderRadius: "10px",
-              fontSize: "0.85rem",
-              fontWeight: 600,
-              cursor: "pointer",
-              fontFamily: "inherit",
-              whiteSpace: "nowrap",
-              flexShrink: 0,
-              marginLeft: "16px",
-            }}
-          >
-            {lang === "ko" ? "사용방법 보기" : "View Guide"}
-          </button>
         </div>
 
       </div>

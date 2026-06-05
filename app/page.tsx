@@ -32,7 +32,7 @@ const wallFeatures: Feature[] = [
       ko: "모형 사이즈의 모델링이 제공되어 따라 조립하면 됩니다. 모델링과 레이저 커팅 도면에 번호가 적혀져 있습니다.",
       en: "A scale 3D model is provided to guide assembly. Both the model and the cutting drawings share the same numbering.",
     },
-    img: "/images/laserFish_slide_1.jpg",
+    img: "/images/WallAndSlab/slide_2.png",
   },
   {
     title: {
@@ -65,7 +65,7 @@ const wallFeatures: Feature[] = [
       ko: "외곽선(핑크색), 내부선(빨간색), 선각인(파란색)이 구분됩니다. 슬라브 위에 있는 벽을 감지해 선이 각인됩니다.",
       en: "Outline (pink), inner line (red), and engraving (blue) lines are automated. Walls above slabs are detected and engraved automatically.",
     },
-    img: "/images/WallAndSlab/slide_5_수정.jpg",
+    img: "/images/WallAndSlab/slide_5.png",
   },
 ];
 
@@ -79,7 +79,7 @@ const terrainFeatures: Feature[] = [
       ko: "레이저커팅 도면을 짜시는데 하루 이상이 소모된다고요? LaserFish는 5분 이내로 도면을 짜드립니다.",
       en: "Spending over a day on laser cutting drawings? LaserFish generates them in under 5 minutes.",
     },
-    img: "/images/laserFish_mainslide_1.jpg",
+    img: "/images/Terrain/slide_1_수정.png",
   },
   {
     title: {
@@ -90,7 +90,7 @@ const terrainFeatures: Feature[] = [
       ko: "지형 서피스를 넣으면 재질두께에 맞춰 지형을 생성합니다. 건물이 서피스 아래로 튀어나와 있어도 그에 맞게 지형을 생성합니다.",
       en: "Input a terrain surface and get a model cut to your material thickness. Handles buildings that protrude below the surface.",
     },
-    img: null,
+    img: "/images/Terrain/slide_2.png",
   },
   {
     title: {
@@ -101,7 +101,7 @@ const terrainFeatures: Feature[] = [
       ko: "모형 사이즈의 모델링이 제공되어 따라 조립하면 됩니다. 모델링과 레이저 커팅 도면에 번호가 적혀져 있습니다.",
       en: "A scale 3D model is provided to guide assembly. Both the model and the cutting drawings share the same numbering.",
     },
-    img: "/images/laserFish_slide_1.jpg",
+    img: "/images/Terrain/slide_3.png",
   },
   {
     title: {
@@ -112,7 +112,7 @@ const terrainFeatures: Feature[] = [
       ko: "쌓기 방식 또는 접기 방식으로 원하는 건물 표현 방식을 선택할 수 있습니다.",
       en: "Select the stacking or folding approach for building representation in your terrain model.",
     },
-    img: null,
+    img: "/images/Terrain/slide_4.png",
   },
   {
     title: {
@@ -123,7 +123,7 @@ const terrainFeatures: Feature[] = [
       ko: "외곽선(핑크색), 내부선(빨간색), 선각인(파란색) 자동화! 건물위치각인 및 지형위치 각인을 체크하시면 위치가 각인됩니다.",
       en: "Outline (pink), inner line (red), and engraving (blue) lines are automated. Enable building and terrain position engravings with a checkbox.",
     },
-    img: "/images/laserFish_mainslide_3.jpg",
+    img: "/images/Terrain/slide_5.png",
   },
 ];
 
@@ -515,7 +515,7 @@ export default function Home() {
               {`${lang === "ko" ? "조각당" : "per piece"} (₩${krwAmount.toLocaleString()})`}
             </div>
             <div className="price-detail">
-              <div>{lang === "ko" ? "최소 주문 금액 $3" : "Minimum order $3"}</div>
+              <div>{lang === "ko" ? "최소 주문 금액 $5" : "Minimum order $5"}</div>
               <div>{lang === "ko" ? "결제 후 즉시 레이저컷 도면 생성" : "Laser cut drawings generated instantly after payment"}</div>
             </div>
           </div>
