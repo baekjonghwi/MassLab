@@ -36,8 +36,10 @@ function PaymentContent() {
   }, [isKo]);
 
   const totalCount = Number(searchParams.get("count") || 0);
+  const type = (searchParams.get("type") || "WallAndSlab") as "WallAndSlab" | "Terrain";
+  const unitPrice = type === "Terrain" ? 0.05 : 0.1;
   const paymentId = searchParams.get("paymentId") || `payment-${Date.now()}`;
-  const baseAmountUSD = Math.max(5.0, totalCount * 0.1);
+  const baseAmountUSD = Math.max(5.0, totalCount * unitPrice);
   const vatUSD = baseAmountUSD * 0.1;
   const totalAmountUSD = baseAmountUSD + vatUSD;
   const totalAmountKRW = exchangeRate ? Math.round(totalAmountUSD * exchangeRate) : null;
@@ -69,14 +71,14 @@ function PaymentContent() {
         payMethod: "CARD",
         locale: isKo ? "KO_KR" : "EN_US",
         customer: { email, fullName: email.split("@")[0], customerId: email.split("@")[0].slice(0, 20) },
-        redirectUrl: `${window.location.origin}/payment/complete?paymentId=${paymentId}&email=${encodeURIComponent(email)}&count=${totalCount}`,
+        redirectUrl: `${window.location.origin}/payment/complete?paymentId=${paymentId}&email=${encodeURIComponent(email)}&count=${totalCount}&type=${type}`,
       });
 
       if (response?.code) {
         setError(tr.payError);
         setLoading(false);
       } else {
-        router.push(`/payment/complete?paymentId=${paymentId}&email=${encodeURIComponent(email)}&count=${totalCount}`);
+        router.push(`/payment/complete?paymentId=${paymentId}&email=${encodeURIComponent(email)}&count=${totalCount}&type=${type}`);
       }
     } catch {
       setError(tr.sysError);

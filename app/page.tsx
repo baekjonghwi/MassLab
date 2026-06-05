@@ -129,7 +129,7 @@ const terrainFeatures: Feature[] = [
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<Tab>("wall");
-  const [krwAmount, setKrwAmount] = useState<number>(150);
+  const [usdToKrw, setUsdToKrw] = useState<number>(1500);
   const router = useRouter();
   const { lang } = useLanguage();
 
@@ -138,10 +138,13 @@ export default function Home() {
       .then((r) => r.json())
       .then((data) => {
         const rate: number = data?.rates?.KRW;
-        if (rate) setKrwAmount(Math.round(0.1 * rate));
+        if (rate) setUsdToKrw(rate);
       })
       .catch(() => {});
   }, []);
+
+  const krwWallAndSlab = Math.round(0.1 * usdToKrw);
+  const krwTerrain = Math.round(0.05 * usdToKrw);
 
   const features = activeTab === "wall" ? wallFeatures : terrainFeatures;
   const L = (t: { ko: string; en: string }) => t[lang] ?? t.ko;
@@ -509,14 +512,30 @@ export default function Home() {
             }
           </p>
 
-          <div className="price-card">
-            <div className="price-amount">$0.10</div>
-            <div className="price-unit">
-              {`${lang === "ko" ? "조각당" : "per piece"} (₩${krwAmount.toLocaleString()})`}
+          <div style={{ display: "flex", gap: "20px", justifyContent: "center", flexWrap: "wrap" }}>
+            <div className="price-card">
+              <div style={{ fontSize: "0.8rem", fontWeight: 600, color: "#888", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                Wall &amp; Slab
+              </div>
+              <div className="price-amount">$0.10</div>
+              <div className="price-unit">
+                {`${lang === "ko" ? "조각당" : "per piece"} (₩${krwWallAndSlab.toLocaleString()})`}
+              </div>
+              <div className="price-detail">
+                <div>{lang === "ko" ? "최소 주문 금액 $5" : "Minimum order $5"}</div>
+              </div>
             </div>
-            <div className="price-detail">
-              <div>{lang === "ko" ? "최소 주문 금액 $5" : "Minimum order $5"}</div>
-              <div>{lang === "ko" ? "결제 후 즉시 레이저컷 도면 생성" : "Laser cut drawings generated instantly after payment"}</div>
+            <div className="price-card">
+              <div style={{ fontSize: "0.8rem", fontWeight: 600, color: "#888", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                Terrain
+              </div>
+              <div className="price-amount">$0.05</div>
+              <div className="price-unit">
+                {`${lang === "ko" ? "조각당" : "per piece"} (₩${krwTerrain.toLocaleString()})`}
+              </div>
+              <div className="price-detail">
+                <div>{lang === "ko" ? "최소 주문 금액 $5" : "Minimum order $5"}</div>
+              </div>
             </div>
           </div>
         </div>

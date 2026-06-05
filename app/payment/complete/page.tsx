@@ -15,6 +15,8 @@ function PaymentCompleteContent() {
   const tr = t[lang].paymentComplete;
 
   const paymentId = searchParams.get("paymentId");
+  const count = Number(searchParams.get("count") || 0);
+  const type = searchParams.get("type") || "WallAndSlab";
 
   useEffect(() => {
     if (!paymentId) {
@@ -27,7 +29,7 @@ function PaymentCompleteContent() {
         const verifyRes = await fetch("/api/verify-payment", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ paymentId }),
+          body: JSON.stringify({ paymentId, count, type }),
         });
 
         const verifyData = await verifyRes.json();

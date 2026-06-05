@@ -1,6 +1,11 @@
+function calcExpectedCents(count: number, type: string): number {
+  const unitPrice = type === "Terrain" ? 0.05 : 0.1;
+  return Math.round(Math.max(5, count * unitPrice) * 1.1 * 100);
+}
+
 export async function POST(request: Request) {
   try {
-    const { paymentId } = await request.json();
+    const { paymentId, count, type } = await request.json();
 
     if (!paymentId) {
       return Response.json({ success: false }, { status: 400 });
@@ -23,6 +28,15 @@ export async function POST(request: Request) {
 
     if (payment.status !== "PAID") {
       return Response.json({ success: false, status: payment.status }, { status: 400 });
+    }
+
+    if (payment.currency === "USD" && count != null) {
+      const expectedCents = calcExpectedCents(Number(count), type ?? "WallAndSlab");
+      const actualCents = payment.amount?.total ?? 0;
+      if (actualCents < expectedCents) {
+        console.error(`금액 불일치: 실제 ${actualCents}¢ < 기대 ${expectedCents}¢ (count=${count}, type=${type})`);
+        return Response.json({ success: false, error: "Amount mismatch" }, { status: 400 });
+      }
     }
 
     return Response.json({ success: true });
