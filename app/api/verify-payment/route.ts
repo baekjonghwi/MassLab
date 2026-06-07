@@ -1,5 +1,5 @@
 function calcExpectedCents(count: number, type: string): number {
-  const unitPrice = type === "Terrain" ? 0.05 : 0.1;
+  const unitPrice = type === "Terrain" ? 0.03 : 0.05;
   return Math.round(Math.max(5, count * unitPrice) * 1.1 * 100);
 }
 
