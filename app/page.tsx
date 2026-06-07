@@ -83,7 +83,7 @@ const terrainFeatures: Feature[] = [
   },
   {
     title: {
-      ko: "지형 서피스로 재질 두께에 맞춘 지형 자동 생성",
+      ko: "지형 서피스로 재질 두께에 맞춘 계단형 지형 생성",
       en: "Terrain auto-generated from surface with material thickness",
     },
     desc: {
@@ -105,7 +105,7 @@ const terrainFeatures: Feature[] = [
   },
   {
     title: {
-      ko: "쌓기 방식·접기 방식으로 건물 선택 가능",
+      ko: "쌓기 방식·접기 방식으로 건물조립방식 선택",
       en: "Choose stacking or folding method for buildings",
     },
     desc: {
