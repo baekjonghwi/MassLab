@@ -37,7 +37,7 @@ function PaymentContent() {
 
   const totalCount = Number(searchParams.get("count") || 0);
   const type = (searchParams.get("type") || "WallAndSlab") as "WallAndSlab" | "Terrain";
-  const unitPrice = type === "Terrain" ? 0.03 : 0.05;
+  const unitPrice = type === "Terrain" ? 0.03 : 0.1;
   const paymentId = searchParams.get("paymentId") || `payment-${Date.now()}`;
   const baseAmountUSD = Math.max(5.0, totalCount * unitPrice);
   const vatUSD = baseAmountUSD * 0.1;

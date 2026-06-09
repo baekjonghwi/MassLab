@@ -143,7 +143,7 @@ export default function Home() {
       .catch(() => {});
   }, []);
 
-  const krwWallAndSlab = Math.round(0.05 * usdToKrw);
+  const krwWallAndSlab = Math.round(0.1 * usdToKrw);
   const krwTerrain = Math.round(0.03 * usdToKrw);
 
   const features = activeTab === "wall" ? wallFeatures : terrainFeatures;
@@ -517,7 +517,7 @@ export default function Home() {
               <div style={{ fontSize: "0.8rem", fontWeight: 600, color: "#888", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
                 Wall &amp; Slab
               </div>
-              <div className="price-amount">$0.05</div>
+              <div className="price-amount">$0.1</div>
               <div className="price-unit">
                 {`${lang === "ko" ? "조각당" : "per piece"} (₩${krwWallAndSlab.toLocaleString()})`}
               </div>
