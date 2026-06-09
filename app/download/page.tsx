@@ -259,6 +259,21 @@ export default function DownloadPage() {
               </div>
             ))}
           </div>
+
+          <div style={{
+            marginTop: "8px",
+            padding: "16px 18px",
+            background: "#f7f7f7",
+            border: "1px solid #ececec",
+            borderRadius: "12px",
+            fontSize: "0.875rem",
+            color: "#555",
+            lineHeight: 1.7,
+          }}>
+            {lang === "ko"
+              ? "v2.0.3 이전 버전을 다운받으신 분들은 Package Manager → Installed로 들어가서 LaserFish를 삭제 후 다시 설치해주세요."
+              : "If you downloaded a version earlier than v2.0.3, go to Package Manager → Installed, uninstall LaserFish, and reinstall it."}
+          </div>
         </div>
 
       </div>
