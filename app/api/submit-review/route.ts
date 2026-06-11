@@ -67,9 +67,6 @@ export async function POST(request: Request) {
         nickname,
         review,
         photo_url: photoUrl,
-        // refund_rate: 100  — 나중에 5로 조정
-        refund_rate: 100,
-        refund_status: "pending",
       }),
     });
 
