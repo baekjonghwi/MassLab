@@ -24,8 +24,6 @@ function ReviewContent() {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [nickname, setNickname] = useState("");
   const [review, setReview] = useState("");
-  const [bank, setBank] = useState("");
-  const [account, setAccount] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState("");
@@ -48,8 +46,6 @@ function ReviewContent() {
       formData.append("paymentId", paymentId ?? "");
       formData.append("nickname", nickname);
       formData.append("review", review);
-      formData.append("bank", bank);
-      formData.append("account", account);
       if (photo) formData.append("photo", photo);
 
       const res = await fetch("/api/submit-review", {
@@ -151,32 +147,6 @@ function ReviewContent() {
             required
             rows={4}
             style={{ ...inputStyle, resize: "vertical" }}
-          />
-        </div>
-
-        {/* Bank name */}
-        <div>
-          <label style={labelStyle}>{tr.bankLabel}</label>
-          <input
-            type="text"
-            value={bank}
-            onChange={(e) => setBank(e.target.value)}
-            placeholder={tr.bankPlaceholder}
-            required
-            style={inputStyle}
-          />
-        </div>
-
-        {/* Account number */}
-        <div>
-          <label style={labelStyle}>{tr.accountLabel}</label>
-          <input
-            type="text"
-            value={account}
-            onChange={(e) => setAccount(e.target.value)}
-            placeholder={tr.accountPlaceholder}
-            required
-            style={inputStyle}
           />
         </div>
 

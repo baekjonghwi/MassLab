@@ -10,6 +10,7 @@ export default function LanguageBar() {
       justifyContent: "flex-end",
       alignItems: "center",
       padding: "6px 48px",
+      background: "#fff",
       borderBottom: "1px solid #f0f0f0",
       fontFamily: "-apple-system, 'Helvetica Neue', sans-serif",
       gap: "4px",

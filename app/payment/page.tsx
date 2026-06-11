@@ -291,26 +291,6 @@ function PaymentContent() {
           </div>
         </div>
 
-        {/* 리뷰 환불 배너 */}
-        <div style={{
-          padding: "14px 16px",
-          background: "linear-gradient(135deg, #fff7e6 0%, #fff0cc 100%)",
-          border: "1.5px solid #ffd970",
-          borderRadius: "10px",
-          marginBottom: "12px",
-          textAlign: "center",
-        }}>
-          <div style={{ fontSize: "1.1rem", marginBottom: "4px" }}>🎁</div>
-          <p style={{ fontSize: "0.9rem", fontWeight: 800, color: "#b8600a", lineHeight: 1.4, margin: 0 }}>
-            {isKo ? "리뷰 작성 시 100% 환불" : "Write a review → 100% refund"}
-          </p>
-          <p style={{ fontSize: "0.75rem", color: "#c47a1a", lineHeight: 1.5, margin: "5px 0 0" }}>
-            {isKo
-              ? "결제 완료 후 리뷰 작성창이 뜨며, 솔직한 리뷰를 남겨주시면 전액 환불해드립니다."
-              : "A review form will appear after payment. Leave an honest review and we'll refund you in full."}
-          </p>
-        </div>
-
         {/* 안내 문구 */}
         <div style={{
           display: "flex", alignItems: "flex-start", gap: "8px",

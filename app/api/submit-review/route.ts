@@ -7,11 +7,9 @@ export async function POST(request: Request) {
     const paymentId = formData.get("paymentId") as string;
     const nickname = formData.get("nickname") as string;
     const review = formData.get("review") as string;
-    const bank = formData.get("bank") as string;
-    const account = formData.get("account") as string;
     const photo = formData.get("photo") as File | null;
 
-    if (!paymentId || !nickname || !review || !bank || !account) {
+    if (!paymentId || !nickname || !review) {
       return Response.json({ success: false, error: "Missing fields" }, { status: 400 });
     }
 
@@ -68,8 +66,6 @@ export async function POST(request: Request) {
         payment_id: paymentId,
         nickname,
         review,
-        bank,
-        account,
         photo_url: photoUrl,
         // refund_rate: 100  — 나중에 5로 조정
         refund_rate: 100,
