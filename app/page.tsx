@@ -14,12 +14,12 @@ interface Feature {
 const wallFeatures: Feature[] = [
   {
     title: {
-      ko: "하루가 걸리던 도면 작업, 이제 5분이면 충분합니다",
-      en: "Drawings that took a full day — done in 5 minutes",
+      ko: "하루가 걸리던 도면 작업, 이제 3분이면 충분합니다",
+      en: "Drawings that took a full day — done in 3 minutes",
     },
     desc: {
-      ko: "레이저커팅 도면을 짜시는데 하루 이상이 소모된다고요? LaserFish는 5분 이내로 도면을 짜드립니다.",
-      en: "Spending over a day on laser cutting drawings? LaserFish generates them in under 5 minutes.",
+      ko: "레이저커팅 도면을 짜시는데 하루 이상이 소모된다고요? LaserFish는 3분 이내로 도면을 짜드립니다.",
+      en: "Spending over a day on laser cutting drawings? LaserFish generates them in under 3 minutes.",
     },
     img: "/images/laserFish_mainslide_1.jpg",
   },
@@ -72,12 +72,12 @@ const wallFeatures: Feature[] = [
 const terrainFeatures: Feature[] = [
   {
     title: {
-      ko: "하루가 걸리던 도면 작업, 이제 5분이면 충분합니다",
-      en: "Drawings that took a full day — done in 5 minutes",
+      ko: "하루가 걸리던 도면 작업, 이제 3분이면 충분합니다",
+      en: "Drawings that took a full day — done in 3 minutes",
     },
     desc: {
-      ko: "레이저커팅 도면을 짜시는데 하루 이상이 소모된다고요? LaserFish는 5분 이내로 도면을 짜드립니다.",
-      en: "Spending over a day on laser cutting drawings? LaserFish generates them in under 5 minutes.",
+      ko: "레이저커팅 도면을 짜시는데 하루 이상이 소모된다고요? LaserFish는 3분 이내로 도면을 짜드립니다.",
+      en: "Spending over a day on laser cutting drawings? LaserFish generates them in under 3 minutes.",
     },
     img: "/images/Terrain/slide_1_수정.png",
   },
@@ -404,9 +404,9 @@ export default function Home() {
             color: "#ffffff",
           }}>
             {lang === "ko" ? (
-              <>레이저 커팅 도면을<br />5분 이내로</>
+              <>레이저 커팅 도면을<br />3분 이내로</>
             ) : (
-              <>Laser cutting drawings<br />in under 5 minutes</>
+              <>Laser cutting drawings<br />in under 3 minutes</>
             )}
           </h1>
 
