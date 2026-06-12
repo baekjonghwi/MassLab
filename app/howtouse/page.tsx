@@ -44,7 +44,6 @@ const content = {
         { label: "length × width × thickness", desc: "Material size you want to cut" },
       ],
       tutorialLabel: "Tutorial",
-      noVideo: "Tutorial video coming soon.",
     },
   },
   ko: {
@@ -85,7 +84,6 @@ const content = {
         { label: "length × width × thickness", desc: "자르고자 하는 재질의 크기" },
       ],
       tutorialLabel: "튜토리얼",
-      noVideo: "튜토리얼 영상 준비 중입니다.",
     },
   },
 } as const;
@@ -460,37 +458,21 @@ export default function HowToUsePage() {
         {/* ── Tutorial ── */}
         <div>
           <div className="section-label">{tabContent.tutorialLabel}</div>
-          {activeTab === "wall" ? (
-            <div style={{
-              width: "100%",
-              aspectRatio: "16/9",
-              borderRadius: "14px",
-              background: "#f7f7f7",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              border: "1px solid #ebebeb",
-            }}>
-              <p style={{ fontSize: "0.875rem", color: "#bbb" }}>
-                {lang === "ko" ? "튜토리얼 영상 준비 중입니다." : "Tutorial video coming soon."}
-              </p>
-            </div>
-          ) : (
-            <div style={{
-              width: "100%",
-              aspectRatio: "16/9",
-              borderRadius: "14px",
-              background: "#f7f7f7",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              border: "1px solid #ebebeb",
-            }}>
-              <p style={{ fontSize: "0.875rem", color: "#bbb" }}>
-                {"noVideo" in c.terrain ? c.terrain.noVideo : ""}
-              </p>
-            </div>
-          )}
+          <div style={{
+            width: "100%",
+            aspectRatio: "16/9",
+            borderRadius: "14px",
+            overflow: "hidden",
+            border: "1px solid #ebebeb",
+          }}>
+            <iframe
+              src={`https://www.youtube.com/embed/${activeTab === "wall" ? "RQQAtJwJRVA" : "RffClyQUCuo"}?vq=hd1440`}
+              title={tabContent.tutorialLabel}
+              style={{ width: "100%", height: "100%", border: "none", display: "block" }}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            />
+          </div>
         </div>
 
       </div>
