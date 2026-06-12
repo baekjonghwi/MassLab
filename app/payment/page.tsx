@@ -63,7 +63,7 @@ function PaymentContent() {
         storeId: "store-ad54a018-057e-4d48-b98f-920b6d0fa05c",
         channelKey: isKo
           ? "channel-key-b5054294-344b-4833-8f5a-7f3a445d4b40"
-          : "channel-key-6e915a7e-6083-4af1-a301-6eeb7fa4ce72",
+          : "channel-key-796e8cff-cddb-4731-a364-910163f64bcb",
         paymentId,
         orderName: "LaserFish Drawing",
         totalAmount: finalAmount,
