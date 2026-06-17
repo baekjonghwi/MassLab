@@ -3,12 +3,13 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/lib/i18n";
 
-type Tab = "wall" | "terrain";
+type Tab = "wall" | "terrain" | "centerline";
 
 interface Feature {
   title: { ko: string; en: string };
   desc: { ko: string; en: string };
   img: string | null;
+  video?: string;
 }
 
 const wallFeatures: Feature[] = [
@@ -21,7 +22,7 @@ const wallFeatures: Feature[] = [
       ko: "레이저커팅 도면을 짜시는데 하루 이상이 소모된다고요? LaserFish는 3분 이내로 도면을 짜드립니다.",
       en: "Spending over a day on laser cutting drawings? LaserFish generates them in under 3 minutes.",
     },
-    img: "/images/laserFish_mainslide_1.jpg",
+    img: "/images/WallAndSlab/slide_1_수정.png",
   },
   {
     title: {
@@ -127,6 +128,21 @@ const terrainFeatures: Feature[] = [
   },
 ];
 
+const centerlineFeatures: Feature[] = [
+  {
+    title: {
+      ko: "건축 전용 벽체 중심선 자동 추출",
+      en: "Architecture-tuned wall centerline extraction",
+    },
+    desc: {
+      ko: "두께를 가진 벽체 형상에서 건축 도면에 최적화된 중심선을 자동으로 추출합니다. 복잡하게 얽힌 벽체와 교차부도 끊김 없이 하나의 깔끔한 중심선으로 정리되어, 도면 정리와 모델링 작업 시간을 크게 줄여줍니다.",
+      en: "Automatically extracts architecture-optimized centerlines from walls with thickness. Even tangled walls and intersections are resolved into clean, continuous single lines — dramatically reducing drawing cleanup and modeling time.",
+    },
+    img: null,
+    video: "/video/centerline.mp4",
+  },
+];
+
 export default function Home() {
   const [activeTab, setActiveTab] = useState<Tab>("wall");
   const [usdToKrw, setUsdToKrw] = useState<number>(1500);
@@ -146,7 +162,12 @@ export default function Home() {
   const krwWallAndSlab = Math.round(0.1 * usdToKrw);
   const krwTerrain = Math.round(0.03 * usdToKrw);
 
-  const features = activeTab === "wall" ? wallFeatures : terrainFeatures;
+  const features =
+    activeTab === "wall"
+      ? wallFeatures
+      : activeTab === "terrain"
+      ? terrainFeatures
+      : centerlineFeatures;
   const L = (t: { ko: string; en: string }) => t[lang] ?? t.ko;
 
   return (
@@ -248,6 +269,35 @@ export default function Home() {
           letter-spacing: 0.04em;
         }
 
+        .centerline-block {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 40px;
+          padding: 24px 0 64px;
+        }
+        .centerline-video-box {
+          width: 85%;
+          max-width: 1000px;
+          aspect-ratio: 16/10;
+          border-radius: 18px;
+          overflow: hidden;
+          background: #f0f0f0;
+        }
+        .centerline-video-box video {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+        }
+        .centerline-text {
+          text-align: center;
+          max-width: 680px;
+        }
+        .centerline-text .feature-desc {
+          margin: 0 auto;
+        }
+
         .feature-num {
           font-size: 0.72rem;
           font-weight: 700;
@@ -308,6 +358,7 @@ export default function Home() {
             padding: 48px 0;
           }
           .feature-img-box { width: 100%; }
+          .centerline-video-box { width: 100%; }
           .feature-title { font-size: 1.4rem; }
         }
 
@@ -463,29 +514,52 @@ export default function Home() {
             <img src="/images/icon/Terrain.svg" width="26" height="26" alt="" style={{ display: "block" }} />
             Terrain
           </button>
+          <button
+            className={`tab-btn${activeTab === "centerline" ? " active" : ""}`}
+            onClick={() => setActiveTab("centerline")}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/images/icon/Centerline.svg" width="26" height="26" alt="" style={{ display: "block" }} />
+            Centerline
+          </button>
         </div>
 
         {/* Feature sections */}
         <div>
-          {features.map((f, i) => (
-            <div
-              key={`${activeTab}-${i}`}
-              className={`feature-row${i % 2 === 1 ? " rev" : ""}`}
-            >
-              <div className="feature-img-box">
-                {f.img
-                  ? <img src={f.img} alt={L(f.title)} />
-                  : <div className="feature-placeholder">이미지 준비 중</div>
-                }
-              </div>
+          {activeTab === "centerline"
+            ? features.map((f, i) => (
+                <div key={`${activeTab}-${i}`} className="centerline-block">
+                  <div className="centerline-video-box">
+                    {f.video
+                      ? <video src={f.video} autoPlay loop muted playsInline />
+                      : <div className="feature-placeholder">영상 준비 중</div>
+                    }
+                  </div>
+                  <div className="centerline-text">
+                    <h3 className="feature-title">{L(f.title)}</h3>
+                    <p className="feature-desc">{L(f.desc)}</p>
+                  </div>
+                </div>
+              ))
+            : features.map((f, i) => (
+                <div
+                  key={`${activeTab}-${i}`}
+                  className={`feature-row${i % 2 === 1 ? " rev" : ""}`}
+                >
+                  <div className="feature-img-box">
+                    {f.img
+                      ? <img src={f.img} alt={L(f.title)} />
+                      : <div className="feature-placeholder">이미지 준비 중</div>
+                    }
+                  </div>
 
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div className="feature-num">0{i + 1}</div>
-                <h3 className="feature-title">{L(f.title)}</h3>
-                <p className="feature-desc">{L(f.desc)}</p>
-              </div>
-            </div>
-          ))}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div className="feature-num">0{i + 1}</div>
+                    <h3 className="feature-title">{L(f.title)}</h3>
+                    <p className="feature-desc">{L(f.desc)}</p>
+                  </div>
+                </div>
+              ))}
         </div>
       </section>
 
@@ -506,10 +580,19 @@ export default function Home() {
             {lang === "ko" ? "저렴한 금액대" : "Affordable Pricing"}
           </h2>
           <p style={{ color: "#888", marginBottom: "44px", lineHeight: 1.7, fontSize: "1rem" }}>
-            {lang === "ko"
-              ? "생성된 조각에 대해서만 결제됩니다. 오류가 발생한 부분은 청구되지 않습니다."
-              : "You only pay for successfully generated pieces. Failed pieces are never charged."
-            }
+            {lang === "ko" ? (
+              <>
+                생성된 조각에 대해서만 결제됩니다. 오류가 발생한 부분은 청구되지 않습니다.
+                <br />
+                아래 컴포넌트를 제외한 다른 컴포넌트는 무료입니다.
+              </>
+            ) : (
+              <>
+                You only pay for successfully generated pieces. Failed pieces are never charged.
+                <br />
+                All components other than the ones listed below are free.
+              </>
+            )}
           </p>
 
           <div style={{ display: "flex", gap: "20px", justifyContent: "center", flexWrap: "wrap" }}>
