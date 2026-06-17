@@ -640,7 +640,7 @@ export default function Home() {
           <div style={{ fontSize: "0.95rem", fontWeight: 700, marginBottom: "6px" }}>MassLabs</div>
           <div style={{ fontSize: "0.75rem", color: "#bbb", lineHeight: 1.8 }}>
             <div>masslabs.archi@gmail.com</div>
-            <div>Instagram: masslab_arch</div>
+            <div>Instagram: masslabs_archi</div>
             <div>Youtube: @MassLab-d8c</div>
           </div>
         </div>
@@ -664,7 +664,7 @@ export default function Home() {
           </a>
           {/* Instagram */}
           <a
-            href="https://www.instagram.com/masslab_arch/"
+            href="https://www.instagram.com/masslabs_archi/"
             target="_blank"
             style={{
               width: "36px", height: "36px", borderRadius: "10px", background: "#f2f2f2",
