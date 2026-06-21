@@ -62,7 +62,7 @@ function PaymentContent() {
       const response = await PortOne.requestPayment({
         storeId: "store-ad54a018-057e-4d48-b98f-920b6d0fa05c",
         channelKey: isKo
-          ? "channel-key-8e27fe1b-4078-4d48-a84d-6124aa150f29"
+          ? "channel-key-b5054294-344b-4833-8f5a-7f3a445d4b40"
           : "channel-key-796e8cff-cddb-4731-a364-910163f64bcb",
         paymentId,
         orderName: "LaserFish Drawing",
