@@ -68,11 +68,13 @@ function PaymentContent() {
         orderName: "LaserFish Drawing",
         totalAmount: finalAmount,
         currency: finalCurrency,
-        payMethod: isKo ? "EASY_PAY" : "CARD",
+        // KakaoPay requires EASY_PAY. Eximbay(USD): omit payMethod so the window shows
+        // all MID-enabled methods (card / Alipay / WeChat) instead of jumping straight to card.
+        ...(isKo ? { payMethod: "EASY_PAY" as const } : {}),
         locale: isKo ? "KO_KR" : "EN_US",
         customer: { email, fullName: email.split("@")[0], customerId: email.split("@")[0].slice(0, 20) },
         redirectUrl: `${window.location.origin}/payment/complete?paymentId=${paymentId}&email=${encodeURIComponent(email)}&count=${totalCount}&type=${type}`,
-      });
+      } as unknown as Parameters<typeof PortOne.requestPayment>[0]);
 
       if (response?.code) {
         setError(tr.payError);
