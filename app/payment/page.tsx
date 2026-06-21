@@ -62,13 +62,13 @@ function PaymentContent() {
       const response = await PortOne.requestPayment({
         storeId: "store-ad54a018-057e-4d48-b98f-920b6d0fa05c",
         channelKey: isKo
-          ? "channel-key-b5054294-344b-4833-8f5a-7f3a445d4b40"
+          ? "channel-key-8e27fe1b-4078-4d48-a84d-6124aa150f29"
           : "channel-key-796e8cff-cddb-4731-a364-910163f64bcb",
         paymentId,
         orderName: "LaserFish Drawing",
         totalAmount: finalAmount,
         currency: finalCurrency,
-        payMethod: "CARD",
+        payMethod: isKo ? "EASY_PAY" : "CARD",
         locale: isKo ? "KO_KR" : "EN_US",
         customer: { email, fullName: email.split("@")[0], customerId: email.split("@")[0].slice(0, 20) },
         redirectUrl: `${window.location.origin}/payment/complete?paymentId=${paymentId}&email=${encodeURIComponent(email)}&count=${totalCount}&type=${type}`,
