@@ -69,7 +69,8 @@ function PaymentContent() {
     (sum, [key, c]) => sum + c * CATEGORY_PRICES[key], 0);
 
   const paymentId = searchParams.get("paymentId") || `payment-${Date.now()}`;
-  const baseAmountUSD = Math.max(5.0, rawAmountUSD);
+  // 비용(VAT 전)은 최소 $5, 최대 $50로 제한. (VAT 포함 최종 $5.50 ~ $55)
+  const baseAmountUSD = Math.min(50.0, Math.max(5.0, rawAmountUSD));
   const vatUSD = baseAmountUSD * 0.1;
   const totalAmountUSD = baseAmountUSD + vatUSD;
   const totalAmountKRW = exchangeRate ? Math.round(totalAmountUSD * exchangeRate) : null;
