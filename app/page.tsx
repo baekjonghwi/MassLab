@@ -606,6 +606,7 @@ export default function Home() {
               </div>
               <div className="price-detail">
                 <div>{lang === "ko" ? "최소 주문 금액 $5" : "Minimum order $5"}</div>
+                <div>{lang === "ko" ? "최대 주문 금액 $50" : "Maximum order $50"}</div>
               </div>
             </div>
             <div className="price-card">
@@ -618,6 +619,7 @@ export default function Home() {
               </div>
               <div className="price-detail">
                 <div>{lang === "ko" ? "최소 주문 금액 $5" : "Minimum order $5"}</div>
+                <div>{lang === "ko" ? "최대 주문 금액 $50" : "Maximum order $50"}</div>
               </div>
             </div>
           </div>
