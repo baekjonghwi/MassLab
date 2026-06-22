@@ -5,10 +5,10 @@ import * as PortOne from "@portone/browser-sdk/v2";
 import { useLanguage } from "@/lib/i18n";
 import { t } from "@/lib/translations";
 
-// 카테고리별 단가(USD). WallAndSlab 계열은 0.1, Terrain 계열은 0.03.
+// 카테고리별 단가(USD). WallAndSlab 계열은 0.1, Terrain 계열은 0.05.
 const CATEGORY_PRICES: Record<string, number> = {
   wall: 0.1, slab: 0.1, stair: 0.1, window: 0.1, roof: 0.1,
-  terrain: 0.03, building: 0.03,
+  terrain: 0.05, building: 0.05,
 };
 // Terrain 명령을 구분하는 키. 이 중 하나라도 있으면 Terrain, 아니면 WallAndSlab.
 const TERRAIN_KEYS = ["terrain", "building"];
@@ -69,8 +69,8 @@ function PaymentContent() {
     (sum, [key, c]) => sum + c * CATEGORY_PRICES[key], 0);
 
   const paymentId = searchParams.get("paymentId") || `payment-${Date.now()}`;
-  // 비용(VAT 전)은 최소 $5, 최대 $50로 제한. (VAT 포함 최종 $5.50 ~ $55)
-  const baseAmountUSD = Math.min(50.0, Math.max(5.0, rawAmountUSD));
+  // 비용(VAT 전)은 최소 $9.9, 최대 $50로 제한. (VAT 포함 최종 $10.89 ~ $55)
+  const baseAmountUSD = Math.min(50.0, Math.max(9.9, rawAmountUSD));
   const vatUSD = baseAmountUSD * 0.1;
   const totalAmountUSD = baseAmountUSD + vatUSD;
   const totalAmountKRW = exchangeRate ? Math.round(totalAmountUSD * exchangeRate) : null;

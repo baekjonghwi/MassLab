@@ -605,7 +605,7 @@ export default function Home() {
                 {`${lang === "ko" ? "조각당" : "per piece"} (₩${krwWallAndSlab.toLocaleString()})`}
               </div>
               <div className="price-detail">
-                <div>{lang === "ko" ? "최소 주문 금액 $5" : "Minimum order $5"}</div>
+                <div>{lang === "ko" ? "최소 주문 금액 $9.9" : "Minimum order $9.9"}</div>
                 <div>{lang === "ko" ? "최대 주문 금액 $50" : "Maximum order $50"}</div>
               </div>
             </div>
@@ -618,7 +618,7 @@ export default function Home() {
                 {`${lang === "ko" ? "조각당" : "per piece"} (₩${krwTerrain.toLocaleString()})`}
               </div>
               <div className="price-detail">
-                <div>{lang === "ko" ? "최소 주문 금액 $5" : "Minimum order $5"}</div>
+                <div>{lang === "ko" ? "최소 주문 금액 $9.9" : "Minimum order $9.9"}</div>
                 <div>{lang === "ko" ? "최대 주문 금액 $50" : "Maximum order $50"}</div>
               </div>
             </div>
