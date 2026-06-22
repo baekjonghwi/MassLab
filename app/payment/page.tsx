@@ -12,6 +12,16 @@ const CATEGORY_PRICES: Record<string, number> = {
 };
 // Terrain 명령을 구분하는 키. 이 중 하나라도 있으면 Terrain, 아니면 WallAndSlab.
 const TERRAIN_KEYS = ["terrain", "building"];
+// 결제 화면에 카테고리별로 표시할 라벨(영/한).
+const CATEGORY_LABELS: Record<string, { en: string; ko: string }> = {
+  wall: { en: "Wall", ko: "벽" },
+  slab: { en: "Slab", ko: "슬랩" },
+  stair: { en: "Stair", ko: "계단" },
+  window: { en: "Window", ko: "창문" },
+  roof: { en: "Roof", ko: "지붕" },
+  terrain: { en: "Terrain", ko: "지형" },
+  building: { en: "Building", ko: "건물" },
+};
 
 function PaymentContent() {
   const [email, setEmail] = useState("");
@@ -289,11 +299,18 @@ function PaymentContent() {
 
         {/* 금액 */}
         <div style={{ background: "#f8f8f8", borderRadius: "10px", padding: "14px", marginBottom: "20px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
-            <span style={{ fontSize: "0.78rem", color: "#666" }}>{tr.pieces}</span>
-            <span style={{ fontSize: "0.78rem", color: "#1a1a1a" }}>{totalCount}</span>
-          </div>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
+          {/* 카테고리별 개수 (0인 항목은 생략) */}
+          {Object.entries(counts)
+            .filter(([, c]) => c > 0)
+            .map(([key, c]) => (
+              <div key={key} style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
+                <span style={{ fontSize: "0.78rem", color: "#666" }}>
+                  {isKo ? CATEGORY_LABELS[key].ko : CATEGORY_LABELS[key].en}
+                </span>
+                <span style={{ fontSize: "0.78rem", color: "#1a1a1a" }}>{c}</span>
+              </div>
+            ))}
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px", borderTop: "1px solid #ececec", paddingTop: "8px" }}>
             <span style={{ fontSize: "0.78rem", color: "#666" }}>{tr.cost}</span>
             <span style={{ fontSize: "0.78rem" }}>
               {isKo ? formatKRW(baseAmountKRW) : `$${baseAmountUSD.toFixed(2)}`}
