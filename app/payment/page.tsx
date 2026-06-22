@@ -5,6 +5,14 @@ import * as PortOne from "@portone/browser-sdk/v2";
 import { useLanguage } from "@/lib/i18n";
 import { t } from "@/lib/translations";
 
+// 카테고리별 단가(USD). WallAndSlab 계열은 0.1, Terrain 계열은 0.03.
+const CATEGORY_PRICES: Record<string, number> = {
+  wall: 0.1, slab: 0.1, stair: 0.1, window: 0.1, roof: 0.1,
+  terrain: 0.03, building: 0.03,
+};
+// Terrain 명령을 구분하는 키. 이 중 하나라도 있으면 Terrain, 아니면 WallAndSlab.
+const TERRAIN_KEYS = ["terrain", "building"];
+
 function PaymentContent() {
   const [email, setEmail] = useState("");
   const [agreed, setAgreed] = useState(false);
@@ -35,11 +43,23 @@ function PaymentContent() {
     }
   }, [isKo]);
 
-  const totalCount = Number(searchParams.get("count") || 0);
-  const type = (searchParams.get("type") || "WallAndSlab") as "WallAndSlab" | "Terrain";
-  const unitPrice = type === "Terrain" ? 0.03 : 0.1;
+  // 카테고리별 면 개수를 파싱한다. (없는 카테고리는 0으로 간주)
+  const counts: Record<string, number> = {};
+  for (const key of Object.keys(CATEGORY_PRICES)) {
+    const v = searchParams.get(key);
+    if (v != null) counts[key] = Number(v) || 0;
+  }
+  // 어떤 명령인지(WallAndSlab vs Terrain)는 존재하는 파라미터 키로 구분한다.
+  const type: "WallAndSlab" | "Terrain" =
+    TERRAIN_KEYS.some((k) => searchParams.get(k) != null) ? "Terrain" : "WallAndSlab";
+
+  const totalCount = Object.values(counts).reduce((a, b) => a + b, 0);
+  // 가격 = Σ(각 카테고리 개수 × 해당 단가). 카테고리 단가로 계산해야 정확하다.
+  const rawAmountUSD = Object.entries(counts).reduce(
+    (sum, [key, c]) => sum + c * CATEGORY_PRICES[key], 0);
+
   const paymentId = searchParams.get("paymentId") || `payment-${Date.now()}`;
-  const baseAmountUSD = Math.max(5.0, totalCount * unitPrice);
+  const baseAmountUSD = Math.max(5.0, rawAmountUSD);
   const vatUSD = baseAmountUSD * 0.1;
   const totalAmountUSD = baseAmountUSD + vatUSD;
   const totalAmountKRW = exchangeRate ? Math.round(totalAmountUSD * exchangeRate) : null;
