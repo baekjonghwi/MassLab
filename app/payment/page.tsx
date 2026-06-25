@@ -5,6 +5,12 @@ import * as PortOne from "@portone/browser-sdk/v2";
 import { useLanguage } from "@/lib/i18n";
 import { t } from "@/lib/translations";
 
+declare global {
+  interface Window {
+    fbq?: (...args: unknown[]) => void;
+  }
+}
+
 // 카테고리별 단가(USD). WallAndSlab 계열은 0.1, Terrain 계열은 0.05.
 const CATEGORY_PRICES: Record<string, number> = {
   wall: 0.1, slab: 0.1, stair: 0.1, window: 0.1, roof: 0.1,
@@ -88,6 +94,12 @@ function PaymentContent() {
 
     const finalAmount = isKo ? totalAmountKRW! : Math.round(totalAmountUSD * 100);
     const finalCurrency = isKo ? "KRW" : "USD";
+
+    // Meta Pixel — 결제창 열기 직전. value는 사람이 읽는 단위(KRW=원, USD=달러).
+    window.fbq?.("track", "InitiateCheckout", {
+      value: isKo ? totalAmountKRW! : totalAmountUSD,
+      currency: finalCurrency,
+    });
 
     try {
       const response = await PortOne.requestPayment({
