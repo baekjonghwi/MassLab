@@ -4,6 +4,12 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useLanguage } from "@/lib/i18n";
 import { t } from "@/lib/translations";
 
+declare global {
+  interface Window {
+    fbq?: (...args: unknown[]) => void;
+  }
+}
+
 const SUPABASE_URL = "https://arymzgsayptprrbdnzwd.supabase.co";
 const SUPABASE_KEY = "sb_publishable_47O2B2PfD3X_5yOX-P-cTA_wGcpaeU6";
 
@@ -37,6 +43,21 @@ function PaymentCompleteContent() {
         if (!verifyData.success) {
           setStatus("fail");
           return;
+        }
+
+        // Meta Pixel Purchase 이벤트 — 새로고침 중복 발사 방지를 위해 paymentId로 한 번만.
+        const firedKey = `fbqPurchase:${paymentId}`;
+        if (!sessionStorage.getItem(firedKey)) {
+          // PortOne amount.total은 최소 단위(USD=센트, KRW=원). KRW는 그대로, USD는 100으로 나눈다.
+          const value =
+            verifyData.currency === "USD"
+              ? (verifyData.amount ?? 0) / 100
+              : (verifyData.amount ?? 0);
+          window.fbq?.("track", "Purchase", {
+            value,
+            currency: verifyData.currency,
+          });
+          sessionStorage.setItem(firedKey, "1");
         }
 
         setStatus("success");

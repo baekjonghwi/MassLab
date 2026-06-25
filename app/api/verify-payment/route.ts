@@ -1,7 +1,7 @@
 function calcExpectedCents(count: number, type: string): number {
-  const unitPrice = type === "Terrain" ? 0.03 : 0.1;
-  // 비용(VAT 전) 최소 $5, 최대 $50 — 결제 페이지와 동일하게 맞춰야 검증이 통과한다.
-  const base = Math.min(50, Math.max(5, count * unitPrice));
+  const unitPrice = type === "Terrain" ? 0.05 : 0.1;
+  // 비용(VAT 전) 최소 $9.9, 최대 $50 — 결제 페이지와 동일하게 맞춰야 검증이 통과한다.
+  const base = Math.min(50, Math.max(9.9, count * unitPrice));
   return Math.round(base * 1.1 * 100);
 }
 
@@ -41,7 +41,11 @@ export async function POST(request: Request) {
       }
     }
 
-    return Response.json({ success: true });
+    return Response.json({
+      success: true,
+      amount: payment.amount?.total ?? 0,
+      currency: payment.currency,
+    });
 
   } catch (err) {
     return Response.json({ success: false }, { status: 500 });
