@@ -25,8 +25,14 @@ export default function ContactPage() {
         }
         .hnav-link:hover { background: #f2f2f2; color: #111; }
         @media (max-width: 640px) {
-          .hnav-links { display: none; }
-          .contact-nav-inner { padding-left: 16px !important; padding-right: 16px !important; }
+          .contact-nav-inner {
+            flex-direction: column !important;
+            height: auto !important;
+            gap: 6px;
+            padding: 10px 16px !important;
+          }
+          .hnav-links { flex-wrap: wrap; justify-content: center; gap: 0 !important; }
+          .hnav-link { padding: 6px 9px; font-size: 0.8rem; }
           .contact-content { padding-left: 20px !important; padding-right: 20px !important; }
         }
       `}</style>

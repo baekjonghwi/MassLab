@@ -126,8 +126,14 @@ export default function DownloadPage() {
         }
 
         @media (max-width: 640px) {
-          .hnav-links { display: none; }
-          .dl-nav-inner { padding-left: 16px !important; padding-right: 16px !important; }
+          .dl-nav-inner {
+            flex-direction: column !important;
+            height: auto !important;
+            gap: 6px;
+            padding: 10px 16px !important;
+          }
+          .hnav-links { flex-wrap: wrap; justify-content: center; gap: 0 !important; }
+          .hnav-link { padding: 6px 9px; font-size: 0.8rem; }
           .dl-content { padding: 40px 20px 80px !important; }
           .dl-downloads { flex-direction: column !important; }
         }
