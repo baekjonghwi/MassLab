@@ -9,6 +9,7 @@ interface Feature {
   title: { ko: string; en: string };
   desc: { ko: string; en: string };
   img: string | null;
+  imgs?: string[];
   video?: string;
 }
 
@@ -106,14 +107,19 @@ const terrainFeatures: Feature[] = [
   },
   {
     title: {
-      ko: "쌓기 방식·접기 방식으로 건물조립방식 선택",
-      en: "Choose stacking or folding method for buildings",
+      ko: "쌓기, 접기, 조립 방식의 건물 유형 선택",
+      en: "Choose stacking, folding, or assembly building types",
     },
     desc: {
-      ko: "쌓기 방식 또는 접기 방식으로 원하는 건물 표현 방식을 선택할 수 있습니다.",
-      en: "Select the stacking or folding approach for building representation in your terrain model.",
+      ko: "재질의 성질, 두께 등을 고려하여 어울리는 건물 표현 방식을 선택할 수 있습니다.",
+      en: "Select a building representation method that suits the material's properties and thickness.",
     },
-    img: "/images/Terrain/slide_4.png",
+    img: null,
+    imgs: [
+      "/images/Terrain/slide_4(1).jpg",
+      "/images/Terrain/slide_4(2).jpg",
+      "/images/Terrain/slide_4(3).jpg",
+    ],
   },
   {
     title: {
@@ -224,6 +230,7 @@ export default function Home() {
           font-size: 0.95rem;
           font-weight: 600;
           color: #888;
+          white-space: nowrap;
           transition: all 0.2s;
         }
         .tab-btn:hover { border-color: #ccc; color: #444; }
@@ -254,6 +261,19 @@ export default function Home() {
         }
         .feature-img-box img {
           width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+        }
+        .feature-img-multi {
+          display: flex;
+          width: 100%;
+          height: 100%;
+          gap: 2px;
+        }
+        .feature-img-multi img {
+          flex: 1;
+          min-width: 0;
           height: 100%;
           object-fit: cover;
           display: block;
@@ -363,16 +383,26 @@ export default function Home() {
         }
 
         @media (max-width: 640px) {
-          .hnav-links { display: none; }
-          .main-nav-inner { padding-left: 16px !important; padding-right: 16px !important; }
+          .main-nav-inner {
+            flex-direction: column !important;
+            height: auto !important;
+            gap: 6px;
+            padding: 10px 16px !important;
+          }
+          .hnav-links { flex-wrap: wrap; justify-content: center; gap: 0 !important; }
+          .hnav-link { padding: 6px 9px; font-size: 0.8rem; }
           .main-hero { padding: 72px 20px 80px !important; }
           .main-features { padding-left: 20px !important; padding-right: 20px !important; }
           .main-pricing { padding-left: 20px !important; padding-right: 20px !important; }
           .main-contact { padding-left: 20px !important; padding-right: 20px !important; }
-          .tab-btn { padding: 10px 16px; font-size: 0.82rem; }
+          .tab-btn { padding: 10px 14px; font-size: 0.8rem; }
           .feature-title { font-size: 1.2rem; }
           .feature-desc { font-size: 0.9rem; }
-          .price-card { padding: 36px 24px; }
+          .price-cards { flex-wrap: nowrap !important; gap: 12px !important; }
+          .price-card { padding: 24px 14px; flex: 1; min-width: 0; }
+          .price-amount { font-size: 2rem; }
+          .price-unit { font-size: 0.72rem; }
+          .price-detail { font-size: 0.72rem; line-height: 1.7; margin-top: 18px; padding-top: 14px; }
         }
       `}</style>
 
@@ -496,6 +526,7 @@ export default function Home() {
           display: "flex",
           gap: "12px",
           justifyContent: "center",
+          flexWrap: "wrap",
           marginBottom: "72px",
         }}>
           <button
@@ -547,7 +578,14 @@ export default function Home() {
                   className={`feature-row${i % 2 === 1 ? " rev" : ""}`}
                 >
                   <div className="feature-img-box">
-                    {f.img
+                    {f.imgs
+                      ? (
+                          <div className="feature-img-multi">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            {f.imgs.map((src, k) => <img key={k} src={src} alt={L(f.title)} />)}
+                          </div>
+                        )
+                      : f.img
                       ? <img src={f.img} alt={L(f.title)} />
                       : <div className="feature-placeholder">이미지 준비 중</div>
                     }
@@ -595,7 +633,7 @@ export default function Home() {
             )}
           </p>
 
-          <div style={{ display: "flex", gap: "20px", justifyContent: "center", flexWrap: "wrap" }}>
+          <div className="price-cards" style={{ display: "flex", gap: "20px", justifyContent: "center", flexWrap: "wrap" }}>
             <div className="price-card">
               <div style={{ fontSize: "0.8rem", fontWeight: 600, color: "#888", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
                 Wall &amp; Slab

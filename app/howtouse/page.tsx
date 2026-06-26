@@ -37,8 +37,9 @@ const content = {
         { label: "LASER TOLERANCE", desc: "Laser kerf gap (typically 0.1mm)" },
         { label: "TERRAIN", desc: "Surfaces only" },
         { label: "BUILDINGS", desc: "Surrounding buildings" },
-        { label: "FOLDING", desc: "Folding BUILDING" },
         { label: "STACKING", desc: "Stack BUILDING" },
+        { label: "FOLDING", desc: "Folding BUILDING" },
+        { label: "ASSEMBLY", desc: "Assemble BUILDING" },
         { label: "Engrave building positions on terrain", desc: "Engrave building positions onto terrain" },
         { label: "Engrave upper terrain layer position on terrain", desc: "Engrave upper terrain positions onto lower terrain" },
         { label: "length × width × thickness", desc: "Material size you want to cut" },
@@ -77,8 +78,9 @@ const content = {
         { label: "LASER TOLERANCE", desc: "레이저의 간극 (일반적으로 0.1mm)" },
         { label: "TERRAIN", desc: "서피스만 가능" },
         { label: "BUILDINGS", desc: "주변 건물" },
-        { label: "FOLDING", desc: "BUILDING 접기" },
         { label: "STACKING", desc: "BUILDING 쌓아올리기" },
+        { label: "FOLDING", desc: "BUILDING 접기" },
+        { label: "ASSEMBLY", desc: "BUILDING 조립하기" },
         { label: "Engrave building positions on terrain", desc: "빌딩들의 위치를 지형 위에 각인하기" },
         { label: "Engrave upper terrain layer position on terrain", desc: "윗지형 위치를 아랫지형에 각인하기" },
         { label: "length × width × thickness", desc: "자르고자 하는 재질의 크기" },
@@ -90,7 +92,7 @@ const content = {
 
 function WallAndSlabWindow() {
   return (
-    <div style={{ border: "1px solid #c8c8c8", borderRadius: "4px", background: "#f0f0f0", fontFamily: "'Segoe UI', sans-serif", fontSize: "12px", maxWidth: "560px", userSelect: "none" }}>
+    <div className="htu-window" style={{ border: "1px solid #c8c8c8", borderRadius: "4px", background: "#f0f0f0", fontFamily: "'Segoe UI', sans-serif", fontSize: "12px", maxWidth: "560px", userSelect: "none" }}>
       <div style={{ background: "#e0e0e0", borderBottom: "1px solid #c0c0c0", padding: "6px 10px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <span style={{ display: "flex", alignItems: "center", gap: "6px", fontWeight: 500 }}>
           <div style={{ width: 14, height: 14, background: "#ccc", borderRadius: 2 }} />
@@ -147,7 +149,7 @@ function WallAndSlabWindow() {
 
 function TerrainWindow() {
   return (
-    <div style={{ border: "1px solid #c8c8c8", borderRadius: "4px", background: "#f0f0f0", fontFamily: "'Segoe UI', sans-serif", fontSize: "12px", maxWidth: "560px", userSelect: "none" }}>
+    <div className="htu-window" style={{ border: "1px solid #c8c8c8", borderRadius: "4px", background: "#f0f0f0", fontFamily: "'Segoe UI', sans-serif", fontSize: "12px", maxWidth: "560px", userSelect: "none" }}>
       <div style={{ background: "#e0e0e0", borderBottom: "1px solid #c0c0c0", padding: "6px 10px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <span style={{ display: "flex", alignItems: "center", gap: "6px", fontWeight: 500 }}>
           <div style={{ width: 14, height: 14, background: "#ccc", borderRadius: 2 }} />
@@ -189,8 +191,9 @@ function TerrainWindow() {
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <span style={{ fontWeight: 600, fontSize: "11px" }}>MODE :</span>
-          <button className="panel-mode-btn">FOLDING</button>
           <button className="panel-mode-btn">STACKING</button>
+          <button className="panel-mode-btn">FOLDING</button>
+          <button className="panel-mode-btn">ASSEMBLY</button>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
           {["Engrave building positions on terrain", "Engrave upper terrain layer positions on terrain"].map(label => (
@@ -326,12 +329,19 @@ export default function HowToUsePage() {
         }
 
         @media (max-width: 640px) {
-          .hnav-links { display: none; }
-          .htu-nav-inner { padding-left: 16px !important; padding-right: 16px !important; }
+          .htu-nav-inner {
+            flex-direction: column !important;
+            height: auto !important;
+            gap: 6px;
+            padding: 10px 16px !important;
+          }
+          .hnav-links { flex-wrap: wrap; justify-content: center; gap: 0 !important; }
+          .hnav-link { padding: 6px 9px; font-size: 0.8rem; }
           .htu-content { padding: 40px 20px 80px !important; }
           .htu-tabs { flex-wrap: wrap !important; }
           .htu-tab-btn { padding: 9px 16px !important; font-size: 0.82rem !important; }
-          .htu-window-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+          .htu-window-wrap { overflow: hidden; }
+          .htu-window { zoom: 0.6; }
         }
       `}</style>
 

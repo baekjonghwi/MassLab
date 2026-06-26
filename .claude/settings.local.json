@@ -5,7 +5,15 @@
       "Bash(git commit -m ' *)",
       "Bash(git push *)",
       "Bash(npx tsc *)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(npm list *)",
+      "Bash(Copy-Item \"D:\\\\CODE\\\\LaserFish\\\\WallAndSlab\\\\icon\\\\WallAndSlab.png\" \"c:\\\\Users\\\\종이비행기\\\\laser-cutting-tool\\\\public\\\\images\\\\WallAndSlab_icon.png\")",
+      "Bash(cp \"D:/CODE/LaserFish/WallAndSlab/icon/WallAndSlab.png\" \"c:/Users/종이비행기/laser-cutting-tool/public/images/WallAndSlab_icon.png\")",
+      "Bash(cp \"D:/CODE/LaserFish/Terrain/icon/Terrain.svg\" \"c:/Users/종이비행기/laser-cutting-tool/public/images/Terrain_icon.svg\")"
+    ],
+    "additionalDirectories": [
+      "D:\\CODE\\LaserFish\\WallAndSlab\\icon",
+      "D:\\CODE\\LaserFish\\Terrain\\icon"
     ]
   }
 }
