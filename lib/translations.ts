@@ -52,7 +52,9 @@ export const t = {
     },
     contact: {
       title: "Contact",
-      inquiryText: "For service-related inquiries, please contact",
+      inquiryText: "For service-related inquiries, reach out through either channel below.",
+      gmailLabel: "Email us",
+      instaLabel: "Instagram DM",
     },
     privacy: {
       back: "← Back",
@@ -269,7 +271,9 @@ export const t = {
     },
     contact: {
       title: "문의",
-      inquiryText: "서비스 이용 관련 문의는 다음으로 연락해 주세요:",
+      inquiryText: "서비스 이용 관련 문의는 아래 두 가지 방법 중 편한 곳으로 연락해 주세요.",
+      gmailLabel: "Gmail로 문의",
+      instaLabel: "Instagram DM",
     },
     privacy: {
       back: "← 뒤로",
