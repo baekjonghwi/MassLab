@@ -1,5 +1,9 @@
-const SUPABASE_URL = "https://arymzgsayptprrbdnzwd.supabase.co";
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+import { CENTRAL } from "@/lib/subscription";
+
+// 🔴2026-08-17: 별도 프로젝트(arymzgsayptprrbdnzwd)에서 masslabs로 통합했다.
+//   reviews는 이제 laserfish 스키마에 있으므로 Content-Profile 헤더가 필요하다.
+const SUPABASE_URL = CENTRAL.supabaseUrl;
+const SUPABASE_SERVICE_KEY = CENTRAL.serviceKey;
 
 export async function POST(request: Request) {
   try {
@@ -60,6 +64,8 @@ export async function POST(request: Request) {
         "Authorization": `Bearer ${SUPABASE_SERVICE_KEY}`,
         "apikey": SUPABASE_SERVICE_KEY,
         "Content-Type": "application/json",
+        // 🔴이게 없으면 public 스키마를 찾다가 404가 난다.
+        "Content-Profile": "laserfish",
         "Prefer": "return=minimal",
       },
       body: JSON.stringify({
