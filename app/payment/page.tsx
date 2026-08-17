@@ -18,6 +18,13 @@ const CATEGORY_PRICES: Record<string, number> = {
 };
 // Terrain 명령을 구분하는 키. 이 중 하나라도 있으면 Terrain, 아니면 WallAndSlab.
 const TERRAIN_KEYS = ["terrain", "building"];
+// 결제 채널 키. 통화/결제수단별로 PortOne 콘솔에 등록된 채널이 다르다.
+//  - 해외(USD): 엑심베이. payMethod 생략 시 카드/Alipay/WeChat 선택창이 뜬다.
+//  - 국내(KRW) 카드: 갤럭시아머니트리(빌게이트). payMethod "CARD".
+//  - 국내(KRW) 카카오페이: 카카오 직계약. payMethod "EASY_PAY".
+const CHANNEL_EXIMBAY = "channel-key-796e8cff-cddb-4731-a364-910163f64bcb";
+const CHANNEL_GALAXIA = "channel-key-d725a6f3-ff5a-40ab-8f01-9f6b363f15db";
+const CHANNEL_KAKAO = "channel-key-8e27fe1b-4078-4d48-a84d-6124aa150f29";
 // 결제 화면에 카테고리별로 표시할 라벨(영/한).
 const CATEGORY_LABELS: Record<string, { en: string; ko: string }> = {
   wall: { en: "Wall", ko: "벽" },
@@ -36,6 +43,8 @@ function PaymentContent() {
   const [error, setError] = useState("");
   const [showTerms, setShowTerms] = useState(false);
   const [exchangeRate, setExchangeRate] = useState<number | null>(null);
+  // 국내 결제수단 선택. 갤럭시아 카드 vs 카카오페이 간편결제.
+  const [koMethod, setKoMethod] = useState<"CARD" | "KAKAO">("CARD");
   const router = useRouter();
   const searchParams = useSearchParams();
   const { lang } = useLanguage();
@@ -101,19 +110,32 @@ function PaymentContent() {
       currency: finalCurrency,
     });
 
+    // 통화/결제수단에 따라 채널과 payMethod를 고른다.
+    //  - 해외(USD): 엑심베이, payMethod 생략(카드/Alipay/WeChat 선택창).
+    //  - 국내 카카오페이: 카카오 채널, EASY_PAY 필수.
+    //  - 국내 카드: 갤럭시아 채널, CARD.
+    let channelKey: string;
+    let methodParam: { payMethod?: string };
+    if (!isKo) {
+      channelKey = CHANNEL_EXIMBAY;
+      methodParam = {};
+    } else if (koMethod === "KAKAO") {
+      channelKey = CHANNEL_KAKAO;
+      methodParam = { payMethod: "EASY_PAY" };
+    } else {
+      channelKey = CHANNEL_GALAXIA;
+      methodParam = { payMethod: "CARD" };
+    }
+
     try {
       const response = await PortOne.requestPayment({
         storeId: "store-ad54a018-057e-4d48-b98f-920b6d0fa05c",
-        channelKey: isKo
-          ? "channel-key-8e27fe1b-4078-4d48-a84d-6124aa150f29"
-          : "channel-key-796e8cff-cddb-4731-a364-910163f64bcb",
+        channelKey,
         paymentId,
         orderName: "LaserFish Drawing",
         totalAmount: finalAmount,
         currency: finalCurrency,
-        // KakaoPay requires EASY_PAY. Eximbay(USD): omit payMethod so the window shows
-        // all MID-enabled methods (card / Alipay / WeChat) instead of jumping straight to card.
-        ...(isKo ? { payMethod: "EASY_PAY" as const } : {}),
+        ...methodParam,
         locale: isKo ? "KO_KR" : "EN_US",
         customer: { email, fullName: email.split("@")[0], customerId: email.split("@")[0].slice(0, 20) },
         redirectUrl: `${window.location.origin}/payment/complete?paymentId=${paymentId}&email=${encodeURIComponent(email)}&count=${totalCount}&type=${type}`,
@@ -207,6 +229,30 @@ function PaymentContent() {
         }
         .pay-btn:hover { background: #333; }
         .pay-btn:disabled { background: #ccc; cursor: not-allowed; }
+        .method-row {
+          display: flex;
+          gap: 8px;
+          margin-bottom: 16px;
+        }
+        .method-btn {
+          flex: 1;
+          padding: 11px 8px;
+          border: 1.5px solid #e0e0e0;
+          border-radius: 8px;
+          background: #fff;
+          font-size: 0.82rem;
+          font-weight: 500;
+          font-family: inherit;
+          color: #555;
+          cursor: pointer;
+          transition: all 0.15s;
+        }
+        .method-btn:hover { border-color: #bbb; }
+        .method-btn.active {
+          border-color: #1a1a1a;
+          background: #1a1a1a;
+          color: #fff;
+        }
         .terms-link {
           color: #4a90e2;
           text-decoration: underline;
@@ -353,6 +399,26 @@ function PaymentContent() {
             {tr.info1}<br />{tr.info2}
           </p>
         </div>
+
+        {/* 국내 결제수단 선택 (카드 / 카카오페이). 해외는 엑심베이 단일 채널이라 숨김. */}
+        {isKo && (
+          <div className="method-row">
+            <button
+              type="button"
+              className={`method-btn${koMethod === "CARD" ? " active" : ""}`}
+              onClick={() => setKoMethod("CARD")}
+            >
+              신용카드
+            </button>
+            <button
+              type="button"
+              className={`method-btn${koMethod === "KAKAO" ? " active" : ""}`}
+              onClick={() => setKoMethod("KAKAO")}
+            >
+              카카오페이
+            </button>
+          </div>
+        )}
 
         {/* 폼 */}
         <form onSubmit={handlePayment}>
