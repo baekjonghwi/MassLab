@@ -1,9 +1,11 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/lib/i18n";
+import PlanTable, { PLAN_CSS } from "@/components/PlanTable";
 
 type Tab = "wall" | "terrain" | "centerline";
+type Product = "laserfish" | "archimap";
 
 interface Feature {
   title: { ko: string; en: string };
@@ -12,6 +14,48 @@ interface Feature {
   imgs?: string[];
   video?: string;
 }
+
+interface Slide {
+  badge: string;
+  title: { ko: React.ReactNode; en: React.ReactNode };
+  desc: { ko: string; en: string };
+  cta: { ko: string; en: string };
+  href: string;
+  external?: boolean;
+  icon: "download" | "arrow";
+}
+
+const heroSlides: Slide[] = [
+  {
+    badge: "Rhino Plugin",
+    title: {
+      ko: <>레이저 커팅 도면을<br />3분 이내로</>,
+      en: <>Laser cutting drawings<br />in under 3 minutes</>,
+    },
+    desc: {
+      ko: "복잡한 건축 형상을 자동으로 분해하고, 즉시 커팅 가능한 도면을 생성합니다",
+      en: "Automatically decompose complex architectural geometry into ready-to-cut drawings",
+    },
+    cta: { ko: "다운로드", en: "Download" },
+    href: "/download",
+    icon: "download",
+  },
+  {
+    badge: "Web Service",
+    title: {
+      ko: <>사이트 다이어그램을<br />3분 이내로</>,
+      en: <>Site diagrams<br />in under 3 minutes</>,
+    },
+    desc: {
+      ko: "QGIS, 포토샵, 일러스트 필요없이 완성본의 사이트 다이어그램 제작",
+      en: "Produce finished site diagrams without QGIS, Photoshop, or Illustrator",
+    },
+    cta: { ko: "바로가기", en: "Go to Archimap" },
+    href: "https://archimap.masslabs-archi.com/",
+    external: true,
+    icon: "arrow",
+  },
+];
 
 const wallFeatures: Feature[] = [
   {
@@ -149,7 +193,57 @@ const centerlineFeatures: Feature[] = [
   },
 ];
 
+const archimapFeatures: Feature[] = [
+  {
+    title: {
+      ko: "QGIS·포토샵·일러스트 없이, 완성본 그대로",
+      en: "No QGIS, Photoshop, or Illustrator — just the finished diagram",
+    },
+    desc: {
+      ko: "지도 데이터를 내려받고, 정리하고, 다시 그리는 과정을 모두 건너뜁니다. 대지 위치만 지정하면 바로 발표에 쓸 수 있는 완성된 사이트 다이어그램이 만들어집니다.",
+      en: "Skip downloading, cleaning, and redrawing map data. Pick your site and get a presentation-ready diagram right away.",
+    },
+    img: null,
+  },
+  {
+    title: {
+      ko: "건물·도로·녹지·수계를 레이어별로 자동 분리",
+      en: "Buildings, roads, greenery & water split into layers automatically",
+    },
+    desc: {
+      ko: "실제 지형·지물 데이터를 바탕으로 건물, 도로, 녹지, 수계가 각각의 레이어로 정리되어 출력됩니다. 필요한 레이어만 켜고 끄면서 원하는 다이어그램을 구성할 수 있습니다.",
+      en: "Real geospatial data is organized into separate building, road, greenery, and water layers. Toggle only the layers you need.",
+    },
+    img: null,
+  },
+  {
+    title: {
+      ko: "선 두께·색상·스타일을 그대로 반영한 출력",
+      en: "Line weights, colors, and styles applied on export",
+    },
+    desc: {
+      ko: "다이어그램의 선 두께와 색상, 스타일을 화면에서 바로 조정하고 그 결과 그대로 내려받습니다. 후보정 없이 판넬과 포트폴리오에 바로 배치할 수 있습니다.",
+      en: "Adjust line weights, colors, and styles on screen and download exactly what you see — ready to place on a panel or portfolio.",
+    },
+    img: null,
+  },
+  {
+    title: {
+      ko: "벡터와 이미지, 필요한 형식으로 내보내기",
+      en: "Export as vector or image, whichever you need",
+    },
+    desc: {
+      ko: "벡터 형식으로 내보내면 캐드나 일러스트에서 추가 편집이 가능하고, 이미지 형식으로 내보내면 곧바로 문서에 삽입할 수 있습니다.",
+      en: "Export vectors for further editing in CAD or Illustrator, or images to drop straight into a document.",
+    },
+    img: null,
+  },
+];
+
 export default function Home() {
+  const [product, setProduct] = useState<Product>("laserfish");
+  const [slide, setSlide] = useState(0);
+  const [paused, setPaused] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>("wall");
   const [usdToKrw, setUsdToKrw] = useState<number>(1500);
   const router = useRouter();
@@ -165,15 +259,39 @@ export default function Home() {
       .catch(() => {});
   }, []);
 
+  useEffect(() => {
+    if (paused) return;
+    const id = setInterval(
+      () => setSlide((s) => (s + 1) % heroSlides.length),
+      2000
+    );
+    return () => clearInterval(id);
+  }, [paused]);
+
+  // 정지 버튼: 5초간 슬라이드 자동 전환을 멈춘다
+  const pauseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => {
+    if (pauseTimer.current) clearTimeout(pauseTimer.current);
+  }, []);
+
+  const pauseSlides = () => {
+    if (pauseTimer.current) clearTimeout(pauseTimer.current);
+    setPaused(true);
+    pauseTimer.current = setTimeout(() => setPaused(false), 5000);
+  };
+
   const krwWallAndSlab = Math.round(0.1 * usdToKrw);
   const krwTerrain = Math.round(0.05 * usdToKrw);
 
   const features =
-    activeTab === "wall"
+    product === "archimap"
+      ? archimapFeatures
+      : activeTab === "wall"
       ? wallFeatures
       : activeTab === "terrain"
       ? terrainFeatures
       : centerlineFeatures;
+  const showCenterline = product === "laserfish" && activeTab === "centerline";
   const L = (t: { ko: string; en: string }) => t[lang] ?? t.ko;
 
   return (
@@ -216,6 +334,178 @@ export default function Home() {
           box-shadow: 0 2px 16px rgba(0,0,0,0.15);
         }
         .hero-dl-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        .hero-stack { display: grid; }
+        .hero-slide {
+          grid-area: 1 / 1;
+          opacity: 0;
+          visibility: hidden;
+          transform: translateY(10px);
+          transition: opacity 0.6s ease, transform 0.6s ease, visibility 0.6s;
+        }
+        .hero-slide.active {
+          opacity: 1;
+          visibility: visible;
+          transform: none;
+        }
+
+        .hero-dots {
+          display: flex;
+          gap: 10px;
+          justify-content: center;
+          margin-top: 48px;
+        }
+        .hero-dot {
+          width: 8px;
+          height: 8px;
+          padding: 0;
+          border: none;
+          border-radius: 100px;
+          background: rgba(255,255,255,0.25);
+          cursor: pointer;
+          transition: background 0.25s, width 0.25s;
+        }
+        .hero-dot:hover { background: rgba(255,255,255,0.45); }
+        .hero-dot.active { width: 24px; background: #ffffff; }
+
+        .hero-pause {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 22px;
+          height: 22px;
+          margin-left: 6px;
+          padding: 0;
+          border: none;
+          border-radius: 100px;
+          background: rgba(255,255,255,0.12);
+          color: rgba(255,255,255,0.7);
+          cursor: pointer;
+          transition: background 0.2s, color 0.2s;
+        }
+        .hero-pause:hover { background: rgba(255,255,255,0.24); color: #fff; }
+        .hero-pause.paused { background: #ffffff; color: #111; }
+
+        .product-cards {
+          display: flex;
+          gap: 20px;
+          justify-content: center;
+          margin-bottom: 44px;
+        }
+        .product-card {
+          width: 168px;
+          padding: 0;
+          border: 2px solid #e8e8e8;
+          border-radius: 20px;
+          background: #fff;
+          overflow: hidden;
+          transition: all 0.2s;
+        }
+        .product-card:hover { border-color: #ccc; transform: translateY(-2px); }
+        .product-card.active {
+          border-color: #111;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+        }
+
+        /* 이미지와 제품명이 한 칸. 제목은 칸 하단에 겹쳐 놓는다 */
+        .product-card-main {
+          position: relative;
+          display: block;
+          width: 100%;
+          aspect-ratio: 1 / 1;
+          padding: 0;
+          border: none;
+          border-bottom: 1px solid #f0f0f0;
+          background: #fafafa;
+          font-family: inherit;
+          cursor: pointer;
+        }
+        .product-card-img {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 30px;          /* 제목 자리를 남긴다 */
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .product-card-img img {
+          width: 64%;
+          height: 64%;
+          object-fit: contain;
+          display: block;
+        }
+        .product-card-placeholder {
+          font-size: 0.78rem;
+          color: #c4c4c4;
+          letter-spacing: 0.04em;
+        }
+        .product-card-name {
+          position: absolute;
+          left: 0;
+          right: 0;
+          bottom: 11px;
+          font-size: 0.95rem;
+          font-weight: 700;
+          color: #888;
+          transition: color 0.2s;
+        }
+        .product-card.active .product-card-name { color: #111; }
+
+        /* 원래 제목이 있던 칸 = 사이트 접속 버튼 */
+        .product-card-go {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 5px;
+          width: 100%;
+          padding: 12px 8px;
+          border: none;
+          background: #fff;
+          color: #111;
+          font-family: inherit;
+          font-size: 0.82rem;
+          font-weight: 700;
+          text-decoration: none;
+          cursor: pointer;
+          transition: background 0.15s;
+        }
+        .product-card-go:hover { background: #f2f2f2; }
+        /* 준비 중 — 클릭해도 아무 데도 가지 않는다 */
+        .product-card-go.soon {
+          background: #fafafa;
+          color: #bbb;
+          cursor: default;
+          font-weight: 600;
+          letter-spacing: 0.01em;
+        }
+        .product-card-go.soon:hover { background: #fafafa; }
+
+        .archimap-cta {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          background: #111;
+          color: #fff;
+          text-decoration: none;
+          padding: 16px 34px;
+          border-radius: 12px;
+          font-size: 1rem;
+          font-weight: 700;
+          letter-spacing: -0.01em;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.14);
+          transition: opacity 0.15s, transform 0.1s;
+        }
+        .archimap-cta:hover { opacity: 0.88; transform: translateY(-1px); }
+        /* 준비 중 — 링크가 아니라 표시일 뿐이다 */
+        .archimap-cta.soon {
+          background: #e6e6e6;
+          color: #999;
+          box-shadow: none;
+          cursor: default;
+        }
+        .archimap-cta.soon:hover { opacity: 1; transform: none; }
 
         .tab-btn {
           display: flex;
@@ -371,6 +661,28 @@ export default function Home() {
           line-height: 2;
         }
 
+        ${PLAN_CSS}
+
+        /* ── 건당 결제(병행) ── */
+        .payg {
+          max-width: 420px;
+          margin: 28px auto 0;
+          padding: 22px 24px;
+          border: 1px dashed #ddd;
+          border-radius: 18px;
+          text-align: left;
+        }
+        .payg-title { font-size: 0.85rem; font-weight: 700; color: #666; margin-bottom: 14px; }
+        .payg-rows {
+          display: grid;
+          grid-template-columns: 1fr auto;
+          gap: 8px 16px;
+          font-size: 0.82rem;
+          color: #888;
+        }
+        .payg-rows b { color: #444; font-weight: 600; }
+        .payg-fine { font-size: 0.72rem; color: #bbb; line-height: 1.7; margin-top: 14px; }
+
         @media (max-width: 800px) {
           .feature-row, .feature-row.rev {
             flex-direction: column;
@@ -396,6 +708,12 @@ export default function Home() {
           .main-pricing { padding-left: 20px !important; padding-right: 20px !important; }
           .main-contact { padding-left: 20px !important; padding-right: 20px !important; }
           .tab-btn { padding: 10px 14px; font-size: 0.8rem; }
+          .hero-dots { margin-top: 36px; }
+          .product-cards { gap: 12px; margin-bottom: 32px; }
+          .product-card { width: 132px; border-radius: 16px; }
+          .product-card-img { bottom: 26px; }
+          .product-card-name { bottom: 9px; font-size: 0.85rem; }
+          .product-card-go { padding: 10px 6px; font-size: 0.74rem; }
           .feature-title { font-size: 1.2rem; }
           .feature-desc { font-size: 0.9rem; }
           .price-cards { flex-wrap: nowrap !important; gap: 12px !important; }
@@ -403,6 +721,11 @@ export default function Home() {
           .price-amount { font-size: 2rem; }
           .price-unit { font-size: 0.72rem; }
           .price-detail { font-size: 0.72rem; line-height: 1.7; margin-top: 18px; padding-top: 14px; }
+          .sub-card { padding: 30px 22px 24px; border-radius: 18px; }
+          .sub-amount { font-size: 2.6rem; }
+          .sub-list li { font-size: 0.84rem; }
+          .payg { padding: 18px 18px; }
+          .payg-rows { font-size: 0.76rem; }
         }
       `}</style>
 
@@ -440,80 +763,124 @@ export default function Home() {
             <a href="/download" className="hnav-link">
               {lang === "ko" ? "다운로드" : "Download"}
             </a>
-            <a href="#pricing" className="hnav-link">
+            <a href="#pricing" className="hnav-link" onClick={() => setProduct("laserfish")}>
               {lang === "ko" ? "비용" : "Pricing"}
             </a>
             <a href="/contact" className="hnav-link">
               {lang === "ko" ? "문의하기" : "Contact"}
             </a>
+            <a href="/account" className="hnav-link">
+              {lang === "ko" ? "내 구독" : "My Plan"}
+            </a>
           </div>
         </div>
       </nav>
 
-      {/* ── HERO ── */}
+      {/* ── HERO SLIDESHOW ── */}
       <section className="main-hero" style={{
+        position: "relative",
         background: "linear-gradient(150deg, #0c0c0c 0%, #1c1c2e 60%, #0c0c0c 100%)",
         color: "#fff",
         padding: "120px 48px 130px",
         textAlign: "center",
+        overflow: "hidden",
       }}>
-        <div style={{ maxWidth: "720px", margin: "0 auto" }}>
-          <div style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "8px",
-            background: "rgba(255,255,255,0.08)",
-            border: "1px solid rgba(255,255,255,0.12)",
-            borderRadius: "100px",
-            padding: "6px 18px",
-            fontSize: "0.78rem",
-            fontWeight: 600,
-            color: "rgba(255,255,255,0.6)",
-            letterSpacing: "0.04em",
-            textTransform: "uppercase",
-            marginBottom: "32px",
-          }}>
-            Rhino Plugin
-          </div>
+        <div className="hero-stack" style={{ maxWidth: "720px", margin: "0 auto" }}>
+          {heroSlides.map((s, i) => (
+            <div
+              key={i}
+              className={`hero-slide${i === slide ? " active" : ""}`}
+              aria-hidden={i !== slide}
+            >
+              <div style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                background: "rgba(255,255,255,0.08)",
+                border: "1px solid rgba(255,255,255,0.12)",
+                borderRadius: "100px",
+                padding: "6px 18px",
+                fontSize: "0.78rem",
+                fontWeight: 600,
+                color: "rgba(255,255,255,0.6)",
+                letterSpacing: "0.04em",
+                textTransform: "uppercase",
+                marginBottom: "32px",
+              }}>
+                {s.badge}
+              </div>
 
-          <h1 style={{
-            fontSize: "clamp(2.6rem, 5.5vw, 4.2rem)",
-            fontWeight: 900,
-            lineHeight: 1.1,
-            letterSpacing: "-0.035em",
-            marginBottom: "24px",
-            color: "#ffffff",
-          }}>
-            {lang === "ko" ? (
-              <>레이저 커팅 도면을<br />3분 이내로</>
-            ) : (
-              <>Laser cutting drawings<br />in under 3 minutes</>
-            )}
-          </h1>
+              <h1 style={{
+                fontSize: "clamp(2.6rem, 5.5vw, 4.2rem)",
+                fontWeight: 900,
+                lineHeight: 1.1,
+                letterSpacing: "-0.035em",
+                marginBottom: "24px",
+                color: "#ffffff",
+              }}>
+                {s.title[lang] ?? s.title.ko}
+              </h1>
 
-          <p style={{
-            fontSize: "1.125rem",
-            color: "rgba(255,255,255,0.5)",
-            lineHeight: 1.7,
-            marginBottom: "44px",
-            maxWidth: "520px",
-            margin: "0 auto 44px",
-          }}>
-            {lang === "ko"
-              ? "복잡한 건축 형상을 자동으로 분해하고, 즉시 커팅 가능한 도면을 생성합니다"
-              : "Automatically decompose complex architectural geometry into ready-to-cut drawings"
-            }
-          </p>
+              <p style={{
+                fontSize: "1.125rem",
+                color: "rgba(255,255,255,0.5)",
+                lineHeight: 1.7,
+                maxWidth: "520px",
+                margin: "0 auto 44px",
+              }}>
+                {L(s.desc)}
+              </p>
 
+              <button
+                className="hero-dl-btn"
+                tabIndex={i === slide ? 0 : -1}
+                onClick={() => {
+                  if (s.external) window.open(s.href, "_blank", "noopener");
+                  else router.push(s.href);
+                }}
+              >
+                {s.icon === "download" ? (
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M8 2v8M5 7l3 3 3-3" stroke="#111" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M2 13h12" stroke="#111" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                ) : (
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M3 8h10M9 4l4 4-4 4" stroke="#111" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                )}
+                {L(s.cta)}
+              </button>
+            </div>
+          ))}
+        </div>
+
+        {/* Slide dots + 정지 버튼 */}
+        <div className="hero-dots">
+          {heroSlides.map((_, i) => (
+            <button
+              key={i}
+              className={`hero-dot${i === slide ? " active" : ""}`}
+              aria-label={`Slide ${i + 1}`}
+              onClick={() => setSlide(i)}
+            />
+          ))}
           <button
-            className="hero-dl-btn"
-            onClick={() => router.push("/download")}
+            className={`hero-pause${paused ? " paused" : ""}`}
+            aria-label={lang === "ko" ? "슬라이드 5초 멈춤" : "Pause slides for 5s"}
+            title={lang === "ko" ? "5초 멈춤" : "Pause 5s"}
+            onClick={pauseSlides}
           >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M8 2v8M5 7l3 3 3-3" stroke="#111" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M2 13h12" stroke="#111" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-            {lang === "ko" ? "다운로드" : "Download"}
+            {paused ? (
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
+                <path d="M2 1.2l6.2 3.8L2 8.8z" />
+              </svg>
+            ) : (
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
+                <rect x="1.8" y="1.5" width="2.4" height="7" rx="0.6" />
+                <rect x="5.8" y="1.5" width="2.4" height="7" rx="0.6" />
+              </svg>
+            )}
           </button>
         </div>
       </section>
@@ -521,9 +888,39 @@ export default function Home() {
       {/* ── PRODUCT TABS + FEATURES ── */}
       <section id="features" className="main-features" style={{ maxWidth: "1200px", margin: "0 auto", padding: "88px 48px 80px" }}>
 
-        {/* Tab selector */}
+        {/* Product selector */}
+        <div className="product-cards">
+          <div className={`product-card${product === "laserfish" ? " active" : ""}`}>
+            <button className="product-card-main" onClick={() => setProduct("laserfish")}>
+              <span className="product-card-img">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/images/icon/LaserFish.svg" alt="" />
+              </span>
+              <span className="product-card-name">LaserFish</span>
+            </button>
+            <a className="product-card-go" href="/download">
+              {lang === "ko" ? "다운로드" : "Download"}
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </a>
+          </div>
+          <div className={`product-card${product === "archimap" ? " active" : ""}`}>
+            <button className="product-card-main" onClick={() => setProduct("archimap")}>
+              <span className="product-card-img">
+                {/* Archimap 이미지 준비되면 /images/icon/Archimap.svg 로 교체 */}
+                <span className="product-card-placeholder">Archimap</span>
+              </span>
+              <span className="product-card-name">Archimap</span>
+            </button>
+            {/* 🔴준비 중이라 링크가 아니다 — a 태그로 두면 눌러서 들어가진다 */}
+            <span className="product-card-go soon" aria-disabled="true">Coming soon</span>
+          </div>
+        </div>
+
+        {/* Tab selector (LaserFish 전용) */}
         <div style={{
-          display: "flex",
+          display: product === "laserfish" ? "flex" : "none",
           gap: "12px",
           justifyContent: "center",
           flexWrap: "wrap",
@@ -557,9 +954,9 @@ export default function Home() {
 
         {/* Feature sections */}
         <div>
-          {activeTab === "centerline"
+          {showCenterline
             ? features.map((f, i) => (
-                <div key={`${activeTab}-${i}`} className="centerline-block">
+                <div key={`${product}-${activeTab}-${i}`} className="centerline-block">
                   <div className="centerline-video-box">
                     {f.video
                       ? <video src={f.video} autoPlay loop muted playsInline />
@@ -574,7 +971,7 @@ export default function Home() {
               ))
             : features.map((f, i) => (
                 <div
-                  key={`${activeTab}-${i}`}
+                  key={`${product}-${activeTab}-${i}`}
                   className={`feature-row${i % 2 === 1 ? " rev" : ""}`}
                 >
                   <div className="feature-img-box">
@@ -601,7 +998,69 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── PRICING ── */}
+      {/* ── PRICING (LaserFish) / 바로가기 (Archimap) ── */}
+      {product === "laserfish" ? (
+      <section id="pricing" className="main-pricing" style={{
+        background: "#f7f7f7",
+        padding: "88px 48px",
+        textAlign: "center",
+      }}>
+        {/* 표가 넓어 600px로는 좁다 */}
+        <div style={{ maxWidth: "920px", margin: "0 auto" }}>
+          <h2 style={{
+            fontSize: "2.25rem",
+            fontWeight: 900,
+            letterSpacing: "-0.03em",
+            marginBottom: "14px",
+            color: "#111",
+          }}>
+            {lang === "ko" ? "구독 하나로 전부" : "One subscription, everything"}
+          </h2>
+          <p style={{ color: "#888", marginBottom: "40px", lineHeight: 1.7, fontSize: "1rem" }}>
+            {lang === "ko" ? (
+              <>
+                프로그램마다 따로 결제하지 않습니다. 구독 하나로 MassLabs의 모든 프로그램을
+                <br />
+                쓰실 수 있고, 앞으로 추가되는 프로그램도 그대로 포함됩니다.
+              </>
+            ) : (
+              <>
+                One subscription covers every MassLabs program — no separate purchases,
+                <br />
+                and everything we add later is included too.
+              </>
+            )}
+          </p>
+
+          {/* 표는 /plan과 같은 것을 쓴다(출처가 둘이면 어긋난다) */}
+          <PlanTable lang={lang} />
+
+          <div className="plan-fine">
+            {lang === "ko"
+              ? "가격은 부가세 별도이며 매월 자동 결제됩니다. 해외 결제는 부가세가 붙지 않습니다. 언제든 해지할 수 있고, 결제하신 기간까지는 그대로 사용하실 수 있습니다."
+              : "Prices exclude VAT and renew monthly. Cancel anytime — you keep access through the period you paid for."}
+          </div>
+
+          {/* ── 건당 결제(병행) ── */}
+          <div className="payg">
+            <div className="payg-title">
+              {lang === "ko" ? "가끔만 쓰신다면 — 건당 결제" : "Only need it once? Pay per piece"}
+            </div>
+            <div className="payg-rows">
+              <span>Wall &amp; Slab</span>
+              <b>{`$0.1 / ${lang === "ko" ? "조각" : "piece"} (₩${krwWallAndSlab.toLocaleString()})`}</b>
+              <span>Terrain</span>
+              <b>{`$0.05 / ${lang === "ko" ? "조각" : "piece"} (₩${krwTerrain.toLocaleString()})`}</b>
+            </div>
+            <div className="payg-fine">
+              {lang === "ko"
+                ? "생성된 조각만 청구됩니다 · 최소 $9.9 · 최대 $50 · 로그인 없이 바로 사용"
+                : "Charged only for generated pieces · min $9.9 · max $50 · no account needed"}
+            </div>
+          </div>
+        </div>
+      </section>
+      ) : (
       <section id="pricing" className="main-pricing" style={{
         background: "#f7f7f7",
         padding: "88px 48px",
@@ -615,54 +1074,21 @@ export default function Home() {
             marginBottom: "14px",
             color: "#111",
           }}>
-            {lang === "ko" ? "저렴한 금액대" : "Affordable Pricing"}
+            {lang === "ko" ? "곧 만나보실 수 있습니다" : "Coming soon"}
           </h2>
-          <p style={{ color: "#888", marginBottom: "44px", lineHeight: 1.7, fontSize: "1rem" }}>
-            {lang === "ko" ? (
-              <>
-                생성된 조각에 대해서만 결제됩니다. 오류가 발생한 부분은 청구되지 않습니다.
-                <br />
-                아래 컴포넌트를 제외한 다른 컴포넌트는 무료입니다.
-              </>
-            ) : (
-              <>
-                You only pay for successfully generated pieces. Failed pieces are never charged.
-                <br />
-                All components other than the ones listed below are free.
-              </>
-            )}
+          <p style={{ color: "#888", marginBottom: "40px", lineHeight: 1.7, fontSize: "1rem" }}>
+            {lang === "ko"
+              ? "설치 없이 웹에서 바로 사이트 다이어그램을 만들 수 있도록 준비하고 있습니다."
+              : "We're getting it ready — site diagrams in the browser, no installation needed."}
           </p>
 
-          <div className="price-cards" style={{ display: "flex", gap: "20px", justifyContent: "center", flexWrap: "wrap" }}>
-            <div className="price-card">
-              <div style={{ fontSize: "0.8rem", fontWeight: 600, color: "#888", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                Wall &amp; Slab
-              </div>
-              <div className="price-amount">$0.1</div>
-              <div className="price-unit">
-                {`${lang === "ko" ? "조각당" : "per piece"} (₩${krwWallAndSlab.toLocaleString()})`}
-              </div>
-              <div className="price-detail">
-                <div>{lang === "ko" ? "최소 주문 금액 $9.9" : "Minimum order $9.9"}</div>
-                <div>{lang === "ko" ? "최대 주문 금액 $50" : "Maximum order $50"}</div>
-              </div>
-            </div>
-            <div className="price-card">
-              <div style={{ fontSize: "0.8rem", fontWeight: 600, color: "#888", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                Terrain
-              </div>
-              <div className="price-amount">$0.05</div>
-              <div className="price-unit">
-                {`${lang === "ko" ? "조각당" : "per piece"} (₩${krwTerrain.toLocaleString()})`}
-              </div>
-              <div className="price-detail">
-                <div>{lang === "ko" ? "최소 주문 금액 $9.9" : "Minimum order $9.9"}</div>
-                <div>{lang === "ko" ? "최대 주문 금액 $50" : "Maximum order $50"}</div>
-              </div>
-            </div>
-          </div>
+          {/* 🔴준비 중이라 링크가 아니다 */}
+          <span className="archimap-cta soon" aria-disabled="true">
+            Coming soon
+          </span>
         </div>
       </section>
+      )}
 
       {/* ── CONTACT / SOCIAL ── */}
       <section className="main-contact" style={{
