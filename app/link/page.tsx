@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import { useLanguage } from "@/lib/i18n";
 
 // ==========================================================================
 //  /link — 라이노를 내 계정에 붙이는 화면.
@@ -11,7 +12,54 @@ import { supabase } from "@/lib/supabase";
 //  🔴폴링하지 않는다. 이 페이지도, 라이노도, 사용자가 누를 때만 요청을 보낸다.
 // ==========================================================================
 
+// ==========================================================================
+//  화면 문구
+//
+//  🔴로그인 페이지와 같은 기준 — **홈페이지에서 고른 언어**를 따른다.
+//    여기도 결제 채널이나 가입 국가를 알기 전이라 지역으로 가를 수가 없다.
+//  🔴라이노에서 온 사람은 대개 언어를 고른 적이 없어 기본값(영어)이 된다.
+//    플러그인 안내창이 영어이므로 그래야 말이 이어진다.
+// ==========================================================================
+const TX = {
+  ko: {
+    checking: "확인 중…",
+    doneTitle: "연결되었습니다",
+    // 🔴라이노 창의 실제 버튼 이름과 같아야 한다. [연결 확인] 같은 없는 이름을 적으면
+    //   사용자가 그 버튼을 찾느라 멈춘다(Windows가 붙이는 이름이라 [확인]/[OK]다).
+    doneSub: ["라이노로 돌아가 ", "[확인]", " 버튼을 눌러 주세요."],
+    title: "라이노 연결",
+    sub: "라이노 화면에 표시된 6자리 코드를 입력해 주세요.",
+    account: "계정",
+    linking: "연결 중…",
+    link: "연결하기",
+    foot: "라이노에서 로그인을 시작하지 않으셨다면 이 창을 닫아 주세요.",
+    notFound: "코드를 찾을 수 없습니다. 라이노 화면의 코드를 다시 확인해 주세요.",
+    badCode: "6자리 코드를 입력해 주세요.",
+    ambiguous: "잠시 후 라이노에서 다시 시작해 주세요.",
+    unauthorized: "로그인이 만료되었습니다. 새로고침 후 다시 시도해 주세요.",
+    failed: "연결에 실패했습니다.",
+  },
+  en: {
+    checking: "Checking…",
+    doneTitle: "Device connected",
+    doneSub: ["Go back to Rhino and click ", "OK", " to finish."],
+    title: "Connect Rhino",
+    sub: "Enter the code shown in Rhino.",
+    account: "Account",
+    linking: "Connecting…",
+    link: "Connect",
+    foot: "If you didn't start this from Rhino, please close this window.",
+    notFound: "We couldn't find that code. Please double-check the code shown in Rhino.",
+    badCode: "Please enter the 6-character code.",
+    ambiguous: "Please start sign-in again from Rhino in a moment.",
+    unauthorized: "Your session expired. Please refresh and try again.",
+    failed: "Couldn't connect this device.",
+  },
+} as const;
+
 export default function LinkPage() {
+  const { lang } = useLanguage();
+  const x = lang === "ko" ? TX.ko : TX.en;
   const [ready, setReady] = useState(false);
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
@@ -49,36 +97,36 @@ export default function LinkPage() {
 
     if (!r.ok) {
       setError(
-        d.error === "not_found" ? "코드를 찾을 수 없습니다. 라이노 화면의 코드를 다시 확인해 주세요."
-        : d.error === "bad_code" ? "6자리 코드를 입력해 주세요."
-        : d.error === "ambiguous" ? "잠시 후 라이노에서 다시 시작해 주세요."
-        : d.error === "unauthorized" ? "로그인이 만료되었습니다. 새로고침 후 다시 시도해 주세요."
-        : "연결에 실패했습니다.");
+        d.error === "not_found" ? x.notFound
+        : d.error === "bad_code" ? x.badCode
+        : d.error === "ambiguous" ? x.ambiguous
+        : d.error === "unauthorized" ? x.unauthorized
+        : x.failed);
       return;
     }
     setDone(true);
   };
 
-  if (!ready) return <Shell><p className="dim">확인 중…</p></Shell>;
+  if (!ready) return <Shell><p className="dim">{x.checking}</p></Shell>;
 
   if (done)
     return (
       <Shell>
         <div className="tick">✓</div>
-        <h1 className="ttl">연결되었습니다</h1>
+        <h1 className="ttl">{x.doneTitle}</h1>
         <p className="sub">
-          라이노로 돌아가 <b>[연결 확인]</b> 버튼을 눌러 주세요.
+          {x.doneSub[0]}<b>{x.doneSub[1]}</b>{x.doneSub[2]}
         </p>
       </Shell>
     );
 
   return (
     <Shell>
-      <h1 className="ttl">라이노 연결</h1>
-      <p className="sub">라이노 화면에 표시된 6자리 코드를 입력해 주세요.</p>
+      <h1 className="ttl">{x.title}</h1>
+      <p className="sub">{x.sub}</p>
 
       <div className="who">
-        <span>계정</span><span>{email}</span>
+        <span>{x.account}</span><span>{email}</span>
       </div>
 
       <form onSubmit={submit}>
@@ -94,12 +142,12 @@ export default function LinkPage() {
         />
         {error && <div className="err">{error}</div>}
         <button className="main-btn" type="submit" disabled={busy}>
-          {busy ? "연결 중…" : "연결하기"}
+          {busy ? x.linking : x.link}
         </button>
       </form>
 
       <p className="foot">
-        라이노에서 로그인을 시작하지 않으셨다면 이 창을 닫아 주세요.
+        {x.foot}
       </p>
     </Shell>
   );

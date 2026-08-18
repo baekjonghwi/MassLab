@@ -12,8 +12,11 @@
       "Bash(cp \"D:/CODE/LaserFish/Terrain/icon/Terrain.svg\" \"c:/Users/종이비행기/laser-cutting-tool/public/images/Terrain_icon.svg\")"
     ],
     "additionalDirectories": [
-      "D:\\CODE\\LaserFish\\WallAndSlab\\icon",
-      "D:\\CODE\\LaserFish\\Terrain\\icon"
+      "D:\\CODE\\archiMap",
+      "D:\\CODE\\Archi_render",
+      "D:\\CODE\\LaserCuttingDrawings",
+      "D:\\CODE\\LaserFish",
+      "D:\\CODE\\Rhino_ai"
     ]
   }
 }

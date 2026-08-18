@@ -245,19 +245,8 @@ export default function Home() {
   const [slide, setSlide] = useState(0);
   const [paused, setPaused] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>("wall");
-  const [usdToKrw, setUsdToKrw] = useState<number>(1500);
   const router = useRouter();
   const { lang } = useLanguage();
-
-  useEffect(() => {
-    fetch("https://open.er-api.com/v6/latest/USD")
-      .then((r) => r.json())
-      .then((data) => {
-        const rate: number = data?.rates?.KRW;
-        if (rate) setUsdToKrw(rate);
-      })
-      .catch(() => {});
-  }, []);
 
   useEffect(() => {
     if (paused) return;
@@ -280,8 +269,6 @@ export default function Home() {
     pauseTimer.current = setTimeout(() => setPaused(false), 5000);
   };
 
-  const krwWallAndSlab = Math.round(0.1 * usdToKrw);
-  const krwTerrain = Math.round(0.05 * usdToKrw);
 
   const features =
     product === "archimap"
@@ -663,25 +650,6 @@ export default function Home() {
 
         ${PLAN_CSS}
 
-        /* ── 건당 결제(병행) ── */
-        .payg {
-          max-width: 420px;
-          margin: 28px auto 0;
-          padding: 22px 24px;
-          border: 1px dashed #ddd;
-          border-radius: 18px;
-          text-align: left;
-        }
-        .payg-title { font-size: 0.85rem; font-weight: 700; color: #666; margin-bottom: 14px; }
-        .payg-rows {
-          display: grid;
-          grid-template-columns: 1fr auto;
-          gap: 8px 16px;
-          font-size: 0.82rem;
-          color: #888;
-        }
-        .payg-rows b { color: #444; font-weight: 600; }
-        .payg-fine { font-size: 0.72rem; color: #bbb; line-height: 1.7; margin-top: 14px; }
 
         @media (max-width: 800px) {
           .feature-row, .feature-row.rev {
@@ -724,8 +692,6 @@ export default function Home() {
           .sub-card { padding: 30px 22px 24px; border-radius: 18px; }
           .sub-amount { font-size: 2.6rem; }
           .sub-list li { font-size: 0.84rem; }
-          .payg { padding: 18px 18px; }
-          .payg-rows { font-size: 0.76rem; }
         }
       `}</style>
 
@@ -763,7 +729,7 @@ export default function Home() {
             <a href="/download" className="hnav-link">
               {lang === "ko" ? "다운로드" : "Download"}
             </a>
-            <a href="#pricing" className="hnav-link" onClick={() => setProduct("laserfish")}>
+            <a href="/price" className="hnav-link">
               {lang === "ko" ? "비용" : "Pricing"}
             </a>
             <a href="/contact" className="hnav-link">
@@ -1014,50 +980,21 @@ export default function Home() {
             marginBottom: "14px",
             color: "#111",
           }}>
-            {lang === "ko" ? "구독 하나로 전부" : "One subscription, everything"}
+            {lang === "ko" ? "구독" : "Subscription"}
           </h2>
           <p style={{ color: "#888", marginBottom: "40px", lineHeight: 1.7, fontSize: "1rem" }}>
-            {lang === "ko" ? (
-              <>
-                프로그램마다 따로 결제하지 않습니다. 구독 하나로 MassLabs의 모든 프로그램을
-                <br />
-                쓰실 수 있고, 앞으로 추가되는 프로그램도 그대로 포함됩니다.
-              </>
-            ) : (
-              <>
-                One subscription covers every MassLabs program — no separate purchases,
-                <br />
-                and everything we add later is included too.
-              </>
-            )}
+            {lang === "ko"
+              ? "구독 하나로 MassLabs의 모든 프로그램 사용이 가능합니다."
+              : "One subscription covers every MassLabs program."}
           </p>
 
-          {/* 표는 /plan과 같은 것을 쓴다(출처가 둘이면 어긋난다) */}
+          {/* 표는 /price와 같은 것을 쓴다(출처가 둘이면 어긋난다) */}
           <PlanTable lang={lang} />
 
           <div className="plan-fine">
-            {lang === "ko"
-              ? "가격은 부가세 별도이며 매월 자동 결제됩니다. 해외 결제는 부가세가 붙지 않습니다. 언제든 해지할 수 있고, 결제하신 기간까지는 그대로 사용하실 수 있습니다."
-              : "Prices exclude VAT and renew monthly. Cancel anytime — you keep access through the period you paid for."}
+            {lang === "ko" ? "부가세 별도" : "VAT not included"}
           </div>
 
-          {/* ── 건당 결제(병행) ── */}
-          <div className="payg">
-            <div className="payg-title">
-              {lang === "ko" ? "가끔만 쓰신다면 — 건당 결제" : "Only need it once? Pay per piece"}
-            </div>
-            <div className="payg-rows">
-              <span>Wall &amp; Slab</span>
-              <b>{`$0.1 / ${lang === "ko" ? "조각" : "piece"} (₩${krwWallAndSlab.toLocaleString()})`}</b>
-              <span>Terrain</span>
-              <b>{`$0.05 / ${lang === "ko" ? "조각" : "piece"} (₩${krwTerrain.toLocaleString()})`}</b>
-            </div>
-            <div className="payg-fine">
-              {lang === "ko"
-                ? "생성된 조각만 청구됩니다 · 최소 $9.9 · 최대 $50 · 로그인 없이 바로 사용"
-                : "Charged only for generated pieces · min $9.9 · max $50 · no account needed"}
-            </div>
-          </div>
         </div>
       </section>
       ) : (

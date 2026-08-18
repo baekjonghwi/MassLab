@@ -74,8 +74,10 @@ export async function GET(request: Request) {
   }
 
   // ---- ① 청구 ------------------------------------------------------------
+  // 🔴trialing도 같이 집는다 — 체험 7일이 끝나는 순간이 바로 첫 청구일이다.
+  //   성공하면 아래에서 status를 'active'로 바꾸므로 체험은 여기서 졸업한다.
   const dRes = await sbFetch(
-    `subscriptions?status=eq.active&next_billing_at=lte.${nowIso}&select=*`,
+    `subscriptions?status=in.(active,trialing)&next_billing_at=lte.${nowIso}&select=*`,
   );
   if (!dRes.ok) {
     console.error("[cron] 대상 조회 실패:", await dRes.text());

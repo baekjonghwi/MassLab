@@ -21,7 +21,12 @@ export const CHANNEL_GALAXIA = "channel-key-d725a6f3-ff5a-40ab-8f01-9f6b363f15db
 
 export const PORTONE_API = "https://api.portone.io";
 
-export type PlanKey = "plus" | "pro" | "max" | "all";
+// 🔴등급 서열·프로그램별 문턱은 lib/plans에 있다(브라우저에서도 써야 해서 뗐다).
+//   여기서 다시 내보내 주므로 서버 코드는 이 파일 하나만 import하면 된다.
+export type { PlanKey } from "./plans";
+export { PLAN_LABEL, MIN_PLAN, DEFAULT_MIN_PLAN, minPlanOf, planAllows, TRIAL_DAYS } from "./plans";
+import type { PlanKey } from "./plans";
+
 export type Channel = "eximbay" | "galaxia";
 
 export const VAT_RATE = 0.1;
@@ -60,9 +65,9 @@ export type ProductDef = {
 // 🔴2026-08-18 변경: 제품별 구독을 없앴다. MassLabs 구독 하나(plus/pro/max)가
 //   모든 프로그램을 덮는다. Archimap만, LaserFish만 따로 파는 상품은 없다.
 //
-//   등급이 올라가면 프로그램이 늘어나는 게 아니라 "각 프로그램 안에서 한도가
-//   올라간다"(Archimap 최대 직경·크레딧 등). LaserFish처럼 한도 개념이 없는
-//   프로그램은 유료 등급이면 전부 열린다.
+//   등급이 올라가면 대개 "각 프로그램 안에서 한도가 올라간다"(Archimap 최대
+//   직경·크레딧 등). 다만 프로그램마다 열리는 최소 등급이 다를 수 있다 —
+//   LaserFish는 PRO부터다(아래 MIN_PLAN).
 //
 //   ⚠️제품을 추가해도 여기는 손대지 않는다. 새 프로그램은 자기 앱에서
 //     my_plan()으로 등급만 읽어 자기 한도를 해석하면 된다.
@@ -71,16 +76,13 @@ export const CATALOG: Record<string, ProductDef> = {
     key: "all",
     label: "MassLabs",
     returnOrigin: "https://masslabs-archi.com",
-    plans: { plus: 4.99, pro: 6.99, max: 9.99 },
+    plans: { plus: 4.99, pro: 9.90, max: 14.90 },
   },
 };
 
 // 구독 상품은 하나뿐이다. 결제를 시작하는 쪽은 이 값을 쓴다.
 export const SUBSCRIPTION_PRODUCT = "all";
 
-export const PLAN_LABEL: Record<PlanKey, string> = {
-  plus: "PLUS", pro: "PRO", max: "MAX", all: "ALL",
-};
 
 export function productOf(key: string | null | undefined): ProductDef | null {
   if (!key) return null;
@@ -261,6 +263,30 @@ export function addMonth(from: Date): Date {
   const last = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)).getUTCDate();
   d.setUTCDate(Math.min(day, last));
   return d;
+}
+
+// --------------------------------------------------------------------------
+//  무료체험
+//
+//  체험은 FREE 등급이 아니라 **구독 안에** 있다. 유료 플랜을 처음 고르면
+//  카드는 등록하되 첫 청구가 TRIAL_DAYS 뒤로 밀린다(status='trialing').
+// --------------------------------------------------------------------------
+// 체험 종료일. 🔴addMonth와 달리 말일 보정이 필요 없다(일 단위 덧셈이라
+//   달을 넘겨도 Date가 알아서 이월한다).
+export function addDays(from: Date, days: number): Date {
+  return new Date(from.getTime() + days * 24 * 60 * 60 * 1000);
+}
+
+// 이 계정이 체험을 쓸 수 있나.
+// 🔴**계정당 1회**다 — 구독 행(제품·플랜 단위)이 아니라 profiles를 본다.
+//   pro로 7일 쓰고 plus로 갈아타 또 7일을 받는 길을 막으려면 여기여야 한다.
+// 🔴판정은 서버에서만 한다. 브라우저가 "체험이다"라고 말하는 것을 믿으면
+//   위조 한 번으로 영원히 공짜가 된다.
+export async function trialAvailable(uid: string): Promise<boolean> {
+  const r = await sbFetch(`profiles?id=eq.${uid}&select=trial_used_at`);
+  if (!r.ok) return false;              // 못 읽으면 체험을 안 준다(돈이 새는 쪽으로 실패하지 않는다)
+  const row = ((await r.json()) as { trial_used_at?: string | null }[])[0];
+  return !!row && row.trial_used_at == null;
 }
 
 // --------------------------------------------------------------------------

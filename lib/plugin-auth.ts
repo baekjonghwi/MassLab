@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from "crypto";
-import { CENTRAL, sbFetch } from "./subscription";
+import { CENTRAL, minPlanOf, planAllows, sbFetch, type PlanKey } from "./subscription";
 
 // ==========================================================================
 //  라이노 플러그인 신원 — 로그인 연결과 장기 토큰.
@@ -8,12 +8,16 @@ import { CENTRAL, sbFetch } from "./subscription";
 //    결제 폴링(PaymentHandler)이 서버 CPU를 갉아먹었던 전례가 있어서, 백그라운드
 //    스레드·타이머·취소 로직이 아예 없는 구조로 만들었다.
 //
-//  🔴권한 판정은 DB의 plan_for 한 곳에서만 한다. subscriptions를 직접 조회하면
-//    'all' 번들 구독자가 막힌다(번들은 product='all' 행 하나뿐이다).
+//  🔴"이 계정의 등급"은 DB의 plan_for 한 곳에서만 읽는다. subscriptions를 직접
+//    조회하면 'all' 번들 구독자가 막힌다(번들은 product='all' 행 하나뿐이다).
+//    "그 등급으로 이 프로그램이 열리나"는 lib/plans의 MIN_PLAN이 답한다.
 // ==========================================================================
 
 export const DEVICE_TTL_MIN = 10;      // 연결 대기 유효시간
-export const SEAT_LIMIT = 2;           // 계정당 동시 기기 수
+// 🔴계정당 동시 기기 1대(2026-08-19 결정). 새 기기를 연결하면 device/claim이
+//   가장 오래 안 쓴 기기를 끊는다 — 거절하지 않는다. 그래서 사용자가 스스로
+//   연결을 해제할 화면이 없어도 컴퓨터를 바꾼 사람이 막히지 않는다.
+export const SEAT_LIMIT = 1;
 export const ENTITLED_TTL_SEC = 86400; // 권한 있음 → 하루 캐시
 export const FREE_TTL_SEC = 60;        // 🔴free는 짧게. 결제 직후 바로 풀려야 한다.
 
@@ -75,7 +79,13 @@ export async function uidFromPluginToken(token: string): Promise<string | null> 
 // --------------------------------------------------------------------------
 //  권한
 // --------------------------------------------------------------------------
-export type Entitlement = { plan: string; allowed: boolean; until: string };
+export type Entitlement = {
+  plan: string;
+  allowed: boolean;
+  /** 이 프로그램을 열려면 필요한 최소 등급. 플러그인이 "PRO 이상 필요"를 띄운다. */
+  requiredPlan: PlanKey;
+  until: string;
+};
 
 export async function entitlementOf(uid: string, product: string): Promise<Entitlement> {
   const r = await sbFetch("rpc/plan_for", {
@@ -83,10 +93,13 @@ export async function entitlementOf(uid: string, product: string): Promise<Entit
     body: JSON.stringify({ p_user: uid, p_product: product }),
   });
   const plan = r.ok ? ((await r.json()) as string) : "free";
-  const allowed = plan !== "free";
+  // 🔴"유료냐"가 아니라 "이 프로그램의 문턱을 넘느냐"다. LaserFish는 PLUS로는
+  //   못 연다 — 판정 기준은 lib/plans의 MIN_PLAN 한 곳에만 둔다.
+  const allowed = planAllows(plan, product);
   return {
     plan,
     allowed,
+    requiredPlan: minPlanOf(product),
     until: new Date(Date.now() + (allowed ? ENTITLED_TTL_SEC : FREE_TTL_SEC) * 1000).toISOString(),
   };
 }

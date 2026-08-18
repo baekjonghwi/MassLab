@@ -1,0 +1,70 @@
+"use client";
+import { useLanguage } from "@/lib/i18n";
+
+// ==========================================================================
+//  모든 화면이 함께 쓰는 상단 막대.
+//
+//  🔴이게 없는 화면은 "돌아갈 곳이 없는 화면"이 된다 — /account가 그랬다
+//    (2026-08-18, 메일 확인 후 떨어진 사람이 홈으로 갈 길이 없었다).
+//    새 화면을 만들면 이걸 먼저 얹는다.
+//  ⚠️홈(app/page.tsx)과 안내 화면들은 아직 각자 복사본을 쓴다 — 메뉴를 하나 더할
+//    일이 생기면 그 화면들도 같이 고쳐야 한다.
+// ==========================================================================
+
+const LINKS = [
+  { href: "/howtouse", ko: "사용방법", en: "How to Use" },
+  { href: "/download", ko: "다운로드", en: "Download" },
+  { href: "/price", ko: "비용", en: "Pricing" },
+  { href: "/contact", ko: "문의하기", en: "Contact" },
+  { href: "/account", ko: "내 구독", en: "My Plan" },
+];
+
+export const HEADER_CSS = `
+  .hnav-link {
+    font-size: 0.875rem; color: #444; text-decoration: none;
+    padding: 7px 14px; border-radius: 8px; font-weight: 500;
+    transition: background 0.15s, color 0.15s; cursor: pointer; white-space: nowrap;
+  }
+  .hnav-link:hover { background: #f2f2f2; color: #111; }
+  .hnav-brand { font-size: 1.1rem; font-weight: 800; letter-spacing: -0.03em; color: #111; text-decoration: none; }
+  @media (max-width: 640px) {
+    .hnav-inner { flex-direction: column !important; height: auto !important; gap: 6px; padding: 10px 16px !important; }
+    .hnav-links { flex-wrap: wrap; justify-content: center; gap: 0 !important; }
+    .hnav-link { padding: 6px 9px; font-size: 0.8rem; }
+  }
+`;
+
+export default function SiteHeader({ active }: { active?: string }) {
+  const { lang } = useLanguage();
+
+  return (
+    <>
+      <style>{HEADER_CSS}</style>
+      <nav style={{
+        position: "sticky", top: 0, zIndex: 50,
+        background: "rgba(255,255,255,0.92)", backdropFilter: "blur(12px)",
+        borderBottom: "1px solid #ebebeb",
+      }}>
+        <div className="hnav-inner" style={{
+          maxWidth: "1200px", margin: "0 auto", padding: "0 48px", height: "58px",
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+        }}>
+          <a href="/" className="hnav-brand">MassLabs</a>
+
+          <div className="hnav-links" style={{ display: "flex", alignItems: "center", gap: "2px" }}>
+            {LINKS.map((l) => (
+              <a
+                key={l.href}
+                href={l.href}
+                className="hnav-link"
+                style={l.href === active ? { color: "#111", fontWeight: 700 } : undefined}
+              >
+                {lang === "ko" ? l.ko : l.en}
+              </a>
+            ))}
+          </div>
+        </div>
+      </nav>
+    </>
+  );
+}

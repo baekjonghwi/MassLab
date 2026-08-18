@@ -1,0 +1,30 @@
+<!--
+  Supabase → Authentication → Emails → "Confirm signup" 본문.
+  Subject 칸: MassLabs verification email
+
+  🔴대시보드에만 있으면 아무도 못 찾으므로 사본을 여기 둔다. 고칠 때 양쪽 다 고칠 것.
+  🔴본문의 ConfirmationURL 변수는 Supabase가 만드는 일회용 주소다. 눌리면
+    /auth/callback?code=... 로 돌아오고 app/auth/callback/route.ts 가 세션으로 바꾼다.
+    → 도착 주소가 Authentication → URL Configuration 의 Redirect URLs 에 없으면
+      Site URL로 튕긴다.
+  🔴영어만 쓴다(2026-08-18 결정) — Supabase는 메일 종류마다 템플릿이 하나뿐이라
+    받는 사람 언어를 모른다. 두 말을 같이 적으면 메일이 두 배로 길어져서
+    영어로 통일했다. 화면(app/login)은 여전히 한국어·영어 둘 다 나온다.
+
+  ⚠️붙여넣을 때는 이 주석을 빼고 아래 <div>부터 복사한다.
+-->
+<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;color:#1a1a1a">
+  <div style="font-size:1.25rem;font-weight:700;letter-spacing:-0.02em;margin-bottom:28px">MassLabs</div>
+
+  <p style="font-size:0.95rem;line-height:1.6;margin:0 0 24px">Confirm your email address to finish creating your MassLabs account.</p>
+
+  <a href="{{ .ConfirmationURL }}"
+     style="display:inline-block;background:#1a1a1a;color:#fff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:0.9rem;font-weight:600">
+    Confirm email
+  </a>
+
+  <hr style="border:none;border-top:1px solid #eee;margin:28px 0 16px">
+  <p style="font-size:0.72rem;line-height:1.6;color:#aaa;margin:0">
+    If you didn't request this, you can safely ignore this email.
+  </p>
+</div>

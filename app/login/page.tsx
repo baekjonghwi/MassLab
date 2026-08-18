@@ -2,6 +2,8 @@
 import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { supabase, safeNext } from "@/lib/supabase";
+import { AuthCard, AuthShell } from "@/components/AuthCard";
+import { useLanguage } from "@/lib/i18n";
 
 // ==========================================================================
 //  MassLabs 통합 로그인 — 모든 프로그램이 여기로 온다.
@@ -12,16 +14,77 @@ import { supabase, safeNext } from "@/lib/supabase";
 //    사람들이 로그인해 버린다.
 // ==========================================================================
 
+// 🔴이메일 가입·재설정은 확인 메일을 보내야 하는데, Supabase 기본 발송은
+//   프로덕션에서 못 쓴다(시간당 2~3통 제한 → signup이 500 "Error sending
+//   confirmation email"로 죽는다).
+//   → 2026-08-18 Supabase Auth에 Gmail SMTP를 붙여서 열었다. 발신은
+//     masslabs.archi@gmail.com(앱 비밀번호), 하루 500통까지.
+//   ⚠️임시 방편이다 — 회사 도메인(no-reply@masslabs-archi.com)으로 보내야 하거나
+//     발송량이 늘면 Resend로 갈아탄다. 그때도 Supabase의 SMTP 칸만 바꾸면 되고
+//     이 파일은 그대로다.
+const EMAIL_AUTH_ENABLED = true;
+
 type Mode = "login" | "signup" | "reset";
+
+// ==========================================================================
+//  화면 문구
+//
+//  🔴여기는 **홈페이지에서 고른 언어**를 따른다(결제 페이지와 기준이 다르다).
+//    로그인 시점엔 결제 채널도 가입 국가도 아직 없어서 지역으로 가를 수가 없다.
+//  🔴라이노 플러그인이 보낸 사람은 언어를 고른 적이 없어 기본값(영어)이 된다 —
+//    플러그인 안내창이 영어이므로 그게 맞다. 여기서 한글이 나오면 흐름이 끊긴다.
+// ==========================================================================
+const TX = {
+  ko: {
+    login: "로그인", signup: "회원가입", reset: "비밀번호 재설정",
+    google: "구글로 계속하기",
+    firstTime: "처음이시면 구글 계정으로 바로 시작됩니다.",
+    googleFail: "구글 로그인을 사용할 수 없습니다.",
+    email: "이메일", password: "비밀번호", password2: "비밀번호 확인",
+    mismatch: "비밀번호가 일치하지 않습니다.",
+    or: "또는",
+    busy: "처리 중…",
+    forgot: "비밀번호를 잊으셨나요?",
+    backToLogin: "로그인으로 돌아가기",
+    sentSignup: "가입 확인 메일을 보냈습니다. 메일의 링크를 눌러 주세요.",
+    sentReset: "비밀번호 재설정 메일을 보냈습니다.",
+    badLogin: "이메일 또는 비밀번호가 올바르지 않습니다.",
+    already: "이미 가입된 이메일입니다.",
+    shortPw: "비밀번호는 6자 이상이어야 합니다.",
+    unconfirmed: "메일의 확인 링크를 먼저 눌러 주세요.",
+    failed: "처리에 실패했습니다.",
+  },
+  en: {
+    login: "Sign in", signup: "Create account", reset: "Reset password",
+    google: "Continue with Google",
+    firstTime: "New here? Your Google account gets you started right away.",
+    googleFail: "Google sign-in isn't available right now.",
+    email: "Email", password: "Password", password2: "Confirm password",
+    mismatch: "Those passwords don't match.",
+    or: "or",
+    busy: "Working…",
+    forgot: "Forgot your password?",
+    backToLogin: "Back to sign in",
+    sentSignup: "We've sent a confirmation email. Please click the link inside.",
+    sentReset: "We've sent a password reset email.",
+    badLogin: "That email or password isn't right.",
+    already: "That email is already registered.",
+    shortPw: "Password must be at least 6 characters.",
+    unconfirmed: "Please click the confirmation link in your email first.",
+    failed: "Something went wrong.",
+  },
+} as const;
 
 function LoginContent() {
   const sp = useSearchParams();
   const next = safeNext(sp.get("next"));
+  const { lang } = useLanguage();
+  const x = lang === "ko" ? TX.ko : TX.en;
 
   const [mode, setMode] = useState<Mode>(sp.get("mode") === "signup" ? "signup" : "login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [korea, setKorea] = useState(true);
+  const [password2, setPassword2] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -42,36 +105,45 @@ function LoginContent() {
       }
 
       if (mode === "signup") {
+        if (password !== password2) { setError(x.mismatch); return; }
         const { data, error } = await sb.auth.signUp({
           email,
           password,
           options: {
-            // 🔴country가 결제 채널을 정한다(한국이면 원화, 아니면 달러).
-            //   handle_new_user 트리거가 이 값을 profiles로 옮긴다.
-            data: { country: korea ? "South Korea" : "" },
-            emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
+            // 🔴가입 때 거주 지역을 묻지 않는다(2026-08-18 결정). profiles.country는
+            //   비워 두고 결제 채널은 결제 화면이 화면 언어로 정한다(app/subscribe/page.tsx).
+            //   → 구글 로그인으로 들어온 사람과 같은 길을 타므로 분기가 하나로 줄어든다.
+            // 🔴가입 확인 메일의 링크는 next를 따르지 않고 항상 홈으로 보낸다
+            //   (2026-08-18 결정). 메일을 여는 건 가입하던 화면을 떠난 뒤라,
+            //   원래 가려던 곳으로 곧장 떨어뜨리면 처음 온 사람이 사이트를 못 보고
+            //   구독 관리 화면부터 만난다.
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
           },
         });
         if (error) throw error;
         // 이메일 확인이 켜져 있으면 세션 없이 돌아온다.
         if (data.session) go();
-        else setNotice("가입 확인 메일을 보냈습니다. 메일의 링크를 눌러 주세요.");
+        else setNotice(x.sentSignup);
         return;
       }
 
+      // 🔴재설정 링크는 /reset-password 로 보낸다. /auth/callback 은 세션만 만들고
+      //   끝나므로, 곧장 홈으로 보내면 새 비밀번호를 영영 안 묻게 된다.
+      //   원래 가려던 곳(next)은 비밀번호를 바꾼 다음에 이어서 간다.
+      const after = next === "/" ? "/reset-password" : `/reset-password?next=${encodeURIComponent(next)}`;
       const { error } = await sb.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
+        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(after)}`,
       });
       if (error) throw error;
-      setNotice("비밀번호 재설정 메일을 보냈습니다.");
+      setNotice(x.sentReset);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "";
       setError(
-        /Invalid login/i.test(msg) ? "이메일 또는 비밀번호가 올바르지 않습니다."
-        : /already registered|already been/i.test(msg) ? "이미 가입된 이메일입니다."
-        : /Password should be/i.test(msg) ? "비밀번호는 6자 이상이어야 합니다."
-        : /Email not confirmed/i.test(msg) ? "메일의 확인 링크를 먼저 눌러 주세요."
-        : msg || "처리에 실패했습니다.");
+        /Invalid login/i.test(msg) ? x.badLogin
+        : /already registered|already been/i.test(msg) ? x.already
+        : /Password should be/i.test(msg) ? x.shortPw
+        : /Email not confirmed/i.test(msg) ? x.unconfirmed
+        : msg || x.failed);
     } finally {
       setBusy(false);
     }
@@ -83,22 +155,38 @@ function LoginContent() {
       provider: "google",
       options: { redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}` },
     });
-    if (error) { setError("구글 로그인을 사용할 수 없습니다."); setBusy(false); }
+    if (error) { setError(x.googleFail); setBusy(false); }
   };
 
-  const title = mode === "login" ? "로그인" : mode === "signup" ? "회원가입" : "비밀번호 재설정";
+  const title = mode === "login" ? x.login : mode === "signup" ? x.signup : x.reset;
 
   return (
-    <Card>
+    <AuthCard>
       <h1 style={{ fontSize: "1.3rem", fontWeight: 700, letterSpacing: "-0.02em", marginBottom: 4 }}>
         MassLabs {title}
       </h1>
-      <p style={{ fontSize: "0.78rem", color: "#aaa", marginBottom: 22 }}>
-        계정 하나로 모든 MassLabs 프로그램을 사용합니다.
-      </p>
+      <div style={{ marginBottom: 22 }} />
+      {!EMAIL_AUTH_ENABLED && (
+        <>
+          <button className="g-btn" onClick={google} disabled={busy}>
+            <svg width="16" height="16" viewBox="0 0 48 48" aria-hidden>
+              <path fill="#4285F4" d="M45 24c0-1.6-.1-2.7-.4-4H24v7.5h12c-.2 2-1.5 5-4.4 7l6.7 5.2C42.2 36 45 30.6 45 24z"/>
+              <path fill="#34A853" d="M24 46c5.9 0 10.8-2 14.4-5.3l-6.7-5.2c-1.8 1.3-4.3 2.2-7.7 2.2-5.9 0-10.9-3.9-12.7-9.3l-7 5.4C7.9 41 15.4 46 24 46z"/>
+              <path fill="#FBBC05" d="M11.3 28.4c-.5-1.4-.7-2.9-.7-4.4s.3-3 .7-4.4l-7-5.4C2.9 17.1 2 20.4 2 24s.9 6.9 2.3 9.8l7-5.4z"/>
+              <path fill="#EA4335" d="M24 10.6c3.3 0 5.5 1.4 6.8 2.6l5.9-5.8C33.1 4 28.9 2 24 2 15.4 2 7.9 7 4.3 14.2l7 5.4C13.1 14.5 18.1 10.6 24 10.6z"/>
+            </svg>
+            {x.google}
+          </button>
+          {error && <div className="msg err">{error}</div>}
+          <p className="hint" style={{ marginTop: 14, textAlign: "center" }}>
+            {x.firstTime}
+          </p>
+        </>
+      )}
 
+      {EMAIL_AUTH_ENABLED && (
       <form onSubmit={submit}>
-        <label className="fld-label">이메일</label>
+        <label className="fld-label">{x.email}</label>
         <input
           className="fld" type="email" value={email} required autoComplete="email"
           onChange={(e) => setEmail(e.target.value)}
@@ -106,7 +194,7 @@ function LoginContent() {
 
         {mode !== "reset" && (
           <>
-            <label className="fld-label">비밀번호</label>
+            <label className="fld-label">{x.password}</label>
             <input
               className="fld" type="password" value={password} required minLength={6}
               autoComplete={mode === "signup" ? "new-password" : "current-password"}
@@ -117,12 +205,12 @@ function LoginContent() {
 
         {mode === "signup" && (
           <>
-            <label className="fld-label">거주 지역</label>
-            <div className="seg">
-              <button type="button" className={`seg-btn${korea ? " on" : ""}`} onClick={() => setKorea(true)}>국내</button>
-              <button type="button" className={`seg-btn${!korea ? " on" : ""}`} onClick={() => setKorea(false)}>해외</button>
-            </div>
-            <p className="hint">결제 통화를 정하는 데 쓰입니다. 나중에 바꿀 수 있습니다.</p>
+            <label className="fld-label">{x.password2}</label>
+            <input
+              className="fld" type="password" value={password2} required minLength={6}
+              autoComplete="new-password"
+              onChange={(e) => setPassword2(e.target.value)}
+            />
           </>
         )}
 
@@ -130,13 +218,14 @@ function LoginContent() {
         {notice && <div className="msg ok">{notice}</div>}
 
         <button className="main-btn" type="submit" disabled={busy}>
-          {busy ? "처리 중…" : title}
+          {busy ? x.busy : title}
         </button>
       </form>
+      )}
 
-      {mode !== "reset" && (
+      {EMAIL_AUTH_ENABLED && mode !== "reset" && (
         <>
-          <div className="divider"><span>또는</span></div>
+          <div className="divider"><span>{x.or}</span></div>
           <button className="g-btn" onClick={google} disabled={busy}>
             <svg width="16" height="16" viewBox="0 0 48 48" aria-hidden>
               <path fill="#4285F4" d="M45 24c0-1.6-.1-2.7-.4-4H24v7.5h12c-.2 2-1.5 5-4.4 7l6.7 5.2C42.2 36 45 30.6 45 24z"/>
@@ -144,71 +233,32 @@ function LoginContent() {
               <path fill="#FBBC05" d="M11.3 28.4c-.5-1.4-.7-2.9-.7-4.4s.3-3 .7-4.4l-7-5.4C2.9 17.1 2 20.4 2 24s.9 6.9 2.3 9.8l7-5.4z"/>
               <path fill="#EA4335" d="M24 10.6c3.3 0 5.5 1.4 6.8 2.6l5.9-5.8C33.1 4 28.9 2 24 2 15.4 2 7.9 7 4.3 14.2l7 5.4C13.1 14.5 18.1 10.6 24 10.6z"/>
             </svg>
-            구글로 계속하기
+            {x.google}
           </button>
         </>
       )}
 
-      <div className="links">
+      <div className="links" style={{ display: EMAIL_AUTH_ENABLED ? undefined : "none" }}>
         {mode === "login" && (
           <>
-            <button type="button" onClick={() => { setMode("signup"); setError(""); setNotice(""); }}>회원가입</button>
-            <button type="button" onClick={() => { setMode("reset"); setError(""); setNotice(""); }}>비밀번호를 잊으셨나요?</button>
+            <button type="button" onClick={() => { setMode("signup"); setError(""); setNotice(""); }}>{x.signup}</button>
+            <button type="button" onClick={() => { setMode("reset"); setError(""); setNotice(""); }}>{x.forgot}</button>
           </>
         )}
         {mode !== "login" && (
-          <button type="button" onClick={() => { setMode("login"); setError(""); setNotice(""); }}>로그인으로 돌아가기</button>
+          <button type="button" onClick={() => { setMode("login"); setError(""); setNotice(""); }}>{x.backToLogin}</button>
         )}
       </div>
-    </Card>
-  );
-}
-
-function Card({ children }: { children: React.ReactNode }) {
-  return (
-    <>
-      <style>{`
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        .auth-box { background:#fff; border-radius:16px; padding:30px 28px 24px; width:100%; max-width:380px; box-shadow:0 8px 32px rgba(0,0,0,0.12); }
-        .fld-label { display:block; font-size:0.75rem; color:#666; margin-bottom:5px; }
-        .fld { width:100%; padding:10px 12px; border:1.5px solid #e0e0e0; border-radius:8px; font-size:0.88rem; font-family:inherit; margin-bottom:14px; }
-        .fld:focus { outline:none; border-color:#1a1a1a; }
-        .seg { display:flex; gap:8px; }
-        .seg-btn { flex:1; padding:10px 8px; border:1.5px solid #e0e0e0; border-radius:8px; background:#fff; font-size:0.82rem; font-family:inherit; color:#555; cursor:pointer; transition:all .15s; }
-        .seg-btn:hover { border-color:#bbb; }
-        .seg-btn.on { border-color:#1a1a1a; background:#1a1a1a; color:#fff; }
-        .hint { font-size:0.7rem; color:#aaa; margin-top:6px; }
-        .main-btn { width:100%; padding:11px; background:#1a1a1a; color:#fff; border:none; border-radius:8px; font-size:0.88rem; font-weight:600; font-family:inherit; cursor:pointer; margin-top:16px; transition:background .2s; }
-        .main-btn:hover { background:#333; }
-        .main-btn:disabled { background:#ccc; cursor:not-allowed; }
-        .g-btn { width:100%; display:flex; align-items:center; justify-content:center; gap:8px; padding:10px; background:#fff; border:1.5px solid #e0e0e0; border-radius:8px; font-size:0.85rem; font-weight:500; font-family:inherit; color:#333; cursor:pointer; transition:border-color .15s; }
-        .g-btn:hover { border-color:#bbb; }
-        .g-btn:disabled { opacity:0.5; cursor:not-allowed; }
-        .divider { display:flex; align-items:center; gap:10px; margin:18px 0 14px; }
-        .divider::before, .divider::after { content:""; flex:1; height:1px; background:#eee; }
-        .divider span { font-size:0.72rem; color:#bbb; }
-        .msg { font-size:0.78rem; margin-top:12px; line-height:1.5; }
-        .msg.err { color:#e53e3e; }
-        .msg.ok { color:#2f855a; }
-        .links { display:flex; justify-content:space-between; gap:12px; margin-top:18px; padding-top:16px; border-top:1px solid #f0f0f0; }
-        .links button { background:none; border:none; padding:0; font-size:0.76rem; color:#888; font-family:inherit; cursor:pointer; text-decoration:underline; }
-        .links button:hover { color:#333; }
-      `}</style>
-      <div className="auth-box">{children}</div>
-    </>
+    </AuthCard>
   );
 }
 
 export default function LoginPage() {
   return (
-    <main style={{
-      fontFamily: "-apple-system, 'Helvetica Neue', sans-serif",
-      background: "#f5f5f5", color: "#1a1a1a", minHeight: "100vh",
-      display: "flex", alignItems: "center", justifyContent: "center", padding: 24,
-    }}>
+    <AuthShell>
       <Suspense fallback={<p style={{ fontSize: "0.88rem", color: "#888" }}>Loading...</p>}>
         <LoginContent />
       </Suspense>
-    </main>
+    </AuthShell>
   );
 }

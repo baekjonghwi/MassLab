@@ -1,83 +1,103 @@
 "use client";
 
+import { Fragment } from "react";
+import { TIER_KEYS, planAllows, TRIAL_DAYS } from "@/lib/plans";
+
 // ==========================================================================
-//  요금제 비교표 — MassLabs가 유일한 출처다.
+//  요금제 표 — MassLabs가 유일한 출처다.
 //
-//  🔴프로그램마다 PLAN 화면을 만들지 않는다. Archimap이든 앞으로 생길 프로그램이든
-//    전부 masslabs-archi.com/plan 으로 보낸다. 구독이 프로그램별이 아니라 계정
+//  🔴프로그램마다 요금제 화면을 만들지 않는다. Archimap이든 앞으로 생길 프로그램이든
+//    전부 masslabs-archi.com/price 로 보낸다. 구독이 프로그램별이 아니라 계정
 //    단위라, 표가 여러 벌이면 반드시 서로 어긋난다.
+//    → 홈(app/page.tsx) · /price · /account 세 화면이 이 파일 하나를 함께 본다.
 //
-//  🔴프로그램이 늘면 PROGRAMS에 항목 하나를 더한다. 등급 열은 그대로다.
+//  🔴프로그램이 늘면 PROGRAMS에 항목 하나를 더한다. 행이 저절로 하나 늘어난다.
+//
+//  🔴2026-08-18 개편 — 표 선을 걷어내고 칸마다 카드로 띄웠다. 다만 격자는 지킨다
+//    (등급이 열, 프로그램이 행). 카드를 각자 흐르게 두면 등급끼리 사양을 나란히
+//    비교할 수 없어져, 요금제 표의 존재 이유가 사라진다.
+//
+//  🔴FREE는 싣지 않는다(2026-08-18 결정). 파는 것만 보여준다.
+//    ⚠️PROGRAMS의 cells 배열은 여전히 TIER_KEYS(free 포함) 순서다. 화면에서만
+//      빼는 것이므로 자리를 손으로 세지 말고 TIER_KEYS.indexOf로 찾을 것.
 // ==========================================================================
 
 export type Lang = "ko" | "en";
 
-// 표 스타일. 홈과 /plan이 같은 것을 써야 하므로 컴포넌트와 함께 둔다.
+// 표 스타일. 세 화면이 같은 것을 써야 하므로 컴포넌트와 함께 둔다.
 export const PLAN_CSS = `
-  .plan-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  .plan {
-    border-collapse: separate; border-spacing: 0;
-    width: 100%; min-width: 720px;
-    background: #fff; border: 1px solid #e8e8e8; border-radius: 16px;
-    overflow: hidden; font-size: 0.85rem; text-align: center;
+  /* 🔴좁은 화면에서는 가로로 민다. 등급을 세로로 쌓으면 나란히 비교가 안 되는데,
+       그게 이 표의 전부다. */
+  .plan-wrap { max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .plan-grid {
+    display: grid;
+    grid-template-columns: 124px repeat(var(--pg-cols), minmax(138px, 1fr));
+    gap: 10px;
+    min-width: 620px;
+    text-align: left;
+    align-items: stretch;
   }
-  .plan th, .plan td {
-    padding: 13px 12px;
-    border-bottom: 1px solid #f0f0f0; border-right: 1px solid #f4f4f4;
-    vertical-align: middle; color: #444;
-  }
-  .plan thead th {
-    background: #fafafa; font-size: 0.78rem; font-weight: 800;
-    letter-spacing: 0.06em; color: #888; padding: 15px 12px;
-  }
-  .plan thead th.pl-hi { background: #111; color: #fff; }
-  .plan tbody + tbody tr:first-child th,
-  .plan tbody + tbody tr:first-child td { border-top: 2px solid #ececec; }
 
-  .pl-lead { width: 210px; }
-  .pl-prod {
-    background: #fafafa; font-weight: 800; font-size: 0.9rem; color: #111;
-    text-align: left; width: 108px; letter-spacing: -0.01em;
+  /* 맨 윗줄 — 등급 이름 */
+  .pg-corner { }
+  .pg-tier {
+    background: #111; color: #fff; border-radius: 14px; padding: 13px 12px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
   }
-  .pl-row {
-    background: #fcfcfc; font-weight: 500; font-size: 0.8rem; color: #777;
-    text-align: left; white-space: nowrap;
-  }
-  .plan td.ok { color: #1a1a1a; font-weight: 600; font-size: 0.78rem; }
-  .plan td.ok.mark { font-size: 1.05rem; }
-  .plan td.no { color: #ccc; }
+  .pg-tier b { font-size: 0.92rem; font-weight: 800; letter-spacing: 0.06em; }
+  .pg-tier .cur { font-size: 0.62rem; font-weight: 600; color: #b9b9b9; }
 
-  .pl-extra { background: #fffdf3; border-left: 1px solid #f0e9d2; width: 116px; }
-  .plan thead th.pl-extra { background: #fdf8e6; color: #9a8544; }
-  .pl-buy { line-height: 1.5; }
-  .buy-amt { font-size: 1rem; font-weight: 800; color: #111; }
-  .buy-price { font-size: 0.75rem; color: #999; margin-bottom: 9px; }
-  .buy-btn {
-    display: inline-block; background: #111; color: #fff; text-decoration: none;
-    padding: 6px 14px; border-radius: 7px; border: none;
-    font-family: inherit; font-size: 0.75rem; font-weight: 700; cursor: pointer;
+  /* 왼쪽 — 프로그램 이름 */
+  .pg-prog {
+    display: flex; flex-direction: column; justify-content: center; gap: 8px;
+    background: #fff; border: 1px solid #ececec; border-radius: 14px; padding: 14px;
   }
-  .buy-btn:hover { opacity: 0.85; }
-  .buy-btn:disabled { background: #ccc; cursor: not-allowed; }
-  .plan .dash { color: #ccc; }
+  .pg-prog-name { font-size: 0.92rem; font-weight: 800; letter-spacing: -0.01em; color: #111; }
 
-  .pl-price td b { font-size: 1.35rem; font-weight: 900; letter-spacing: -0.03em; color: #111; }
-  .pl-price td span { font-size: 0.72rem; color: #999; }
-  .pl-cta th, .pl-cta td { border-bottom: none; padding-top: 4px; padding-bottom: 16px; }
-  .pl-cta a, .pl-cta button {
-    display: block; width: 100%;
-    background: #111; color: #fff; text-decoration: none;
-    padding: 10px 8px; border-radius: 9px; border: none;
-    font-family: inherit; font-size: 0.82rem; font-weight: 700;
-    cursor: pointer; transition: opacity 0.15s;
+  /* 칸 */
+  .pg-cell {
+    background: #fff; border: 1px solid #ececec; border-radius: 14px;
+    padding: 13px 14px; display: flex; flex-direction: column; justify-content: center; gap: 7px;
   }
-  .pl-cta a:hover, .pl-cta button:hover { opacity: 0.85; }
-  .pl-cta button:disabled { background: #ccc; cursor: not-allowed; }
-  .pl-cta .cur { font-size: 0.78rem; color: #999; font-weight: 600; }
+  .pg-cell.off {
+    align-items: center; justify-content: center; gap: 3px;
+    background: #fafafa; border-style: dashed;
+  }
+  .pg-off-mark { font-size: 1.1rem; line-height: 1; color: #cfcfcf; }
+
+  .pg-line { display: flex; flex-direction: column; gap: 2px; }
+  .pg-line span { font-size: 0.68rem; color: #a0a0a0; }
+  .pg-line b { font-size: 0.82rem; font-weight: 700; color: #1a1a1a; letter-spacing: -0.01em; }
+  .pg-line b.mark { font-size: 1.05rem; text-align: center; color: #111; }
+
+  /* 아래 두 줄 — 가격, 구독 버튼 */
+  .pg-price {
+    background: #fff; border: 1px solid #ececec; border-radius: 14px; padding: 13px 12px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  }
+  .pg-amt { font-size: 1.3rem; font-weight: 900; letter-spacing: -0.03em; color: #111; }
+  .pg-per { font-size: 0.72rem; font-weight: 600; color: #999; letter-spacing: 0; }
+  .pg-trial { font-size: 0.65rem; color: #b0b0b0; text-align: center; line-height: 1.5; margin-top: 3px; }
+
+  .pg-cta { display: flex; align-items: center; justify-content: center; }
+  .pg-cta button, .pg-cta a {
+    width: 100%; text-align: center;
+    background: #111; color: #fff; text-decoration: none; border: none;
+    padding: 10px 12px; border-radius: 11px;
+    font-family: inherit; font-size: 0.8rem; font-weight: 700; cursor: pointer;
+    transition: background .15s;
+  }
+  .pg-cta button:hover, .pg-cta a:hover { background: #333; }
+  .pg-cta button:disabled { background: #ccc; cursor: not-allowed; }
+  .pg-cta .using { font-size: 0.78rem; font-weight: 700; color: #2f855a; }
 
   .plan-fine {
     font-size: 0.75rem; color: #aaa; line-height: 1.8; margin-top: 18px;
     max-width: 620px; margin-left: auto; margin-right: auto;
+  }
+
+  @media (max-width: 620px) {
+    .plan-grid { grid-template-columns: 96px repeat(var(--pg-cols), minmax(126px, 1fr)); min-width: 540px; gap: 8px; }
   }
 `;
 
@@ -86,14 +106,16 @@ type Feature = { label: { ko: string; en: string }; cells: [Cell, Cell, Cell, Ce
 type Program = {
   name: string;
   features: Feature[];
-  // 크레딧 추가 — 되는 프로그램만 값이 있다. 행 전체를 한 칸으로 합친다.
-  credits: { amount: string; price: string } | null;
 };
+
+// 🔴"열리냐 안 열리냐"뿐인 프로그램은 칸을 손으로 적지 않는다 — MIN_PLAN에서
+//   그대로 끌어온다. 손으로 맞추면 표와 실제 권한이 언젠가 반드시 어긋난다.
+const gate = (product: string): [Cell, Cell, Cell, Cell] =>
+  TIER_KEYS.map((t) => (planAllows(t, product) ? "○" : null)) as [Cell, Cell, Cell, Cell];
 
 export const PROGRAMS: Program[] = [
   {
     name: "Archimap",
-    credits: { amount: "+3", price: "$1" },
     features: [
       {
         label: { ko: "최대 직경", en: "Max diameter" },
@@ -108,129 +130,137 @@ export const PROGRAMS: Program[] = [
         cells: [null, "PNG · SVG · DXF · PDF", "PNG · SVG · DXF · PDF", "PNG · SVG · DXF · PDF"],
       },
       {
-        label: { ko: "내보내기 (3D)", en: "Export (3D)" },
+        label: { ko: "3D 모델링", en: "3D modeling" },
         cells: [null, "3DM · SKP(DXF)", "3DM · SKP(DXF)", "3DM · SKP(DXF)"],
       },
     ],
   },
   {
     name: "LaserFish",
-    credits: null,
     features: [
+      // PRO부터 열린다(2026-08-18 결정) — 원본은 lib/plans의 MIN_PLAN.
+      // 🔴이름표를 비워 둔다 — 열리냐 마느냐뿐이라 "전 기능 이용: 사용가능"은
+      //   같은 말을 두 번 하는 것이다. 빈 이름표는 렌더가 알아서 건너뛴다.
       {
-        label: { ko: "전 기능 이용", en: "All tools" },
-        cells: [null, "○", "○", "○"],
+        label: { ko: "", en: "" },
+        cells: gate("laserfish"),
       },
     ],
   },
 ];
 
-export const TIERS = [
-  { key: "free", label: "FREE", price: null },
-  { key: "plus", label: "PLUS", price: "$4.99" },
-  { key: "pro", label: "PRO", price: "$6.99" },
-  { key: "max", label: "MAX", price: "$9.99" },
-] as const;
+// 🔴열 순서는 TIER_KEYS가 정한다 — cells 배열이 이 순서에 그대로 대응하므로,
+//   여기서 순서를 따로 적으면 언젠가 한 칸씩 밀린다.
+const TIER_PRICE: Record<(typeof TIER_KEYS)[number], string | null> = {
+  free: null, plus: "$4.99", pro: "$9.90", max: "$14.90",
+};
+
+export const TIERS = TIER_KEYS.map((k) => ({
+  key: k,
+  label: k.toUpperCase(),
+  price: TIER_PRICE[k],
+}));
 
 type Props = {
   lang: Lang;
   /** 지금 쓰고 있는 등급. 그 열에 "이용 중"이 뜬다. */
   currentPlan?: string;
-  /** 없으면 버튼이 /plan 링크가 된다(홍보용). 있으면 실제 결제로 간다. */
+  /** 없으면 버튼이 /price 링크가 된다(홍보용). 있으면 실제 결제로 간다. */
   onSubscribe?: (plan: string) => void;
-  onBuyCredits?: () => void;
   busy?: string;
 };
 
-export default function PlanTable({ lang, currentPlan, onSubscribe, onBuyCredits, busy }: Props) {
+export default function PlanTable({ lang, currentPlan, onSubscribe, busy }: Props) {
   const L = (t: { ko: string; en: string }) => t[lang] ?? t.ko;
   const live = !!onSubscribe;
+  const isKo = lang === "ko";
+
+  // 🔴파는 등급만 싣는다. cells 배열은 free를 포함한 순서라 자리를 따로 찾는다.
+  const tiers = TIERS.filter((t) => t.key !== "free");
+  const at = (cells: readonly Cell[], key: string): Cell =>
+    cells[TIER_KEYS.indexOf(key as (typeof TIER_KEYS)[number])] ?? null;
 
   return (
-    <div className="plan-scroll">
-      <table className="plan">
-        <thead>
-          <tr>
-            <th className="pl-lead" colSpan={2} />
-            {TIERS.map((t) => (
-              <th key={t.key} className={t.key === "free" ? "" : "pl-hi"}>{t.label}</th>
-            ))}
-            <th className="pl-extra">{lang === "ko" ? "크레딧 추가" : "Extra credits"}</th>
-          </tr>
-        </thead>
-
-        {PROGRAMS.map((p) => (
-          <tbody key={p.name}>
-            {p.features.map((f, i) => (
-              <tr key={f.label.ko}>
-                {i === 0 && (
-                  <th className="pl-prod" rowSpan={p.features.length}>{p.name}</th>
-                )}
-                <th className="pl-row">{L(f.label)}</th>
-                {f.cells.map((c, k) => (
-                  <td key={k} className={c == null ? "no" : `ok${c === "○" ? " mark" : ""}`}>
-                    {c ?? "×"}
-                  </td>
-                ))}
-                {/* 🔴크레딧 추가는 프로그램마다 한 칸으로 합친다 */}
-                {i === 0 && (
-                  <td className="pl-extra pl-buy" rowSpan={p.features.length}>
-                    {p.credits ? (
-                      <>
-                        <div className="buy-amt">{p.credits.amount}</div>
-                        <div className="buy-price">{p.credits.price}</div>
-                        {live ? (
-                          <button className="buy-btn" disabled={busy === "credits"} onClick={onBuyCredits}>
-                            {busy === "credits" ? "…" : lang === "ko" ? "구매하기" : "Buy"}
-                          </button>
-                        ) : (
-                          <a className="buy-btn" href="/plan">{lang === "ko" ? "구매하기" : "Buy"}</a>
-                        )}
-                      </>
-                    ) : (
-                      <span className="dash">—</span>
-                    )}
-                  </td>
-                )}
-              </tr>
-            ))}
-          </tbody>
+    <div className="plan-wrap">
+      <div
+        className="plan-grid"
+        style={{ "--pg-cols": tiers.length } as React.CSSProperties}
+      >
+        {/* 1줄 — 등급 이름 */}
+        <div className="pg-corner" />
+        {tiers.map((t) => (
+          <div className="pg-tier" key={t.key}>
+            <b>{t.label}</b>
+            {currentPlan === t.key && <span className="cur">{isKo ? "이용 중" : "Current"}</span>}
+          </div>
         ))}
 
-        <tbody>
-          <tr className="pl-price">
-            <th className="pl-row" colSpan={2}>{lang === "ko" ? "가격" : "Price"}</th>
-            {TIERS.map((t) => (
-              <td key={t.key}>
-                {t.price
-                  ? <><b>{t.price}</b><span> / {lang === "ko" ? "월" : "mo"}</span></>
-                  : (lang === "ko" ? "무료" : "Free")}
-              </td>
-            ))}
-            <td className="pl-extra" />
-          </tr>
-          <tr className="pl-cta">
-            <th colSpan={2} />
-            {TIERS.map((t) => {
-              const now = (currentPlan ?? "free") === t.key;
+        {/* 프로그램마다 한 줄 */}
+        {PROGRAMS.map((p) => (
+          <Fragment key={p.name}>
+            <div className="pg-prog">
+              <div className="pg-prog-name">{p.name}</div>
+            </div>
+
+            {tiers.map((t) => {
+              const lines = p.features
+                .map((f) => ({ label: L(f.label), value: at(f.cells, t.key) }))
+                .filter((l) => l.value != null);
+
+              // 한 줄도 없으면 그 등급에서는 안 열리는 프로그램이다.
+              if (lines.length === 0) {
+                return (
+                  <div className="pg-cell off" key={t.key}>
+                    <span className="pg-off-mark">–</span>
+                  </div>
+                );
+              }
+
               return (
-                <td key={t.key}>
-                  {now ? (
-                    <span className="cur">{lang === "ko" ? "이용 중" : "Current"}</span>
-                  ) : t.key === "free" ? null : live ? (
-                    <button disabled={busy === t.key} onClick={() => onSubscribe!(t.key)}>
-                      {busy === t.key ? "…" : lang === "ko" ? "구독하기" : "Subscribe"}
-                    </button>
-                  ) : (
-                    <a href="/plan">{lang === "ko" ? "구독하기" : "Subscribe"}</a>
-                  )}
-                </td>
+                <div className="pg-cell" key={t.key}>
+                  {lines.map((l, i) => (
+                    <div className="pg-line" key={i}>
+                      {l.label && <span>{l.label}</span>}
+                      <b className={l.value === "○" ? "mark" : undefined}>
+                        {l.value === "○" ? (isKo ? "사용가능" : "Available") : l.value}
+                      </b>
+                    </div>
+                  ))}
+                </div>
               );
             })}
-            <td className="pl-extra" />
-          </tr>
-        </tbody>
-      </table>
+          </Fragment>
+        ))}
+
+        {/* 가격 줄 */}
+        <div className="pg-corner" />
+        {tiers.map((t) => (
+          <div className="pg-price" key={t.key}>
+            <div className="pg-amt">
+              {t.price} <span className="pg-per">{isKo ? "/ 월" : "/ mo"}</span>
+            </div>
+            <div className="pg-trial">
+              {isKo ? `첫 ${TRIAL_DAYS}일 무료` : `${TRIAL_DAYS}-day free trial`}
+            </div>
+          </div>
+        ))}
+
+        {/* 구독 버튼 줄 */}
+        <div className="pg-corner" />
+        {tiers.map((t) => (
+          <div className="pg-cta" key={t.key}>
+            {currentPlan === t.key ? (
+              <span className="using">{isKo ? "이용 중" : "Current"}</span>
+            ) : live ? (
+              <button disabled={busy === t.key} onClick={() => onSubscribe!(t.key)}>
+                {busy === t.key ? "…" : isKo ? "구독하기" : "Subscribe"}
+              </button>
+            ) : (
+              <a href="/price">{isKo ? "구독하기" : "Subscribe"}</a>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

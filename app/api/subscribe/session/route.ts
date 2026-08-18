@@ -1,6 +1,6 @@
 import {
   CENTRAL, sbFetch, emailOf, planAmount, priceOf, productOf, hasActiveBundle,
-  PLAN_LABEL, vatOf, type PlanKey, type Channel,
+  PLAN_LABEL, vatOf, addDays, TRIAL_DAYS, type PlanKey, type Channel,
 } from "@/lib/subscription";
 
 // ==========================================================================
@@ -20,6 +20,7 @@ type SessionRow = {
   plan: PlanKey;
   status: string;
   expires_at: string;
+  trial: boolean;
 };
 
 export async function GET(request: Request) {
@@ -58,9 +59,12 @@ export async function GET(request: Request) {
   // 2) 이메일 — profiles에는 없다. auth 스키마는 REST로 못 읽으므로 Admin API를 쓴다.
   const email = await emailOf(s.user_id);
 
-  // 3) 국가 → 채널. 🔴가입 시 고른 국가가 기준이다(2026-08-07 사용자 결정).
-  //    ⚠️구글 로그인은 회원가입 폼을 안 거쳐 country가 비어 있을 수 있다. 그때는
-  //      해외로 두되 페이지에서 사용자가 국내로 바꿀 수 있게 한다(임의 추정 금지).
+  // 3) 국가 → 채널. 🔴profiles.country가 있으면 그게 기준이다.
+  //    ⚠️2026-08-18부터 가입 폼에서 거주 지역을 묻지 않는다 — 그래서 신규 가입자와
+  //      구글 로그인 사용자는 country가 비어 있다. 여기서는 해외(달러)로 두고,
+  //      실제 기본값은 결제 화면이 화면 언어로 고른다(countryKnown=false로 알려 준다).
+  //      🔴서버가 언어로 추정하지 않는다 — Accept-Language는 브라우저 설정이라
+  //        사이트에서 고른 언어와 어긋난다.
   let country: string | null = null;
   const pRes = await sbFetch(`profiles?id=eq.${s.user_id}&select=country`);
   if (pRes.ok) country = ((await pRes.json()) as { country?: string }[])[0]?.country ?? null;
@@ -93,5 +97,10 @@ export async function GET(request: Request) {
     // 🔴해외는 영세율이라 0이 온다. 결제 페이지는 0이면 부가세 줄을 아예 숨긴다.
     vatUsd: vatOf(base, channel),
     ...money,
+    // 🔴무료체험 고지 — 결제 페이지가 이걸로 "N일 뒤 첫 청구" 문구를 만든다.
+    //   무료체험 후 자동결제는 전자상거래법상 사전 고지 의무라 화면에서 빼면 안 된다.
+    trial: s.trial,
+    trialDays: s.trial ? TRIAL_DAYS : 0,
+    firstChargeAt: (s.trial ? addDays(new Date(), TRIAL_DAYS) : new Date()).toISOString(),
   });
 }

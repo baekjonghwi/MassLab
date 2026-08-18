@@ -93,7 +93,7 @@ export default function ContactPage() {
             <a href="/download" className="hnav-link">
               {lang === "ko" ? "다운로드" : "Download"}
             </a>
-            <a href="/#pricing" className="hnav-link">
+            <a href="/price" className="hnav-link">
               {lang === "ko" ? "비용" : "Pricing"}
             </a>
             <a href="/contact" className="hnav-link" style={{ color: "#111", fontWeight: 700 }}>
