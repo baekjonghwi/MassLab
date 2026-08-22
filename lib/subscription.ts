@@ -12,22 +12,42 @@
 //    직접 입력받지만, 구독은 로그인이 필수라 이메일을 물어보지 않는다.
 // ==========================================================================
 
-// 포트원 상점·채널. /payment와 같은 상점을 쓴다(계약이 사업자 단위라 공유된다).
+// 포트원 상점. /payment와 같은 상점을 쓴다(계약이 사업자 단위라 공유된다).
 export const PORTONE_STORE_ID = "store-ad54a018-057e-4d48-b98f-920b6d0fa05c";
-//  - 해외: 엑심베이. PayPal이 개통되면 이 채널의 결제수단으로 함께 뜬다.
-//  - 국내: 갤럭시아머니트리. 🔴빌링키는 카드만 되고 통화는 KRW 전용이다.
-export const CHANNEL_EXIMBAY = "channel-key-796e8cff-cddb-4731-a364-910163f64bcb";
-export const CHANNEL_GALAXIA = "channel-key-d725a6f3-ff5a-40ab-8f01-9f6b363f15db";
+
+// 🔴🔴정기결제 채널은 단건 채널과 **다른 것**이다. PG가 정기결제에 상점아이디(MID)를
+//   따로 발급하고, 포트원 채널도 그 MID로 새로 만들어야 한다(2026-08-21 포트원 확인).
+//   갤럭시아·토스·이니시스 모두 같은 구조다.
+//
+//   ⚠️아래 두 값은 아직 **단건 채널 키**다 — 자리를 잡아 두려고 넣어 둔 것이고,
+//     이 값으로는 빌링키 발급도 정기 청구도 되지 않는다. 정기결제 채널이 열리면
+//     여기 두 줄만 바꾸면 서버·화면이 함께 따라온다.
+//     🔴화면 쪽에도 같은 상수가 있다(app/subscribe/page.tsx) — 한쪽만 고치지 말 것.
+//       lib을 import하지 않는 이유는 이 파일이 서버 전용 키를 들고 있어서다.
+//
+//   국내는 갤럭시아가 정기결제 추가에 20만원을 요구해 **KG이니시스로 신청 중**이다.
+//   PG가 바뀌면 아래 값과 함께 Channel 타입에 'inicis'를 더하고 BILLING_CHANNEL에
+//   한 줄을 추가하면 된다.
+export const CHANNEL_BILLING_INTL = "channel-key-796e8cff-cddb-4731-a364-910163f64bcb";
+export const CHANNEL_BILLING_KRW = "channel-key-d725a6f3-ff5a-40ab-8f01-9f6b363f15db";
 
 export const PORTONE_API = "https://api.portone.io";
 
 // 🔴등급 서열·프로그램별 문턱은 lib/plans에 있다(브라우저에서도 써야 해서 뗐다).
 //   여기서 다시 내보내 주므로 서버 코드는 이 파일 하나만 import하면 된다.
 export type { PlanKey } from "./plans";
-export { PLAN_LABEL, MIN_PLAN, DEFAULT_MIN_PLAN, minPlanOf, planAllows, TRIAL_DAYS } from "./plans";
+export { PLAN_LABEL, MIN_PLAN, DEFAULT_MIN_PLAN, minPlanOf, planAllows } from "./plans";
 import type { PlanKey } from "./plans";
+import { USE_TEST_CHANNELS, TEST_CHANNEL_INTL, TEST_CHANNEL_KRW } from "./interim";
 
 export type Channel = "eximbay" | "galaxia";
+
+// 채널 이름(DB에 남는 값) → 포트원 채널 키. 🔴PG를 바꾸거나 늘릴 때 여기 한 줄만
+//   더하면 청구·발급이 함께 따라온다(분기를 코드 여기저기에 흩지 않는다).
+export const BILLING_CHANNEL: Record<Channel, string> = {
+  eximbay: USE_TEST_CHANNELS ? TEST_CHANNEL_INTL : CHANNEL_BILLING_INTL,
+  galaxia: USE_TEST_CHANNELS ? TEST_CHANNEL_KRW : CHANNEL_BILLING_KRW,
+};
 
 export const VAT_RATE = 0.1;
 
@@ -266,30 +286,6 @@ export function addMonth(from: Date): Date {
 }
 
 // --------------------------------------------------------------------------
-//  무료체험
-//
-//  체험은 FREE 등급이 아니라 **구독 안에** 있다. 유료 플랜을 처음 고르면
-//  카드는 등록하되 첫 청구가 TRIAL_DAYS 뒤로 밀린다(status='trialing').
-// --------------------------------------------------------------------------
-// 체험 종료일. 🔴addMonth와 달리 말일 보정이 필요 없다(일 단위 덧셈이라
-//   달을 넘겨도 Date가 알아서 이월한다).
-export function addDays(from: Date, days: number): Date {
-  return new Date(from.getTime() + days * 24 * 60 * 60 * 1000);
-}
-
-// 이 계정이 체험을 쓸 수 있나.
-// 🔴**계정당 1회**다 — 구독 행(제품·플랜 단위)이 아니라 profiles를 본다.
-//   pro로 7일 쓰고 plus로 갈아타 또 7일을 받는 길을 막으려면 여기여야 한다.
-// 🔴판정은 서버에서만 한다. 브라우저가 "체험이다"라고 말하는 것을 믿으면
-//   위조 한 번으로 영원히 공짜가 된다.
-export async function trialAvailable(uid: string): Promise<boolean> {
-  const r = await sbFetch(`profiles?id=eq.${uid}&select=trial_used_at`);
-  if (!r.ok) return false;              // 못 읽으면 체험을 안 준다(돈이 새는 쪽으로 실패하지 않는다)
-  const row = ((await r.json()) as { trial_used_at?: string | null }[])[0];
-  return !!row && row.trial_used_at == null;
-}
-
-// --------------------------------------------------------------------------
 //  포트원 빌링키 청구
 // --------------------------------------------------------------------------
 export type ChargeArgs = {
@@ -307,6 +303,33 @@ export type ChargeResult =
   | { ok: true; alreadyDone?: boolean; raw: unknown }
   | { ok: false; code?: string; message: string; raw: unknown };
 
+// 이미 일어난 결제를 조회한다.
+// 🔴해외(엑심베이)는 빌링키 발급 시점에 첫 결제가 함께 끝난다 — 포트원이
+//   `requestIssueBillingKey`(발급만)를 "EXIMBAY_V2 에 대해 지원하지 않는 기능"으로
+//   막기 때문에 `requestIssueBillingKeyAndPay`밖에 길이 없다. 그래서 서버는
+//   청구하는 대신 "정말 그 금액이 결제됐는지"만 확인한다. 안 그러면 이중 청구다.
+export async function getPayment(paymentId: string): Promise<
+  | { ok: true; amount: number; currency: string; raw: unknown }
+  | { ok: false; message: string; raw: unknown }
+> {
+  const secret = process.env.PORTONE_SECRET_KEY?.trim();
+  if (!secret) return { ok: false, message: "PORTONE_SECRET_KEY 없음", raw: null };
+
+  const res = await fetch(`${PORTONE_API}/payments/${encodeURIComponent(paymentId)}`, {
+    headers: { Authorization: `PortOne ${secret}` },
+    cache: "no-store",
+  });
+  const raw = await res.json().catch(() => null);
+  if (!res.ok) return { ok: false, message: `포트원 ${res.status}`, raw };
+
+  const p = raw as { status?: string; amount?: { total?: number }; currency?: string };
+  // 🔴PAID가 아니면 돈이 안 들어온 것이다. 구독을 열어 주면 공짜로 쓰게 된다.
+  if (p?.status !== "PAID") {
+    return { ok: false, message: `결제 상태 ${p?.status ?? "알 수 없음"}`, raw };
+  }
+  return { ok: true, amount: p.amount?.total ?? 0, currency: p.currency ?? "", raw };
+}
+
 export async function chargeWithBillingKey(a: ChargeArgs): Promise<ChargeResult> {
   const secret = process.env.PORTONE_SECRET_KEY?.trim();
   if (!secret) return { ok: false, message: "PORTONE_SECRET_KEY 없음", raw: null };
@@ -319,7 +342,7 @@ export async function chargeWithBillingKey(a: ChargeArgs): Promise<ChargeResult>
       body: JSON.stringify({
         billingKey: a.billingKey,
         storeId: PORTONE_STORE_ID,
-        channelKey: a.channel === "galaxia" ? CHANNEL_GALAXIA : CHANNEL_EXIMBAY,
+        channelKey: BILLING_CHANNEL[a.channel],
         orderName: a.orderName,
         customer: { customerId: a.customerId, email: a.email },
         amount: { total: a.amount },

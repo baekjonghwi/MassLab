@@ -1,7 +1,7 @@
 "use client";
 
 import { Fragment } from "react";
-import { TIER_KEYS, planAllows, TRIAL_DAYS } from "@/lib/plans";
+import { TIER_KEYS, planAllows } from "@/lib/plans";
 
 // ==========================================================================
 //  요금제 표 — MassLabs가 유일한 출처다.
@@ -76,8 +76,8 @@ export const PLAN_CSS = `
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
   }
   .pg-amt { font-size: 1.3rem; font-weight: 900; letter-spacing: -0.03em; color: #111; }
-  .pg-per { font-size: 0.72rem; font-weight: 600; color: #999; letter-spacing: 0; }
-  .pg-trial { font-size: 0.65rem; color: #b0b0b0; text-align: center; line-height: 1.5; margin-top: 3px; }
+  /* 원래 가격은 그어서 남긴다 — 지우면 7일 뒤 얼마가 빠져나가는지 알 수 없다 */
+  .pg-per { font-size: 0.72rem; font-weight: 600; color: #999; letter-spacing: 0; margin-left: 3px; }
 
   .pg-cta { display: flex; align-items: center; justify-content: center; }
   .pg-cta button, .pg-cta a {
@@ -90,6 +90,10 @@ export const PLAN_CSS = `
   .pg-cta button:hover, .pg-cta a:hover { background: #333; }
   .pg-cta button:disabled { background: #ccc; cursor: not-allowed; }
   .pg-cta .using { font-size: 0.78rem; font-weight: 700; color: #2f855a; }
+
+  /* 내 구독 화면 — 쓰고 있는 등급만 또렷하게 남기고 나머지는 물린다 */
+  .pg-tier.dim, .pg-cell.dim, .pg-prog.dim { opacity: 0.38; }
+  .pg-cell.on { border-color: #111; }
 
   .plan-fine {
     font-size: 0.75rem; color: #aaa; line-height: 1.8; margin-top: 18px;
@@ -163,6 +167,12 @@ export const TIERS = TIER_KEYS.map((k) => ({
 
 type Props = {
   lang: Lang;
+  /**
+   * sell(기본) = 파는 표. 가격·구독 버튼이 붙는다(홈 · /price).
+   * status = 내 구독 상태를 보여주는 표. 가격도 버튼도 없고, 쓰고 있는 등급만
+   *   또렷하다(/account). 🔴여기서 결제를 시작하지 않는다 — 구독은 /price 한 곳에서.
+   */
+  variant?: "sell" | "status";
   /** 지금 쓰고 있는 등급. 그 열에 "이용 중"이 뜬다. */
   currentPlan?: string;
   /** 없으면 버튼이 /price 링크가 된다(홍보용). 있으면 실제 결제로 간다. */
@@ -170,13 +180,18 @@ type Props = {
   busy?: string;
 };
 
-export default function PlanTable({ lang, currentPlan, onSubscribe, busy }: Props) {
+export default function PlanTable({ lang, currentPlan, onSubscribe, busy, variant = "sell" }: Props) {
   const L = (t: { ko: string; en: string }) => t[lang] ?? t.ko;
   const live = !!onSubscribe;
   const isKo = lang === "ko";
 
   // 🔴파는 등급만 싣는다. cells 배열은 free를 포함한 순서라 자리를 따로 찾는다.
   const tiers = TIERS.filter((t) => t.key !== "free");
+
+  // 🔴구독 중일 때만 나머지를 물린다. 아직 구독이 없으면 전부 또렷하게 둔다 —
+  //   고를 것이 남아 있는데 다 흐려 놓으면 고장 난 화면으로 보인다.
+  const focus = variant === "status" && tiers.some((t) => t.key === currentPlan);
+  const faded = (key: string) => (focus && key !== currentPlan ? " dim" : "");
   const at = (cells: readonly Cell[], key: string): Cell =>
     cells[TIER_KEYS.indexOf(key as (typeof TIER_KEYS)[number])] ?? null;
 
@@ -189,7 +204,7 @@ export default function PlanTable({ lang, currentPlan, onSubscribe, busy }: Prop
         {/* 1줄 — 등급 이름 */}
         <div className="pg-corner" />
         {tiers.map((t) => (
-          <div className="pg-tier" key={t.key}>
+          <div className={`pg-tier${faded(t.key)}`} key={t.key}>
             <b>{t.label}</b>
             {currentPlan === t.key && <span className="cur">{isKo ? "이용 중" : "Current"}</span>}
           </div>
@@ -210,14 +225,14 @@ export default function PlanTable({ lang, currentPlan, onSubscribe, busy }: Prop
               // 한 줄도 없으면 그 등급에서는 안 열리는 프로그램이다.
               if (lines.length === 0) {
                 return (
-                  <div className="pg-cell off" key={t.key}>
+                  <div className={`pg-cell off${faded(t.key)}`} key={t.key}>
                     <span className="pg-off-mark">–</span>
                   </div>
                 );
               }
 
               return (
-                <div className="pg-cell" key={t.key}>
+                <div className={`pg-cell${focus && t.key === currentPlan ? " on" : ""}${faded(t.key)}`} key={t.key}>
                   {lines.map((l, i) => (
                     <div className="pg-line" key={i}>
                       {l.label && <span>{l.label}</span>}
@@ -232,34 +247,38 @@ export default function PlanTable({ lang, currentPlan, onSubscribe, busy }: Prop
           </Fragment>
         ))}
 
-        {/* 가격 줄 */}
-        <div className="pg-corner" />
-        {tiers.map((t) => (
-          <div className="pg-price" key={t.key}>
-            <div className="pg-amt">
-              {t.price} <span className="pg-per">{isKo ? "/ 월" : "/ mo"}</span>
-            </div>
-            <div className="pg-trial">
-              {isKo ? `첫 ${TRIAL_DAYS}일 무료` : `${TRIAL_DAYS}-day free trial`}
-            </div>
-          </div>
-        ))}
+        {/* 가격 줄. 🔴할인·무료 배지를 여기 붙이지 않는다 — 표에 적힌 값과
+            결제창에 뜨는 값이 어긋나는 순간 화면이 거짓말을 한 셈이 된다.
+            공짜로 써보는 길은 FREE 등급 하나로만 안내한다. */}
+        {variant === "sell" && (
+          <>
+            <div className="pg-corner" />
+            {tiers.map((t) => (
+              <div className="pg-price" key={t.key}>
+                <div className="pg-amt">
+                  {t.price}
+                  <span className="pg-per">/mon</span>
+                </div>
+              </div>
+            ))}
 
-        {/* 구독 버튼 줄 */}
-        <div className="pg-corner" />
-        {tiers.map((t) => (
-          <div className="pg-cta" key={t.key}>
-            {currentPlan === t.key ? (
-              <span className="using">{isKo ? "이용 중" : "Current"}</span>
-            ) : live ? (
-              <button disabled={busy === t.key} onClick={() => onSubscribe!(t.key)}>
-                {busy === t.key ? "…" : isKo ? "구독하기" : "Subscribe"}
-              </button>
-            ) : (
-              <a href="/price">{isKo ? "구독하기" : "Subscribe"}</a>
-            )}
-          </div>
-        ))}
+            {/* 구독 버튼 줄 */}
+            <div className="pg-corner" />
+            {tiers.map((t) => (
+              <div className="pg-cta" key={t.key}>
+                {currentPlan === t.key ? (
+                  <span className="using">{isKo ? "이용 중" : "Current"}</span>
+                ) : live ? (
+                  <button disabled={busy === t.key} onClick={() => onSubscribe!(t.key)}>
+                    {busy === t.key ? "…" : isKo ? "구독하기" : "Subscribe"}
+                  </button>
+                ) : (
+                  <a href="/price">{isKo ? "구독하기" : "Subscribe"}</a>
+                )}
+              </div>
+            ))}
+          </>
+        )}
       </div>
     </div>
   );

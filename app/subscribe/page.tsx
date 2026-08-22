@@ -3,6 +3,8 @@ import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import * as PortOne from "@portone/browser-sdk/v2";
 import { useLanguage } from "@/lib/i18n";
+import { t } from "@/lib/translations";
+import { USE_TEST_CHANNELS, TEST_CHANNEL_INTL, TEST_CHANNEL_KRW } from "@/lib/interim";
 
 // ==========================================================================
 //  구독 결제(빌링키 발급) — 로그인이 있는 제품 전용.
@@ -22,8 +24,17 @@ declare global {
 }
 
 const STORE_ID = "store-ad54a018-057e-4d48-b98f-920b6d0fa05c";
-const CHANNEL_EXIMBAY = "channel-key-796e8cff-cddb-4731-a364-910163f64bcb";
-const CHANNEL_GALAXIA = "channel-key-d725a6f3-ff5a-40ab-8f01-9f6b363f15db";
+// 🔴🔴정기결제 채널은 단건(/payment)과 **다른 것**이다. PG가 정기결제에 MID를 따로
+//   발급하고 포트원 채널도 새로 만들어야 한다(2026-08-21 포트원 확인).
+//   ⚠️아래 두 값은 아직 단건 채널 키다 — 이 값으로는 빌링키가 발급되지 않는다.
+//     정기결제 채널이 열리면 여기와 lib/subscription.ts 두 곳을 함께 바꿀 것.
+const REAL_CHANNEL_INTL = "channel-key-796e8cff-cddb-4731-a364-910163f64bcb";
+const REAL_CHANNEL_KRW = "channel-key-d725a6f3-ff5a-40ab-8f01-9f6b363f15db";
+// 🔴테스트 채널로 돌릴 때는 lib/interim.ts의 USE_TEST_CHANNELS 하나만 뒤집는다.
+//   서버(lib/subscription.ts의 BILLING_CHANNEL)도 같은 스위치를 보므로 발급과
+//   청구가 따로 놀지 않는다.
+const CHANNEL_BILLING_INTL = USE_TEST_CHANNELS ? TEST_CHANNEL_INTL : REAL_CHANNEL_INTL;
+const CHANNEL_BILLING_KRW = USE_TEST_CHANNELS ? TEST_CHANNEL_KRW : REAL_CHANNEL_KRW;
 
 // 🔴PayPal 빌링키는 엑심베이에 PayPal이 개통된 뒤에야 실제로 발급된다.
 //   개통 확인 후 이 값만 true로 바꾸면 해외 결제수단에 PayPal이 뜬다.
@@ -42,20 +53,11 @@ type SessionInfo = {
   vatUsd: number;
   amount: number;
   currency: "USD" | "KRW";
-  // 무료체험 — 서버가 판정한다(계정당 1회). 화면은 결과만 보여준다.
-  trial: boolean;
-  trialDays: number;
-  firstChargeAt: string;
+  // 🔴해외(엑심베이)는 빌링키 발급과 동시에 첫 결제가 일어난다. 그 결제 ID를
+  //   서버가 정해 내려준다 — 화면이 만들면 위조할 수 있다.
+  paymentId: string;
 };
 
-// 첫 청구일 고지에 쓴다.
-// 🔴날짜를 반드시 적는다. "7일 뒤"만 쓰면 사용자가 언제 돈이 빠지는지 계산해야 한다.
-function fmtDate(iso: string, isKo: boolean): string {
-  const d = new Date(iso);
-  return isKo
-    ? `${d.getMonth() + 1}월 ${d.getDate()}일`
-    : d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-}
 
 // ==========================================================================
 //  화면 문구
@@ -84,23 +86,15 @@ const TX = {
     doneTitle: "구독이 시작되었습니다",
     doneBody: "이 창을 닫고 앱으로 돌아가시면 플랜이 적용되어 있습니다.",
     close: "창 닫기",
-    subMonthly: "매월 자동 결제",
-    subTrial: (d: number) => `${d}일 무료 체험 후 매월 자동 결제`,
+    recurring: "정기결제",
     fee: "구독료",
     vat: "부가세 (10%)",
-    dueToday: "지금 결제",
-    dueMonthly: "매월 청구",
-    fromEveryMonth: (date: string) => `${date}부터 매월`,
     account: "계정",
-    region: "결제 지역",
-    overseas: "해외 (USD)",
-    domestic: "국내 (KRW)",
     card: "신용카드",
-    agreeTrial: (date: string, amt: string) =>
-      `${date}부터 매월 ${amt}이(가) 자동 결제되며, 언제든 해지할 수 있다는 데 동의합니다.`,
-    agreeMonthly: "매월 자동으로 결제되며 언제든 해지할 수 있다는 데 동의합니다.",
+    termsTitle: "이용약관",
+    agree: "에 동의합니다.",
+    termsMore: "전체 이용약관 · 개인정보 처리방침 보기",
     processing: "처리 중…",
-    startTrial: (d: number) => `${d}일 무료로 시작하기`,
     payNow: (amt: string) => `${amt} 결제하고 구독 시작`,
     issueName: (plan: string) => `${plan} 구독`,
   },
@@ -122,23 +116,15 @@ const TX = {
     doneTitle: "Your subscription is active",
     doneBody: "Close this window and return to the app — your plan is already applied.",
     close: "Close window",
-    subMonthly: "Billed monthly",
-    subTrial: (d: number) => `${d}-day free trial, then billed monthly`,
+    recurring: "Recurring payment",
     fee: "Subscription",
     vat: "VAT (10%)",
-    dueToday: "Due today",
-    dueMonthly: "Billed monthly",
-    fromEveryMonth: (date: string) => `Monthly from ${date}`,
     account: "Account",
-    region: "Billing region",
-    overseas: "International (USD)",
-    domestic: "Korea (KRW)",
     card: "Credit card",
-    agreeTrial: (date: string, amt: string) =>
-      `I agree to be charged ${amt} monthly starting ${date}, and understand I can cancel anytime.`,
-    agreeMonthly: "I agree to be billed monthly and understand I can cancel anytime.",
+    termsTitle: "Terms of Service",
+    agree: " — I agree.",
+    termsMore: "Read the full terms & privacy policy",
     processing: "Processing…",
-    startTrial: (d: number) => `Start ${d} days free`,
     payNow: (amt: string) => `Pay ${amt} and subscribe`,
     issueName: (plan: string) => `${plan} subscription`,
   },
@@ -155,6 +141,7 @@ function SubscribeContent() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [agreed, setAgreed] = useState(false);
+  const [termsOpen, setTermsOpen] = useState(false);
   const [done, setDone] = useState(false);
   // 국내/해외 채널. 기본은 가입 국가가 정하고, 국가를 모를 때만 사용자가 고른다.
   const [channel, setChannel] = useState<"eximbay" | "galaxia">("eximbay");
@@ -246,23 +233,55 @@ function SubscribeContent() {
     const back = `${window.location.origin}/subscribe?sid=${encodeURIComponent(sid)}`
       + `&product=${encodeURIComponent(product)}&ch=${channel}&ml=${encodeURIComponent(methodLabel)}`;
 
+    const customer = {
+      customerId: sid.replace(/-/g, "").slice(0, 20),
+      fullName: info.email.split("@")[0],
+      email: info.email,
+    };
+
     try {
-      const res = await PortOne.requestIssueBillingKey({
-        storeId: STORE_ID,
-        channelKey: isKrw ? CHANNEL_GALAXIA : CHANNEL_EXIMBAY,
-        // 🔴갤럭시아 빌링키는 카드만 된다. 해외는 카드 또는 PayPal.
-        billingKeyMethod: isKrw ? "CARD" : method,
-        issueId,
-        issueName: x.issueName(info.planLabel),
-        // 표시용 금액. 실제 청구는 서버가 다시 계산해서 한다.
-        displayAmount: info.amount,
-        currency: info.currency,
-        customer: {
-          customerId: sid.replace(/-/g, "").slice(0, 20),
-          email: info.email,
-        },
-        redirectUrl: back,
-      } as unknown as Parameters<typeof PortOne.requestIssueBillingKey>[0]);
+      // 🔴국내와 해외는 **호출하는 함수가 다르다.** PG 정책이 정반대라서다.
+      //   - 갤럭시아: 카드 빌링키는 발급만 된다(동시 결제는 휴대폰 전용).
+      //   - 엑심베이: 발급만 하는 호출을 아예 지원하지 않는다. 실제로 부르면
+      //     포트원이 "EXIMBAY_V2 에 대해 지원하지 않는 기능입니다"로 막는다.
+      //     발급과 첫 결제가 한 번에 일어나야 한다.
+      //   ⚠️그래서 해외는 이 시점에 **돈이 실제로 빠진다.** confirm이 또 청구하면
+      //     이중 청구가 되므로, 서버는 채널을 보고 청구를 건너뛴다.
+      const res = isKrw
+        ? await PortOne.requestIssueBillingKey({
+            storeId: STORE_ID,
+            channelKey: CHANNEL_BILLING_KRW,
+            billingKeyMethod: "CARD",
+            issueId,
+            issueName: x.issueName(info.planLabel),
+            // 표시용 금액. 실제 청구는 서버가 다시 계산해서 한다.
+            displayAmount: info.amount,
+            currency: info.currency,
+            customer,
+            redirectUrl: back,
+          } as unknown as Parameters<typeof PortOne.requestIssueBillingKey>[0])
+        : await PortOne.requestIssueBillingKeyAndPay({
+            storeId: STORE_ID,
+            channelKey: CHANNEL_BILLING_INTL,
+            billingKeyAndPayMethod: method,
+            // 🔴결제 ID를 화면에서 만들지 않는다 — 서버가 세션에서 내려준 값을 그대로
+            //   쓴다. 브라우저가 정하면 남의 결제 ID를 넣어 구독을 가로챌 수 있다.
+            paymentId: info.paymentId,
+            orderName: x.issueName(info.planLabel),
+            totalAmount: info.amount,
+            currency: info.currency,
+            customer,
+            // 🔴엑심베이는 products가 없으면 결제창 상품명이 비고, 해외카드 외
+            //   수단에서는 아예 필수다. link도 엑심베이 필수 항목이다.
+            products: [{
+              id: product,
+              name: x.issueName(info.planLabel),
+              amount: info.amount,
+              quantity: 1,
+              link: window.location.origin,
+            }],
+            redirectUrl: back,
+          } as unknown as Parameters<typeof PortOne.requestIssueBillingKeyAndPay>[0]);
 
       if (!res || res.code) {
         setError(res?.message || x.canceled);
@@ -270,7 +289,16 @@ function SubscribeContent() {
         return;
       }
       await confirm(res.billingKey, channel, methodLabel);
-    } catch {
+    } catch (e) {
+      // 🔴예외를 삼키지 않는다. PG가 지원하지 않는 호출이면 SDK는 code를 돌려주는
+      //   대신 여기로 던지는데, 그 메시지가 원인을 말해 주는 유일한 단서다.
+      //   (화면에는 그대로 띄우지 않는다 — 손님에게는 내부 오류 문구가 무의미하다.)
+      // 🔴객체로 넘기면 Next 오버레이가 {}로 뭉개 버린다. 문자열로 펼쳐서 남긴다.
+      const detail = e instanceof Error
+        ? `${e.name}: ${e.message}`
+        : (() => { try { return JSON.stringify(e); } catch { return String(e); } })();
+      console.error(
+        `[subscribe] 빌링키 발급 예외 | channel=${channel} method=${method} | ${detail}`);
       setError(x.payError);
       setLoading(false);
     }
@@ -297,74 +325,24 @@ function SubscribeContent() {
       <h1 style={{ fontSize: "1.3rem", fontWeight: 700, letterSpacing: "-0.02em", marginBottom: 4 }}>
         {info.product === "all" ? info.productLabel : `${info.productLabel} ${info.planLabel}`}
       </h1>
-      <p style={{ fontSize: "0.78rem", color: "#aaa", marginBottom: 20 }}>
-        {info.trial ? x.subTrial(info.trialDays) : x.subMonthly}
-      </p>
 
-      {/* 금액 */}
+      {/* 정기결제 — 🔴체험이면 "지금 낼 돈"이 0이라는 것과 "언제 얼마가 빠지는지"를
+          한 칸 안에서 같이 보여준다. 0원만 크게 띄우면 자동결제를 못 보고 지나간다. */}
       <div style={{ background: "#f8f8f8", borderRadius: 10, padding: 14, marginBottom: 16 }}>
-        <Row label={x.fee} value={`$${info.baseUsd.toFixed(2)}`} />
-        {/* 🔴해외는 영세율(0%)이라 부가세가 없다. 0원짜리 줄을 보여주면 오해를 산다. */}
-        {info.vatUsd > 0 && <Row label={x.vat} value={`$${info.vatUsd.toFixed(2)}`} />}
-        <div style={{ borderTop: "1px solid #e8e8e8", paddingTop: 10, marginTop: 8, display: "flex", justifyContent: "space-between" }}>
-          {/* 🔴체험이면 "지금 낼 돈"을 0으로 못박아 보여준다. 총액만 크게 띄우면
-              당장 결제되는 줄 알고 이탈한다. */}
-          <span style={{ fontSize: "0.9rem", fontWeight: 600 }}>
-            {info.trial ? x.dueToday : x.dueMonthly}
-          </span>
+        <div style={{ fontSize: "0.82rem", fontWeight: 700, marginBottom: 10 }}>{x.recurring}</div>
+
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
+          <span style={{ fontSize: "0.78rem", color: "#666" }}>{x.fee}</span>
           <span style={{ fontSize: "0.9rem", fontWeight: 700 }}>
-            {info.trial ? money(0, info.currency) : money(info.amount, info.currency)}
+            {money(info.amount, info.currency)}
           </span>
         </div>
-        {info.trial && (
-          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6 }}>
-            <span style={{ fontSize: "0.78rem", color: "#666" }}>{x.fromEveryMonth(fmtDate(info.firstChargeAt, isKo))}</span>
-            <span style={{ fontSize: "0.78rem", color: "#666" }}>{money(info.amount, info.currency)}</span>
-          </div>
-        )}
+
+        {/* 🔴해외는 영세율(0%)이라 부가세가 없다. 0원짜리 줄을 보여주면 오해를 산다. */}
+        {info.vatUsd > 0 && <Row label={x.vat} value={`${info.vatUsd.toFixed(2)}`} />}
+
       </div>
 
-      {/* 🔴무료체험 후 자동결제는 전자상거래법상 사전 고지 의무다. 지우지 말 것. */}
-      {info.trial && (
-        <div style={{
-          display: "flex", alignItems: "flex-start", gap: 8, padding: "10px 12px",
-          background: "#eef6ff", borderRadius: 8, marginBottom: 16,
-        }}>
-          <span style={{ fontSize: "0.82rem" }}>ℹ️</span>
-          <p style={{ fontSize: "0.75rem", color: "#2c4a6b", lineHeight: 1.6, margin: 0 }}>
-            {isKo ? (
-              <>
-                오늘부터 {info.trialDays}일간 무료입니다. <b>{fmtDate(info.firstChargeAt, true)}</b>에
-                첫 결제 {money(info.amount, info.currency)}가 청구되고, 이후 매월 같은 날 자동 결제됩니다.
-                그 전에 해지하시면 <b>한 푼도 청구되지 않습니다.</b><br />
-                무료 체험은 계정당 한 번만 제공되며, 다른 요금제로 바꾸셔도 다시 받으실 수 없습니다.
-              </>
-            ) : (
-              <>
-                Free for {info.trialDays} days starting today. On <b>{fmtDate(info.firstChargeAt, false)}</b> you&apos;ll
-                be charged {money(info.amount, info.currency)}, and on the same day every month after that.
-                Cancel before then and <b>you won&apos;t be charged anything.</b><br />
-                The free trial is available once per account — switching plans won&apos;t give you another one.
-              </>
-            )}
-          </p>
-        </div>
-      )}
-
-      {/* 🔴번들은 기존 개별 구독을 즉시 끊는다 — 결제 전에 반드시 밝힌다(일할 환불 없음) */}
-      {info.product === "all" && (
-        <div style={{
-          display: "flex", alignItems: "flex-start", gap: 8, padding: "10px 12px",
-          background: "#fff8e6", borderRadius: 8, marginBottom: 16,
-        }}>
-          <span style={{ fontSize: "0.82rem" }}>⚠️</span>
-          <p style={{ fontSize: "0.75rem", color: "#6b5a2e", lineHeight: 1.6, margin: 0 }}>
-            {isKo
-              ? "이용 중인 개별 구독이 있으면 지금 해지되고 전체 구독으로 합쳐집니다. 모든 프로그램이 최상위 등급으로 열리며, 이미 결제된 개별 구독료는 일할 환불되지 않습니다."
-              : "Any individual subscriptions you have will be canceled now and merged into all-access. Every program opens at the top tier, and individual fees already paid are not refunded pro rata."}
-          </p>
-        </div>
-      )}
 
       {/* 계정 — 보여주기만 한다(로그인 계정과 어긋나면 안 되므로 입력받지 않는다) */}
       <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 12px", background: "#f8f8f8", borderRadius: 8, marginBottom: 16 }}>
@@ -372,19 +350,6 @@ function SubscribeContent() {
         <span style={{ fontSize: "0.78rem", color: "#1a1a1a" }}>{info.email || "—"}</span>
       </div>
 
-      {/* 국가를 모를 때만 결제 지역을 고르게 한다.
-          🔴이 버튼을 누르면 채널이 바뀌고, 채널이 언어를 정하므로 화면 말이 통째로 바뀐다.
-            그래서 두 버튼의 글자만은 항상 양쪽 말로 같이 적어 둔다 — 안 그러면 영어 화면에서
-            한국을 고르려는 사람이 자기가 뭘 누르는지 못 읽는다. */}
-      {!info.countryKnown && (
-        <div style={{ marginBottom: 16 }}>
-          <p style={{ fontSize: "0.75rem", color: "#888", marginBottom: 6 }}>{x.region}</p>
-          <div className="method-row" style={{ marginBottom: 0 }}>
-            <button type="button" className={`method-btn${!isKrw ? " active" : ""}`} onClick={() => setChannel("eximbay")}>International (USD)</button>
-            <button type="button" className={`method-btn${isKrw ? " active" : ""}`} onClick={() => setChannel("galaxia")}>국내 (KRW)</button>
-          </div>
-        </div>
-      )}
 
       {/* 해외 결제수단 — PayPal 개통 전에는 카드 하나뿐이라 숨긴다 */}
       {!isKrw && PAYPAL_BILLING_ENABLED && (
@@ -403,18 +368,47 @@ function SubscribeContent() {
             style={{ width: 14, height: 14, cursor: "pointer", flexShrink: 0 }}
           />
           <span style={{ fontSize: "0.78rem", color: "#555" }}>
-            {info.trial
-              ? x.agreeTrial(fmtDate(info.firstChargeAt, isKo), money(info.amount, info.currency))
-              : x.agreeMonthly}
+            <button
+              type="button"
+              className="terms-link"
+              onClick={(e) => { e.stopPropagation(); e.preventDefault(); setTermsOpen((v) => !v); }}
+            >
+              {x.termsTitle}
+            </button>
+            {x.agree}
           </span>
         </label>
+
+        {/* 🔴결제 전에 약관을 화면에 둔다. 접혀 있어도 화면에 있는 것이라
+            지우면 안 된다 — 동의를 받으려면 볼 수 있어야 한다. */}
+        {termsOpen && (
+          <div className="terms">
+            {/* 🔴약관 원문은 lib/translations 한 곳에만 둔다. 여기에 따로 적으면
+                /policy/terms-and-policy 와 어긋나고, 그때 어느 쪽이 유효한
+                약관인지 다투게 된다. */}
+            {t[lang].terms.sections.map((sec, i) => (
+              <section key={i}>
+                <h4>{sec.title}</h4>
+                {"body" in sec && sec.body && <p>{sec.body}</p>}
+                {"list" in sec && sec.list && (
+                  <ul>{sec.list.map((li, j) => <li key={j}>{li}</li>)}</ul>
+                )}
+                {"body2" in sec && sec.body2 && <p>{sec.body2}</p>}
+              </section>
+            ))}
+            <p className="terms-eff">{t[lang].terms.effectiveDate}</p>
+          </div>
+        )}
+        {termsOpen && (
+          <a className="terms-more" href="/policy/terms-and-policy" target="_blank" rel="noreferrer">
+            {x.termsMore}
+          </a>
+        )}
 
         {error && <div style={{ fontSize: "0.78rem", color: "#e53e3e", marginTop: 10 }}>{error}</div>}
 
         <button className="pay-btn" type="submit" disabled={loading || !agreed}>
-          {loading ? x.processing
-            : info.trial ? x.startTrial(info.trialDays)
-            : x.payNow(money(info.amount, info.currency))}
+          {loading ? x.processing : x.payNow(money(info.amount, info.currency))}
         </button>
       </form>
     </Card>
@@ -445,6 +439,17 @@ function Card({ children }: { children: React.ReactNode }) {
         .method-btn.active { border-color:#1a1a1a; background:#1a1a1a; color:#fff; }
         .agree-row { display:flex; align-items:center; gap:8px; padding:10px 12px; background:#f8f8f8; border-radius:8px; margin-top:14px; cursor:pointer; }
         .agree-row:hover { background:#f0f0f0; }
+        .terms-link { background:none; border:none; padding:0; font-family:inherit; font-size:0.78rem; font-weight:700; color:#1a1a1a; text-decoration:underline; cursor:pointer; }
+        /* 🔴약관 전문을 상자 안에서 스크롤시킨다 — 결제 화면이 약관 길이만큼
+           늘어나면 결제 버튼이 화면 밖으로 밀려난다. */
+        .terms { margin-top:10px; padding:14px 16px; background:#fafafa; border:1px solid #ececec; border-radius:8px; max-height:260px; overflow-y:auto; }
+        .terms section { margin-bottom:12px; }
+        .terms h4 { font-size:0.74rem; font-weight:700; color:#333; margin-bottom:4px; }
+        .terms p { font-size:0.71rem; color:#666; line-height:1.7; white-space:pre-line; }
+        .terms ul { margin:4px 0 0; padding-left:15px; }
+        .terms li { font-size:0.71rem; color:#666; line-height:1.7; margin-bottom:3px; }
+        .terms-eff { font-size:0.68rem; color:#aaa; margin-top:14px; }
+        .terms-more { display:inline-block; margin-top:8px; font-size:0.72rem; color:#888; }
       `}</style>
       <div className="sub-box">{children}</div>
     </>

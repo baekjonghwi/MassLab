@@ -3,6 +3,8 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/lib/i18n";
 import PlanTable, { PLAN_CSS } from "@/components/PlanTable";
+import PerPiecePricing, { PerPieceNote } from "@/components/PerPiecePricing";
+import { SUBSCRIPTION_LIVE } from "@/lib/interim";
 
 type Tab = "wall" | "terrain" | "centerline";
 type Product = "laserfish" | "archimap";
@@ -735,9 +737,12 @@ export default function Home() {
             <a href="/contact" className="hnav-link">
               {lang === "ko" ? "문의하기" : "Contact"}
             </a>
-            <a href="/account" className="hnav-link">
-              {lang === "ko" ? "내 구독" : "My Plan"}
-            </a>
+            {/* 🔴구독을 파는 동안에만 보인다 — lib/interim.ts 참고(임시) */}
+            {SUBSCRIPTION_LIVE && (
+              <a href="/account" className="hnav-link">
+                {lang === "ko" ? "내 구독" : "My Plan"}
+              </a>
+            )}
           </div>
         </div>
       </nav>
@@ -971,8 +976,8 @@ export default function Home() {
         padding: "88px 48px",
         textAlign: "center",
       }}>
-        {/* 표가 넓어 600px로는 좁다 */}
-        <div style={{ maxWidth: "920px", margin: "0 auto" }}>
+        {/* 구독표는 넓어 600px로는 좁다. 건당결제 카드는 옛 폭(600px) 그대로. */}
+        <div style={{ maxWidth: SUBSCRIPTION_LIVE ? "920px" : "600px", margin: "0 auto" }}>
           <h2 style={{
             fontSize: "2.25rem",
             fontWeight: 900,
@@ -980,20 +985,22 @@ export default function Home() {
             marginBottom: "14px",
             color: "#111",
           }}>
-            {lang === "ko" ? "구독" : "Subscription"}
+            {SUBSCRIPTION_LIVE
+              ? (lang === "ko" ? "구독" : "Subscription")
+              : (lang === "ko" ? "저렴한 금액대" : "Affordable Pricing")}
           </h2>
           <p style={{ color: "#888", marginBottom: "40px", lineHeight: 1.7, fontSize: "1rem" }}>
-            {lang === "ko"
-              ? "구독 하나로 MassLabs의 모든 프로그램 사용이 가능합니다."
-              : "One subscription covers every MassLabs program."}
+            {SUBSCRIPTION_LIVE
+              ? (lang === "ko"
+                  ? "구독 하나로 MassLabs의 모든 프로그램 사용이 가능합니다."
+                  : "One subscription covers every MassLabs program.")
+              : <PerPieceNote lang={lang} />}
           </p>
 
-          {/* 표는 /price와 같은 것을 쓴다(출처가 둘이면 어긋난다) */}
-          <PlanTable lang={lang} />
+          {/* 🔴표와 카드는 /price와 같은 것을 쓴다(출처가 둘이면 어긋난다).
+              어느 쪽을 싣느냐는 lib/interim.ts 의 SUBSCRIPTION_LIVE 하나가 정한다(임시). */}
+          {SUBSCRIPTION_LIVE ? <PlanTable lang={lang} /> : <PerPiecePricing lang={lang} />}
 
-          <div className="plan-fine">
-            {lang === "ko" ? "부가세 별도" : "VAT not included"}
-          </div>
 
         </div>
       </section>

@@ -1,5 +1,6 @@
 "use client";
 import { useLanguage } from "@/lib/i18n";
+import { SUBSCRIPTION_LIVE } from "@/lib/interim";
 
 // ==========================================================================
 //  모든 화면이 함께 쓰는 상단 막대.
@@ -11,12 +12,14 @@ import { useLanguage } from "@/lib/i18n";
 //    일이 생기면 그 화면들도 같이 고쳐야 한다.
 // ==========================================================================
 
+// 🔴[내 구독]은 구독을 파는 동안에만 있다(lib/interim.ts, 임시) — 구독을 안 파는 동안
+//   /account 자체가 next.config.ts에서 홈으로 돌아가므로, 메뉴에 두면 죽은 링크가 된다.
 const LINKS = [
   { href: "/howtouse", ko: "사용방법", en: "How to Use" },
   { href: "/download", ko: "다운로드", en: "Download" },
   { href: "/price", ko: "비용", en: "Pricing" },
   { href: "/contact", ko: "문의하기", en: "Contact" },
-  { href: "/account", ko: "내 구독", en: "My Plan" },
+  ...(SUBSCRIPTION_LIVE ? [{ href: "/account", ko: "내 구독", en: "My Plan" }] : []),
 ];
 
 export const HEADER_CSS = `

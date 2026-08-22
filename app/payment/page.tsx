@@ -116,9 +116,25 @@ function PaymentContent() {
     //  - 국내 카드: 갤럭시아 채널, CARD.
     let channelKey: string;
     let methodParam: { payMethod?: string };
+    // 🔴엑심베이는 products가 있어야 한다 — 해외카드만 선택이고 Alipay+·UnionPay·
+    //   WeChat Pay는 **필수**다. 안 넘기면 손님이 그 수단을 고르는 순간 실패하고,
+    //   결제창의 Product name도 빈칸으로 뜬다(그 값은 orderName이 아니라 여기서 온다).
+    //   ⚠️link도 엑심베이 필수 항목이다. 빼면 요청 자체가 거절된다.
+    //   상품명이 비어 있으면 chargeback RFI(추가정보 요청)에 댈 근거가 약해진다 —
+    //   해외카드 취소 기한이 1년이라 노출 기간도 길다.
+    let extraParam: Record<string, unknown> = {};
     if (!isKo) {
       channelKey = CHANNEL_EXIMBAY;
       methodParam = {};
+      extraParam = {
+        products: [{
+          id: type,
+          name: "LaserFish Drawing",
+          amount: finalAmount,
+          quantity: 1,
+          link: window.location.origin,
+        }],
+      };
     } else if (koMethod === "KAKAO") {
       channelKey = CHANNEL_KAKAO;
       methodParam = { payMethod: "EASY_PAY" };
@@ -136,6 +152,7 @@ function PaymentContent() {
         totalAmount: finalAmount,
         currency: finalCurrency,
         ...methodParam,
+        ...extraParam,
         locale: isKo ? "KO_KR" : "EN_US",
         customer: { email, fullName: email.split("@")[0], customerId: email.split("@")[0].slice(0, 20) },
         redirectUrl: `${window.location.origin}/payment/complete?paymentId=${paymentId}&email=${encodeURIComponent(email)}&count=${totalCount}&type=${type}`,

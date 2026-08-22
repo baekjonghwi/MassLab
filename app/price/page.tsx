@@ -4,7 +4,9 @@ import { useSearchParams } from "next/navigation";
 import { supabase, safeNext } from "@/lib/supabase";
 import { useLanguage } from "@/lib/i18n";
 import PlanTable, { PLAN_CSS } from "@/components/PlanTable";
+import PerPiecePricing, { PerPieceNote } from "@/components/PerPiecePricing";
 import SiteHeader from "@/components/SiteHeader";
+import { SUBSCRIPTION_LIVE } from "@/lib/interim";
 
 // ==========================================================================
 //  /price — 모든 프로그램이 공유하는 요금제 화면. 상단 메뉴의 "비용"이 여기다.
@@ -16,6 +18,10 @@ import SiteHeader from "@/components/SiteHeader";
 //
 //  🔴로그인은 필수가 아니다. 안 한 사람도 표는 봐야 하고, 구독을 누를 때만
 //    로그인으로 보낸다.
+//
+//  🔴🔴임시(2026-08-21) — 정기결제가 열릴 때까지 이 화면은 **LaserFish 건당결제
+//    안내**로 되돌아가 있다(PriceContent 대신 PerPieceContent). 구독 코드는 아래에
+//    그대로 살아 있고, lib/interim.ts 의 SUBSCRIPTION_LIVE 하나로 돌아온다.
 // ==========================================================================
 
 const PRODUCT = "all";
@@ -103,6 +109,32 @@ function PriceContent() {
   );
 }
 
+// --------------------------------------------------------------------------
+//  건당결제 안내(임시) — 로그인도 구독 상태도 묻지 않는다. 볼 것은 값뿐이다.
+//  ⚠️`next`는 그대로 받는다 — 라이노 플러그인이 /plan?next=… 로 들어온다.
+// --------------------------------------------------------------------------
+function PerPieceContent() {
+  const sp = useSearchParams();
+  const { lang } = useLanguage();
+  const next = safeNext(sp.get("next"));
+
+  return (
+    <>
+      <div className="price-head">
+        <h1>{lang === "ko" ? "저렴한 금액대" : "Affordable Pricing"}</h1>
+        <p><PerPieceNote lang={lang} /></p>
+      </div>
+
+      <PerPiecePricing lang={lang} />
+
+      <div className="price-foot">
+        {next !== "/" && <a href={next}>{lang === "ko" ? "← 돌아가기" : "← Back"}</a>}
+        <a href="/download">{lang === "ko" ? "다운로드" : "Download"}</a>
+      </div>
+    </>
+  );
+}
+
 export default function PricePage() {
   return (
     <main style={{
@@ -128,7 +160,7 @@ export default function PricePage() {
       <SiteHeader active="/price" />
       <div className="price-wrap">
         <Suspense fallback={<p style={{ textAlign: "center", color: "#888" }}>Loading...</p>}>
-          <PriceContent />
+          {SUBSCRIPTION_LIVE ? <PriceContent /> : <PerPieceContent />}
         </Suspense>
       </div>
     </main>

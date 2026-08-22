@@ -1,6 +1,6 @@
 import {
   CENTRAL, sbFetch, emailOf, planAmount, priceOf, productOf, hasActiveBundle,
-  PLAN_LABEL, vatOf, addDays, TRIAL_DAYS, type PlanKey, type Channel,
+  PLAN_LABEL, vatOf, monthlyPaymentId, ymOf, type PlanKey, type Channel,
 } from "@/lib/subscription";
 
 // ==========================================================================
@@ -20,7 +20,6 @@ type SessionRow = {
   plan: PlanKey;
   status: string;
   expires_at: string;
-  trial: boolean;
 };
 
 export async function GET(request: Request) {
@@ -97,10 +96,10 @@ export async function GET(request: Request) {
     // 🔴해외는 영세율이라 0이 온다. 결제 페이지는 0이면 부가세 줄을 아예 숨긴다.
     vatUsd: vatOf(base, channel),
     ...money,
-    // 🔴무료체험 고지 — 결제 페이지가 이걸로 "N일 뒤 첫 청구" 문구를 만든다.
-    //   무료체험 후 자동결제는 전자상거래법상 사전 고지 의무라 화면에서 빼면 안 된다.
-    trial: s.trial,
-    trialDays: s.trial ? TRIAL_DAYS : 0,
-    firstChargeAt: (s.trial ? addDays(new Date(), TRIAL_DAYS) : new Date()).toISOString(),
+    // 🔴해외(엑심베이)는 빌링키 발급과 첫 결제가 한 번에 일어나므로 결제 ID가
+    //   결제창 호출 시점에 필요하다. 화면이 만들게 두면 남의 결제 ID를 넣어
+    //   구독을 가로챌 수 있으니 **서버가 정해서 내려준다**. confirm은 이 값을
+    //   받아 쓰는 게 아니라 같은 규칙으로 다시 계산해 대조한다.
+    paymentId: monthlyPaymentId(s.product, s.user_id, ymOf(new Date())),
   });
 }

@@ -19,10 +19,6 @@ export const PLAN_LABEL: Record<PlanKey, string> = {
 // 낮은 것부터. 요금제 표의 열 순서이자 서열이다.
 export const TIER_KEYS = ["free", "plus", "pro", "max"] as const;
 
-// 무료체험 기간(일). 🔴요금제 표·결제 화면·서버가 같은 숫자를 봐야 하므로
-//   서버 전용 파일이 아니라 여기 둔다(lib/subscription이 이걸 다시 내보낸다).
-export const TRIAL_DAYS = 7;
-
 const PLAN_RANK: Record<string, number> = { free: 0, plus: 1, pro: 2, max: 3 };
 
 export const DEFAULT_MIN_PLAN: PlanKey = "plus";

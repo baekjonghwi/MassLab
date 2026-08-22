@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { SUBSCRIPTION_LIVE } from "./lib/interim";
 
 const nextConfig: NextConfig = {
   // 🔴/plan 은 /price 로 이름이 바뀌었다(2026-08-19). 그런데 이미 배포된
@@ -8,7 +9,17 @@ const nextConfig: NextConfig = {
   //   ⛔이 리다이렉트를 지우지 말 것 — 지우면 옛 플러그인 사용자는 요금제 화면을
   //     영영 못 연다. 물음표 뒤 값(?next=…)은 Next가 알아서 넘겨 준다.
   async redirects() {
-    return [{ source: "/plan", destination: "/price", permanent: true }];
+    return [
+      { source: "/plan", destination: "/price", permanent: true },
+      // 🔴🔴임시(2026-08-21) — 구독을 안 파는 동안 구독 화면 두 곳을 홈으로 돌린다.
+      //   화면 파일은 그대로 두고 길만 막는다(lib/interim.ts의 SUBSCRIPTION_LIVE로 복귀).
+      //   ⚠️permanent:false(307)여야 한다 — 308로 캐시되면 정기결제를 열어도
+      //     브라우저가 기억한 리다이렉트 때문에 /subscribe가 안 열린다.
+      ...(SUBSCRIPTION_LIVE ? [] : [
+        { source: "/account", destination: "/", permanent: false },
+        { source: "/subscribe", destination: "/", permanent: false },
+      ]),
+    ];
   },
 };
 

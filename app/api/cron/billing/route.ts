@@ -50,8 +50,18 @@ async function patchSub(uid: string, product: string, body: Record<string, unkno
 export async function GET(request: Request) {
   // 🔴Vercel Cron은 CRON_SECRET이 설정돼 있으면 Bearer로 실어 보낸다.
   //   없으면 이 주소가 그냥 열린 청구 트리거가 되므로 반드시 막는다.
+  //
+  //  🔴변수가 **없을 때도 거부한다.** 예전에는 `if (secret && …)` 이라 변수를
+  //    안 넣으면 검사를 통째로 건너뛰었다 — 즉 아무나 이 주소를 열어 전 회원
+  //    청구를 돌릴 수 있었다. "설정을 깜빡하면 열린다"는 잠금은 잠금이 아니다.
+  //    ⚠️그래서 Vercel 프로젝트에 CRON_SECRET이 없으면 크론도 함께 멈춘다.
+  //      구독을 열기 전에 반드시 넣을 것(없으면 청구가 아예 안 돈다).
   const secret = process.env.CRON_SECRET;
-  if (secret && request.headers.get("authorization") !== `Bearer ${secret}`) {
+  if (!secret) {
+    console.error("[cron/billing] CRON_SECRET이 없다 — 청구를 돌리지 않는다.");
+    return Response.json({ error: "server_misconfigured" }, { status: 500 });
+  }
+  if (request.headers.get("authorization") !== `Bearer ${secret}`) {
     return Response.json({ error: "unauthorized" }, { status: 401 });
   }
   if (!CENTRAL.serviceKey) return Response.json({ error: "server_misconfigured" }, { status: 500 });
@@ -74,10 +84,10 @@ export async function GET(request: Request) {
   }
 
   // ---- ① 청구 ------------------------------------------------------------
-  // 🔴trialing도 같이 집는다 — 체험 7일이 끝나는 순간이 바로 첫 청구일이다.
-  //   성공하면 아래에서 status를 'active'로 바꾸므로 체험은 여기서 졸업한다.
+  // 🔴active만 집는다. 첫 달은 confirm이 이미 받았으므로 여기 오는 건
+  //   두 번째 달부터다.
   const dRes = await sbFetch(
-    `subscriptions?status=in.(active,trialing)&next_billing_at=lte.${nowIso}&select=*`,
+    `subscriptions?status=eq.active&next_billing_at=lte.${nowIso}&select=*`,
   );
   if (!dRes.ok) {
     console.error("[cron] 대상 조회 실패:", await dRes.text());

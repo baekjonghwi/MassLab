@@ -1,5 +1,5 @@
 import {
-  CENTRAL, sbFetch, priceOf, productOf, hasActiveBundle, trialAvailable, type PlanKey,
+  CENTRAL, sbFetch, priceOf, productOf, hasActiveBundle, type PlanKey,
 } from "@/lib/subscription";
 import { bearerOf, uidFromAccessToken } from "@/lib/plugin-auth";
 
@@ -60,13 +60,10 @@ export async function POST(request: Request) {
     prefer: "return=minimal",
   });
 
-  // 🔴체험 여부를 여기서 확정해 세션 행에 박는다. confirm은 이 값만 읽는다.
-  //   본문으로 받으면 "체험이다"를 위조해 매번 공짜로 가입할 수 있다.
-  const trial = await trialAvailable(uid);
-
+  // 🔴결제 세션에 체험 개념이 없다. 여기까지 온 사람은 전부 지금 첫 달을 낸다.
   const res = await sbFetch("checkout_sessions", {
     method: "POST",
-    body: JSON.stringify({ user_id: uid, product: product.key, plan, trial }),
+    body: JSON.stringify({ user_id: uid, product: product.key, plan }),
     prefer: "return=representation",
   });
   if (!res.ok) {

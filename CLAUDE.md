@@ -21,6 +21,11 @@ MassLabs는 배포되는 프로젝트라 하위 폴더가 빌드 컨텍스트에
 - **계정 · 로그인 · 요금제 · 결제 · 구독은 전부 MassLabs가 답한다.**
   ⛔제품 쪽에 로그인 폼, `/account`, 결제 화면을 만들지 말 것 (2026-08-17 통합 로그인 결정).
   제품은 `masslabs-archi.com/price`으로 내보내기만 한다.
+- 🔴**임시(2026-08-21 ~ 국내·해외 정기결제가 동시에 열릴 때까지)** — 구독을 안 판다.
+  MassLabs는 LaserFish **건당결제**만, archiMap은 **로그인하면 PLUS 무료**로 **따로** 굴린다.
+  스위치 두 개가 한 벌이다: `lib/interim.ts`의 `SUBSCRIPTION_LIVE` ·
+  archiMap `public/app.js`의 `SOLO_PLUS_FREE`. 한쪽만 뒤집으면 두 사이트 말이 어긋난다.
+  구독 코드(`/account`·`/subscribe`·`PlanTable`·`/api/subscribe/*`)는 **하나도 안 지웠다** — 되돌리면 그대로 산다.
 - 제품 저장소는 **기능만** 갖는다. 권한 판정이 필요하면 MassLabs의 `/api/entitlement`에 묻는다.
 - 세션은 `.masslabs-archi.com` 쿠키(앞에 점) 한 벌을 전 제품이 공유한다.
   🔴쿠키 형식은 archiMap의 `ckStore`(`public/app.js`)와 **한 벌로 움직이는 규약**이다 —

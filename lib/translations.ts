@@ -2,7 +2,9 @@ export const t = {
   en: {
     footer: {
       businessInfo1: "Company: MassLabs | Representative: Baek Jonghwi | Business Reg. No.: 895-34-01789",
-      businessInfo2: "Address: 12 Jeongnungaro 8ga-gil, Seongbuk-gu, Seoul, Korea, #401 | Phone: 070-8144-5867",
+      // 🔴이메일은 PG 가맹점 심사 필수 항목이다(엑심베이 심사기준: "고객센터 전화번호, 이메일 등").
+      //   ⚠️통신판매업신고번호가 아직 빠져 있다 — 신고 후 이 줄에 함께 적을 것.
+      businessInfo2: "Address: 12 Jeongnungaro 8ga-gil, Seongbuk-gu, Seoul, Korea, #401 | Phone: 070-8144-5867 | Email: masslabs.archi@gmail.com",
       termsAndPolicy: "Terms and Policy",
       privacy: "Privacy",
     },
@@ -125,94 +127,111 @@ export const t = {
     },
     terms: {
       back: "← Back",
-      title: "Terms of Service and Refund Policy",
-      effectiveDate: "Effective date: April 13, 2026",
+      title: "Terms of Service",
+      effectiveDate: "Effective date: August 19, 2026 (revised from the April 13, 2026 edition for the subscription service)",
       sections: [
         {
           title: "Article 1 (Purpose)",
-          body: "These Terms govern the conditions and procedures for using the LaserFish software service (\"Service\") provided by MassLabs (\"the Company\"), and define the rights, obligations, and responsibilities of the Company and users.",
+          body: "These Terms govern the conditions and procedures for using the software subscription service (the Service) provided by MassLabs (the Company), and define the rights, obligations, and responsibilities of the Company and its users.",
         },
         {
           title: "Article 2 (Definitions)",
-          body: "\"Service\" refers to the Grasshopper plug-in download service provided by the Company.\n\"User\" refers to any person who uses the Service under these Terms.\n\"Digital Product\" refers to digital content such as Grasshopper plug-ins provided through the Service.",
+          body: "The terms used in these Terms are defined as follows.",
+          list: [
+            "Service — the subscription that gives an account access to the Company's programs, including programs that run in the browser (such as Archimap) and plug-ins that are downloaded and installed (such as LaserFish).",
+            "User — a person who creates an account and uses the Service under these Terms",
+            "Subscription — a monthly, automatically renewing right of use. Scope and limits differ by tier (PLUS, PRO, MAX).",
+            "Credits — units that allow a set number of operations inside a program, granted monthly according to the tier",
+          ],
         },
         {
           title: "Article 3 (Effect and Amendment of Terms)",
-          body: "These Terms take effect upon posting on the service screen. The Company may amend the Terms within the scope permitted by applicable law, and will provide notice of changes at least 7 days in advance. For changes unfavorable to users, a grace period of at least 30 days will be given.",
+          body: "These Terms take effect upon posting on the service screen. The Company may amend the Terms within the scope permitted by applicable law, and will give notice of the effective date and reason at least 7 days in advance. For changes unfavorable to users, a grace period of at least 30 days will be given.",
         },
         {
           title: "Article 4 (Service Description)",
-          body: "The Company provides LaserFish, a laser cutting drawing automation plug-in for Rhino and Grasshopper, as a digital download. The download is available immediately upon payment completion; no physical delivery is involved.",
+          body: "The Company provides programs for architectural and design work on a subscription basis.",
+          list: [
+            "A subscription belongs to an account, not to an individual program. One subscription covers the Company's programs together.",
+            "Which programs are available and the limits that apply (maximum working range, monthly credits, and so on) depend on the tier, as shown on the pricing screen.",
+            "The Company may add programs to the Service. Unless stated otherwise, added programs are included in existing subscriptions.",
+          ],
         },
         {
-          title: "Article 5 (Compatibility and System Requirements)",
-          body: "The operating environment for LaserFish (Rhino version, Grasshopper version, etc.) is based on the specifications listed on the product page. Operation in unlisted environments is not guaranteed, and the Company is not responsible for malfunctions caused by the user’s software environment.",
+          title: "Article 5 (Accounts and Devices)",
+          body: "Users sign up with an email address or a Google account, and use that single account to sign in to every program the Company provides.",
+          list: [
+            "The Rhino plug-in may be used on one device at a time per account. Connecting a new device automatically disconnects the previous one.",
+            "Users are responsible for keeping their account credentials safe and may not share, transfer, or resell them.",
+          ],
         },
         {
-          title: "Article 6 (Formation of Agreement)",
-          body: "The service agreement is formed when the user agrees to these Terms and completes payment.",
+          title: "Article 6 (System Requirements)",
+          body: "The operating environment for each program (Rhino version, browser, and so on) is based on the specifications listed on that program's information screen. Operation in unlisted environments is not guaranteed, and the Company is not responsible for malfunctions caused by differences in the user's software environment.",
         },
         {
-          title: "Article 7 (User Obligations)",
+          title: "Article 7 (Formation of Agreement)",
+          body: "The service agreement is formed when the user creates an account. A paid subscription agreement is formed when the user agrees to these Terms and registers a payment method, at which point the first subscription fee is charged.",
+        },
+        {
+          title: "Article 8 (Fees and Payment)",
+          body: "Subscription fees are those shown on the pricing screen.",
+          list: [
+            "Fees are charged automatically to the registered payment method on the same day each month and continue until the subscription is canceled.",
+            "Amounts charged in Korea include 10% VAT. International payments are zero-rated, so no VAT is added.",
+            "The Company may change subscription fees, giving at least 30 days' notice, with the change taking effect from the following billing cycle.",
+            "If a payment fails, access may be suspended; updating the payment method and paying again restores access immediately.",
+          ],
+        },
+        {
+          title: "Article 9 (Cancellation)",
+          body: "Users may cancel at any time from the My subscription screen.",
+          list: [
+            "After cancellation, no further charges are made from the next billing date, and access continues until the end of the period already paid for.",
+            "If an all-access subscription is started while individual program subscriptions are active, those individual subscriptions are canceled immediately and merged into the all-access subscription; fees already paid for them are not refunded pro rata.",
+          ],
+        },
+        {
+          title: "Article 10 (Refunds)",
+          body: "A subscription is a right to use digital content. Where the Service has been used after payment, withdrawal of subscription may be restricted under Article 17(2) of the Korean Act on Consumer Protection in Electronic Commerce. Refunds are nevertheless given in the following cases.",
+          list: [
+            "The Service was not used at all after payment and a refund is requested within 7 days of the payment date",
+            "The Service could not be used normally for reasons attributable to the Company",
+            "A duplicate or erroneous charge is confirmed",
+          ],
+          body2: "Send refund requests to masslabs.archi@gmail.com with the payment date, amount, and reason. Confirmed requests are processed within 3 to 5 business days.",
+        },
+        {
+          title: "Article 11 (User Obligations)",
           body: "Users must comply with applicable laws and these Terms, and must not engage in the following:",
           list: [
-            "Transferring, reselling, or distributing the purchased software to third parties without authorization",
+            "Sharing, transferring, or reselling an account to third parties",
             "Reverse engineering, decompiling, or extracting the source code of the software",
-            "Interfering with the stable operation of the Service",
+            "Interfering with the stable operation of the Service, or circumventing usage limits by abnormal means",
             "Any other illegal or unauthorized acts",
           ],
         },
         {
-          title: "Article 8 (Copyright)",
-          body: "All copyrights to software and content within the Service belong to MassLabs. Users may use the purchased software only for personal or business purposes, and may not transfer, resell, or distribute it to third parties.",
+          title: "Article 12 (Copyright)",
+          body: "All copyrights to software and content within the Service belong to MassLabs. Users may use the Service for personal or business purposes for the duration of their subscription, and the rights to the work users create with the Service belong to the users.",
         },
         {
-          title: "Article 9 (Disclaimer)",
+          title: "Article 13 (Disclaimer)",
           body: "The Company is not liable in the following cases:",
           list: [
-            "Malfunctions caused by the user’s modeling conditions, Rhino/Grasshopper version, plug-in conflicts, or other user environment factors",
+            "Malfunctions caused by the user's modeling conditions, Rhino version, plug-in conflicts, or other user environment factors",
             "Service disruptions caused by reasons attributable to the user",
             "Service interruptions due to force majeure events such as natural disasters, war, or communication failures",
           ],
-          body2: "However, if the product does not operate normally in the environment specified on the product page, the Company will take corrective or refund measures.",
+          body2: "However, if a program does not operate normally in the environment stated on its information screen, the Company will take corrective or refund measures.",
         },
         {
-          title: "Article 10 (Pricing Basis)",
-          body: "The payment amount is calculated based on the number of pieces actually generated by LaserFish. If part of the input geometry is not included in the output for technical reasons, that portion will not be counted toward the payment amount.",
+          title: "Article 14 (Dispute Resolution)",
+          body: "If a dispute arises in connection with the Service, the Company and the user will negotiate in good faith toward an amicable resolution. Failing agreement, the laws of the Republic of Korea apply and jurisdiction follows applicable law.",
         },
         {
-          title: "Article 11 (Refund Policy)",
-          body: "LaserFish is a digital software product and download is available immediately upon payment. In accordance with Article 17(2) of the Act on Consumer Protection in Electronic Commerce, refunds are not available in principle after the download is complete due to the reproducible nature of digital content.",
-        },
-        {
-          title: "Article 12 (Refundable Cases)",
-          body: "A full refund is available in the following cases:",
-          list: [
-            "Download is unavailable due to a technical error after payment",
-            "The output is not generated correctly due to a program error",
-            "A refund is requested for geometry excluded from the output per Article 10 (Pricing Basis)",
-          ],
-        },
-        {
-          title: "Article 13 (Non-Refundable Cases)",
-          body: "Refunds are not available in the following cases:",
-          list: [
-            "Refund requests based on a change of mind after the download is complete",
-            "Dissatisfaction with results due to the user’s modeling condition or environment",
-            "The user’s Rhino/Grasshopper version differs from the specified requirements",
-          ],
-        },
-        {
-          title: "Article 14 (Refund Request Process)",
-          body: "Refund requests must be submitted within 7 days of payment to masslabs.archi@gmail.com, including the following:\n\nReceipt of payment date and amount / Reason for refund / Evidence screenshots of the error / Original and output modeling files\n\nUpon receipt, the Company will verify whether the program operates correctly based on the original model. If the output is generated correctly, the result will be sent to the requester’s email and no refund will be issued. If a program error is confirmed, the refund will be processed within 3–5 business days.",
-        },
-        {
-          title: "Article 15 (Dispute Resolution)",
-          body: "In the event of a dispute related to the use of the Service, the Company and the user will negotiate in good faith. If a user submits a damage relief request related to e-commerce disputes, the matter may be subject to mediation by the Korea Fair Trade Commission or relevant dispute resolution bodies. If no agreement is reached, Korean law applies and jurisdiction follows applicable regulations.",
-        },
-        {
-          title: "Article 16 (Miscellaneous)",
-          body: "Matters not specified in these Terms are governed by the Act on Consumer Protection in Electronic Commerce, the Act on Regulation of Terms and Conditions, and other applicable laws.",
+          title: "Article 15 (Miscellaneous)",
+          body: "Matters not specified in these Terms follow the Act on Consumer Protection in Electronic Commerce, the Act on the Regulation of Terms and Conditions, and other applicable laws.",
         },
       ],
     },
@@ -221,7 +240,9 @@ export const t = {
   ko: {
     footer: {
       businessInfo1: "상호명: MassLabs | 대표자: 백종휘 | 사업자등록번호: 895-34-01789",
-      businessInfo2: "주소: 서울특별시 성북구 정릉로8가길 12, 401호 | 전화: 070-8144-5867",
+      // 🔴이메일은 PG 가맹점 심사 필수 항목이다(엑심베이 심사기준: "고객센터 전화번호, 이메일 등").
+      //   ⚠️통신판매업신고번호가 아직 빠져 있다 — 신고 후 이 줄에 함께 적을 것.
+      businessInfo2: "주소: 서울특별시 성북구 정릉로8가길 12, 401호 | 전화: 070-8144-5867 | 이메일: masslabs.archi@gmail.com",
       termsAndPolicy: "이용약관 및 환불정책",
       privacy: "개인정보처리방침",
     },
@@ -344,16 +365,22 @@ export const t = {
     },
     terms: {
       back: "← 뒤로",
-      title: "이용약관 및 환불정책",
-      effectiveDate: "시행일: 2026년 4월 13일",
+      title: "이용약관",
+      effectiveDate: "시행일: 2026년 8월 19일 (2026년 4월 13일 판을 구독 서비스 기준으로 개정)",
       sections: [
         {
           title: "제1조 (목적)",
-          body: "본 약관은 MassLabs(이하 \"회사\")가 제공하는 LaserFish 소프트웨어 서비스(이하 \"서비스\") 이용에 관한 조건 및 절차, 회사와 이용자 간의 권리, 의무 및 책임사항을 규정함을 목적으로 합니다.",
+          body: "본 약관은 MassLabs(이하 회사)가 제공하는 소프트웨어 구독 서비스(이하 서비스)의 이용 조건 및 절차, 회사와 이용자 간의 권리·의무 및 책임사항을 규정함을 목적으로 합니다.",
         },
         {
           title: "제2조 (정의)",
-          body: "\"서비스\"란 회사가 제공하는 Grasshopper 플러그인 다운로드 서비스를 말합니다.\n\"이용자\"란 본 약관에 따라 회사가 제공하는 서비스를 이용하는 자를 말합니다.\n\"디지털 상품\"이란 서비스를 통해 제공되는 Grasshopper 플러그인 등 디지털 콘텐츠를 말합니다.",
+          body: "본 약관에서 사용하는 용어의 뜻은 다음과 같습니다.",
+          list: [
+            "서비스 — 회사가 제공하는 프로그램 전체를 계정 단위로 이용하게 하는 구독 서비스. 웹에서 실행되는 프로그램(Archimap 등)과 내려받아 설치하는 플러그인(LaserFish 등)을 포함합니다.",
+            "이용자 — 계정을 만들고 본 약관에 따라 서비스를 이용하는 자",
+            "구독 — 매월 자동으로 결제되는 이용권. 등급(PLUS·PRO·MAX)에 따라 이용 범위와 한도가 다릅니다.",
+            "크레딧 — 프로그램 안에서 정해진 횟수만큼 기능을 사용할 수 있는 단위. 등급에 따라 매월 주어집니다.",
+          ],
         },
         {
           title: "제3조 (약관의 효력 및 변경)",
@@ -361,76 +388,87 @@ export const t = {
         },
         {
           title: "제4조 (서비스 내용)",
-          body: "회사는 Rhino 및 Grasshopper 환경에서 작동하는 레이저 커팅 도면 자동 생성 플러그인(LaserFish)을 디지털 다운로드 형태로 제공합니다. 결제 완료 즉시 다운로드가 가능하며, 별도의 배송은 없습니다.",
+          body: "회사는 건축·설계 작업을 돕는 프로그램을 구독 형태로 제공합니다.",
+          list: [
+            "구독은 프로그램별이 아니라 계정 단위입니다. 하나의 구독으로 회사가 제공하는 프로그램을 함께 이용합니다.",
+            "등급에 따라 이용할 수 있는 프로그램과 한도(최대 작업 범위, 월 크레딧 등)가 다르며, 그 기준은 요금제 화면에 표시된 내용에 따릅니다.",
+            "회사는 서비스에 프로그램을 추가할 수 있으며, 추가된 프로그램은 별도 안내가 없는 한 기존 구독에 포함됩니다.",
+          ],
         },
         {
-          title: "제5조 (호환성 및 동작 환경)",
-          body: "LaserFish의 동작 환경은 상품 페이지에 명시된 사양을 기준으로 합니다. 명시되지 않은 환경에서의 동작은 보장하지 않으며, 이용자의 소프트웨어 환경 차이로 인한 오작동에 대해 회사는 책임지지 않습니다.",
+          title: "제5조 (계정 및 기기)",
+          body: "이용자는 이메일 또는 구글 계정으로 가입하며, 하나의 계정으로 회사가 제공하는 모든 프로그램에 로그인합니다.",
+          list: [
+            "라이노 플러그인은 계정당 동시 1대의 기기에서 사용할 수 있습니다. 새 기기를 연결하면 이전 기기의 연결은 자동으로 해제됩니다.",
+            "계정 정보의 관리 책임은 이용자에게 있으며, 제3자와 공유하거나 양도할 수 없습니다.",
+          ],
         },
         {
-          title: "제6조 (이용계약 성립)",
-          body: "이용계약은 이용자가 본 약관에 동의하고 결제를 완료한 시점에 성립됩니다.",
+          title: "제6조 (동작 환경)",
+          body: "각 프로그램의 동작 환경(라이노 버전, 브라우저 등)은 해당 프로그램의 안내 화면에 명시된 사양을 기준으로 합니다. 명시되지 않은 환경에서의 동작은 보장하지 않으며, 이용자의 소프트웨어 환경 차이로 인한 오작동에 대해 회사는 책임지지 않습니다.",
         },
         {
-          title: "제7조 (이용자의 의무)",
+          title: "제7조 (이용계약의 성립)",
+          body: "이용계약은 이용자가 계정을 만든 시점에 성립합니다. 유료 구독 계약은 이용자가 본 약관에 동의하고 결제수단을 등록한 시점에 성립하며, 이때 첫 구독료가 청구됩니다.",
+        },
+        {
+          title: "제8조 (구독료 및 결제)",
+          body: "구독료는 요금제 화면에 표시된 금액을 기준으로 합니다.",
+          list: [
+            "구독료는 등록된 결제수단으로 매월 같은 날 자동으로 청구되며, 해지 전까지 계속됩니다.",
+            "국내 결제 금액에는 부가가치세 10%가 포함됩니다. 해외 결제는 영세율이 적용되어 부가가치세가 붙지 않습니다.",
+            "회사는 구독료를 변경할 수 있으며, 변경 시 최소 30일 전에 공지하고 그 다음 결제 주기부터 적용합니다.",
+            "결제가 실패한 경우 서비스 이용이 중지될 수 있으며, 결제수단을 갱신하여 다시 결제하면 즉시 복구됩니다.",
+          ],
+        },
+        {
+          title: "제9조 (해지)",
+          body: "이용자는 언제든지 내 구독 화면에서 구독을 해지할 수 있습니다.",
+          list: [
+            "해지하면 다음 결제일부터 청구되지 않으며, 이미 결제한 기간이 끝날 때까지는 그대로 이용할 수 있습니다.",
+            "이용 중인 개별 프로그램 구독이 있는 상태에서 전체 구독을 시작하면 기존 개별 구독은 즉시 해지되어 전체 구독으로 합쳐지며, 이미 결제된 개별 구독료는 일할 계산하여 환불되지 않습니다.",
+          ],
+        },
+        {
+          title: "제10조 (환불)",
+          body: "구독은 디지털 콘텐츠 이용권으로, 결제 후 서비스를 이용한 경우 「전자상거래 등에서의 소비자보호에 관한 법률」 제17조 제2항에 따라 청약철회가 제한될 수 있습니다. 다만 다음의 경우에는 환불해 드립니다.",
+          list: [
+            "결제 후 서비스를 전혀 이용하지 않았고, 결제일로부터 7일 이내에 요청한 경우",
+            "회사의 귀책 사유로 서비스를 정상적으로 이용할 수 없었던 경우",
+            "중복 결제 또는 오결제가 확인된 경우",
+          ],
+          body2: "환불 요청은 masslabs.archi@gmail.com으로 결제일·결제 금액·환불 사유를 적어 접수해 주세요. 확인 후 영업일 기준 3~5일 이내에 처리됩니다.",
+        },
+        {
+          title: "제11조 (이용자의 의무)",
           body: "이용자는 서비스 이용 시 관계 법령 및 본 약관을 준수해야 하며, 다음 행위를 해서는 안 됩니다.",
           list: [
-            "구매한 소프트웨어의 제3자 양도, 재판매, 무단 배포 및 공유",
+            "계정을 제3자와 공유하거나 양도·재판매하는 행위",
             "소프트웨어의 리버스 엔지니어링, 디컴파일, 소스 추출",
-            "서비스의 안정적 운영을 방해하는 행위",
+            "서비스의 안정적 운영을 방해하거나 비정상적인 방법으로 이용 한도를 우회하는 행위",
             "기타 불법적이거나 부당한 행위",
           ],
         },
         {
-          title: "제8조 (저작권)",
-          body: "서비스 내 모든 소프트웨어 및 콘텐츠의 저작권은 MassLabs에 귀속됩니다. 이용자는 구매한 소프트웨어를 개인 또는 업무 목적으로만 사용할 수 있으며, 제3자에게 양도, 재판매, 배포할 수 없습니다.",
+          title: "제12조 (저작권)",
+          body: "서비스 내 모든 소프트웨어 및 콘텐츠의 저작권은 MassLabs에 귀속됩니다. 이용자는 구독 기간 동안 개인 또는 업무 목적으로 서비스를 이용할 수 있으며, 이용자가 서비스를 통해 만든 결과물의 권리는 이용자에게 있습니다.",
         },
         {
-          title: "제9조 (면책조항)",
+          title: "제13조 (면책조항)",
           body: "회사는 다음의 경우 책임을 지지 않습니다.",
           list: [
-            "이용자의 모델링 상태, Rhino/Grasshopper 버전, 플러그인 충돌 등 사용자 환경으로 인한 오작동",
-            "이용자의 귀책사유로 인한 서비스 이용 장애",
+            "이용자의 모델링 상태, 라이노 버전, 플러그인 충돌 등 사용자 환경으로 인한 오작동",
+            "이용자의 귀책 사유로 인한 서비스 이용 장애",
             "천재지변, 전쟁, 통신 장애 등 불가항력적 사유로 인한 서비스 중단",
           ],
-          body2: "단, 상품 페이지에 명시된 환경에서 정상 작동하지 않는 경우 회사가 수정 또는 환불 조치를 취합니다.",
+          body2: "단, 안내 화면에 명시된 환경에서 정상 작동하지 않는 경우 회사가 수정 또는 환불 조치를 취합니다.",
         },
         {
-          title: "제10조 (결제 금액 산정 기준)",
-          body: "결제 금액은 LaserFish가 실제로 생성한 조각(Piece)의 개수를 기준으로 산정됩니다. 입력된 형상의 일부가 기술적 사유로 결과물에 포함되지 않은 경우, 해당 부분은 결제 금액 산정에서 제외됩니다.",
-        },
-        {
-          title: "제11조 (환불 원칙)",
-          body: "LaserFish는 디지털 소프트웨어 상품으로, 결제 완료 후 즉시 다운로드가 제공됩니다. 「전자상거래 등에서의 소비자보호에 관한 법률」 제17조 제2항에 따라, 복제 가능한 디지털 콘텐츠의 특성상 다운로드 완료 후에는 원칙적으로 환불이 불가합니다.",
-        },
-        {
-          title: "제12조 (환불 가능한 경우)",
-          body: "다음의 경우 전액 환불이 가능합니다.",
-          list: [
-            "결제 후 기술적 오류로 인해 다운로드가 불가한 경우",
-            "프로그램상 오류로 결과물이 제대로 출력되지 않는 경우",
-            "제10조에서 결제 금액에서 제외된 형상의 일부에 대한 환불을 요구하는 경우",
-          ],
-        },
-        {
-          title: "제13조 (환불 불가한 경우)",
-          body: "다음의 경우 환불이 불가합니다.",
-          list: [
-            "다운로드 완료 후 단순 변심에 의한 환불 요청",
-            "이용자의 모델링 상태, 사용자 환경 등으로 인한 결과물 불만족",
-            "이용자의 Rhino/Grasshopper 버전이 명시된 요구 사양과 다른 경우",
-          ],
-        },
-        {
-          title: "제14조 (환불 신청 방법)",
-          body: "환불 요청은 결제일로부터 7일 이내에 masslabs.archi@gmail.com으로 아래 내용을 포함하여 접수해 주세요.\n\n결제일 및 결제 금액 영수증 / 환불 사유 / 오류 증거 사진 / 원본 모델링 파일 및 결과물 모델링 파일\n\n접수 후 원본 모델링을 바탕으로 프로그램 정상 작동 여부를 확인합니다. 결과물이 정상적으로 출력될 경우 해당 결과물을 요청자 이메일로 전달해 드리며, 이 경우 환불은 불가합니다. 프로그램 오류로 확인된 경우에는 영업일 기준 3~5일 이내에 환불 처리됩니다.",
-        },
-        {
-          title: "제15조 (분쟁 해결)",
+          title: "제14조 (분쟁 해결)",
           body: "서비스 이용과 관련하여 분쟁이 발생한 경우, 회사와 이용자는 원만한 해결을 위해 성실히 협의합니다. 협의가 이루어지지 않는 경우 대한민국 법을 적용하며, 관할 법원은 관련 법령에 따릅니다.",
         },
         {
-          title: "제16조 (기타)",
+          title: "제15조 (기타)",
           body: "본 약관에 명시되지 않은 사항은 「전자상거래 등에서의 소비자보호에 관한 법률」, 「약관의 규제에 관한 법률」 및 관련 법령에 따릅니다.",
         },
       ],

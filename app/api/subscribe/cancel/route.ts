@@ -60,15 +60,12 @@ export async function POST(request: Request) {
   }[])[0];
 
   if (!sub) return Response.json({ error: "no_subscription" }, { status: 404, headers: cors(p) });
-  // 🔴체험 중(trialing)도 해지할 수 있어야 한다 — 오히려 여기가 제일 많이 눌린다.
-  //   흐름은 같다: canceled_at을 체험 종료일로 적어두면 그날까지 쓰고 잠긴다.
-  //   status가 'canceled'가 되는 순간 크론의 청구 대상에서 빠지므로 **한 푼도 안 나간다.**
-  if (sub.status !== "active" && sub.status !== "trialing") {
+  if (sub.status !== "active") {
     return Response.json({ error: "not_active", status: sub.status }, { status: 409, headers: cors(p) });
   }
-  const wasTrial = sub.status === "trialing";
 
-  // 남은 기간의 끝. 체험이면 체험 종료일, 구독이면 다음 결제 예정일이 그대로 들어온다.
+  // 남은 기간의 끝 = 다음 결제 예정일. 그날까지 쓰고 잠긴다.
+  // 🔴status가 'canceled'가 되는 순간 크론의 청구 대상에서 빠지므로 더는 안 나간다.
   // next_billing_at이 비어 있으면(이례적) 즉시 종료로 본다.
   const until = sub.next_billing_at ?? new Date().toISOString();
 
@@ -100,7 +97,7 @@ export async function POST(request: Request) {
     method: "POST",
     body: JSON.stringify({
       user_id: uid, payment_id: `cancel-${p.key}-${uid}-${Date.now()}`,
-      kind: "cancel", status: "canceled", raw: { product: p.key, until, wasTrial },
+      kind: "cancel", status: "canceled", raw: { product: p.key, until },
     }),
     prefer: "return=minimal",
   });
@@ -108,6 +105,5 @@ export async function POST(request: Request) {
   // 아직 만료 전이라 등급은 그대로다(plan_for가 canceled_at을 본다).
   await syncPlanCache(uid);
 
-  // wasTrial이면 화면이 "환불" 얘기를 꺼내면 안 된다 — 낸 돈이 없다.
-  return Response.json({ ok: true, until, wasTrial }, { headers: cors(p) });
+  return Response.json({ ok: true, until }, { headers: cors(p) });
 }

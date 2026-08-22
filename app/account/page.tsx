@@ -39,46 +39,30 @@ const TX = {
   ko: {
     loading: "불러오는 중…",
     title: "내 구독", logout: "로그아웃",
-    subName: "MassLabs 구독",
-    subDesc: "Archimap · LaserFish 등 모든 프로그램에 함께 적용됩니다",
+    toPrice: "요금제 보러 가기 →",
     none: "미구독",
-    trialEnds: "무료 체험 종료", firstCharge: "첫 결제 금액",
-    trialNote: "체험 기간에는 청구되지 않습니다. 위 날짜 전에 해지하시면 결제되지 않습니다.",
     nextBilling: "다음 결제일", amount: "결제 금액",
     cancelBtn: "구독 해지", working: "처리 중…",
     endsOn: "이용 종료일",
     canceledNote: "해지되었습니다. 위 날짜까지는 그대로 사용하실 수 있습니다.",
     pastDue: "결제에 실패해 이용이 중지되었습니다. 다시 구독해 주세요.",
-    opening: "여는 중…",
-    taxNote: "부가세 별도",
     adminNote: "운영자 권한으로 모든 프로그램을 이용 중입니다.",
-    bundleActive: "이미 전체 구독 중이라 따로 결제하실 필요가 없습니다.",
-    openFail: "결제 창을 열지 못했습니다.",
     cancelFail: "해지에 실패했습니다.",
     // 🔴체험 중이면 "결제하신 기간"이라는 말이 거짓이 된다 — 낸 돈이 없다.
-    confirmTrial: "구독을 해지하시겠습니까?\n체험 종료일까지는 그대로 사용하실 수 있고, 결제는 되지 않습니다.",
     confirmPaid: "구독을 해지하시겠습니까?\n이미 결제하신 기간까지는 그대로 사용하실 수 있습니다.",
   },
   en: {
     loading: "Loading…",
     title: "My subscription", logout: "Sign out",
-    subName: "MassLabs subscription",
-    subDesc: "Covers every program — Archimap, LaserFish, and more",
+    toPrice: "See the plans →",
     none: "Not subscribed",
-    trialEnds: "Free trial ends", firstCharge: "First charge",
-    trialNote: "You aren't charged during the trial. Cancel before that date and nothing is billed.",
     nextBilling: "Next billing date", amount: "Amount",
     cancelBtn: "Cancel subscription", working: "Working…",
     endsOn: "Access ends",
     canceledNote: "Canceled. You can keep using it until the date above.",
     pastDue: "Payment failed, so access is paused. Please subscribe again.",
-    opening: "Opening…",
-    taxNote: "VAT not included",
     adminNote: "You have admin access to every program.",
-    bundleActive: "You already have the all-access subscription, so no separate purchase is needed.",
-    openFail: "Couldn't open the checkout window.",
     cancelFail: "Couldn't cancel the subscription.",
-    confirmTrial: "Cancel your subscription?\nYou can keep using it until the trial ends, and you won't be charged.",
     confirmPaid: "Cancel your subscription?\nYou can keep using it through the period you've already paid for.",
   },
 } as const;
@@ -113,30 +97,9 @@ export default function AccountPage() {
 
   const token = async () => (await supabase().auth.getSession()).data.session?.access_token ?? "";
 
-  const startSub = async (plan: string) => {
-    setBusy(plan); setError("");
-    const r = await fetch("/api/subscribe/start", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${await token()}` },
-      body: JSON.stringify({ product: PRODUCT, plan }),
-    });
-    const d = await r.json().catch(() => ({}));
-    setBusy("");
-    if (!r.ok) {
-      setError(d.error === "bundle_active"
-        ? x.bundleActive
-        : x.openFail);
-      return;
-    }
-    window.location.href = d.url;
-  };
 
   const cancel = async (product: string) => {
-    // 체험 중이면 "결제하신 기간"이라는 말이 거짓이 된다 — 낸 돈이 없다.
-    const msg = sub?.status === "trialing"
-      ? x.confirmTrial
-      : x.confirmPaid;
-    if (!confirm(msg)) return;
+    if (!confirm(x.confirmPaid)) return;
     setBusy(product); setError("");
     const r = await fetch("/api/subscribe/cancel", {
       method: "POST",
@@ -170,30 +133,11 @@ export default function AccountPage() {
 
       {/* ── MassLabs 구독 (모든 프로그램 공통) ── */}
       <section className="card">
-        <div className="row">
-          <div>
-            <div className="pname">{x.subName}</div>
-            <div className="pdesc">{x.subDesc}</div>
-          </div>
+        <div className="badge-row">
           <span className={`badge${entitled ? " on" : ""}`}>
             {entitled ? plan.toUpperCase() : x.none}
           </span>
         </div>
-
-        {/* 🔴체험 중은 "결제일"이 아니라 "첫 결제일"이다 — 아직 한 번도 안 냈다.
-            그 구분이 없으면 해지 버튼을 누를지 말지 판단할 근거가 사라진다. */}
-        {sub?.status === "trialing" && (
-          <>
-            <Line k={x.trialEnds} v={day(sub.next_billing_at, isKo)} />
-            <Line k={x.firstCharge} v={money(sub.amount, sub.currency)} />
-            <p className="note">
-              {x.trialNote}
-            </p>
-            <button className="ghost wide" disabled={busy === PRODUCT} onClick={() => cancel(PRODUCT)}>
-              {busy === PRODUCT ? x.working : x.cancelBtn}
-            </button>
-          </>
-        )}
 
         {sub?.status === "active" && (
           <>
@@ -216,22 +160,18 @@ export default function AccountPage() {
           <p className="note warn">{x.pastDue}</p>
         )}
 
-        {(!sub || sub.status === "past_due" || sub.status === "canceled") && (
-          <>
-            {/* 🔴표는 홈·/price와 같은 것을 쓴다. 등급 설명이 화면마다 따로 있으면
-                반드시 어긋나고, 그때 어느 쪽이 맞는지 아무도 모른다(2026-08-18 UI 통일). */}
-            <div className="plan-here">
-              <PlanTable
-                lang={lang}
-                currentPlan={plan}
-                onSubscribe={startSub}
-                busy={busy}
-              />
-            </div>
-            <p className="note">
-              {x.taxNote}
-            </p>
-          </>
+        {/* 🔴표는 홈·/price와 같은 것을 쓴다. 등급 설명이 화면마다 따로 있으면
+            반드시 어긋나고, 그때 어느 쪽이 맞는지 아무도 모른다(2026-08-18 UI 통일).
+            ⚠️여기서는 가격도 구독 버튼도 걷어낸 status 모양이다 — 구독을 시작하는
+              자리는 /price 한 곳뿐이다. */}
+        <div className="plan-here">
+          <PlanTable lang={lang} currentPlan={plan} variant="status" />
+        </div>
+
+        {!entitled && (
+          <p className="note">
+            <a href="/price" style={{ color: "#555", textDecoration: "underline" }}>{x.toPrice}</a>
+          </p>
         )}
 
         {entitled && !sub && (
@@ -261,6 +201,7 @@ function Shell({ children }: { children: React.ReactNode }) {
         .dim { font-size:0.88rem; color:#888; }
         .card { background:#fff; border-radius:14px; padding:22px; margin-bottom:16px; box-shadow:0 2px 12px rgba(0,0,0,0.06); }
         .row { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:14px; }
+        .badge-row { display:flex; justify-content:flex-end; margin-bottom:14px; }
         .pname { font-size:1rem; font-weight:700; }
         .pdesc { font-size:0.78rem; color:#999; margin-top:3px; line-height:1.5; }
         .badge { font-size:0.7rem; font-weight:700; padding:4px 10px; border-radius:100px; background:#f0f0f0; color:#999; white-space:nowrap; }
