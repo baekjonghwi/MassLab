@@ -83,9 +83,9 @@ export type ProductDef = {
 };
 
 // 🔴2026-08-18 변경: 제품별 구독을 없앴다. MassLabs 구독 하나(plus/pro/max)가
-//   모든 프로그램을 덮는다. Archimap만, LaserFish만 따로 파는 상품은 없다.
+//   모든 프로그램을 덮는다. archiMap만, LaserFish만 따로 파는 상품은 없다.
 //
-//   등급이 올라가면 대개 "각 프로그램 안에서 한도가 올라간다"(Archimap 최대
+//   등급이 올라가면 대개 "각 프로그램 안에서 한도가 올라간다"(archiMap 최대
 //   직경·크레딧 등). 다만 프로그램마다 열리는 최소 등급이 다를 수 있다 —
 //   LaserFish는 PRO부터다(아래 MIN_PLAN).
 //

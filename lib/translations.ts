@@ -166,7 +166,7 @@ export const t = {
           title: "Article 2 (Definitions)",
           body: "The terms used in these Terms have the following meanings.",
           list: [
-            "Service — every program the Company provides, including programs that run in the browser (such as Archi Map) and plug-ins you download and install (such as LaserFish).",
+            "Service — every program the Company provides, including programs that run in the browser (such as archiMap) and plug-ins you download and install (such as LaserFish).",
             "User — a person who uses the Service under these Terms",
             "Pay-per-piece — paying each time, based on the number of pieces generated. No account is required.",
             "Subscription — a monthly recurring plan. Scope and limits differ by tier (PLUS, PRO, MAX).",
@@ -444,7 +444,7 @@ export const t = {
           title: "제2조 (정의)",
           body: "본 약관에서 사용하는 용어의 뜻은 다음과 같습니다.",
           list: [
-            "서비스 — 회사가 제공하는 프로그램 전체. 웹에서 실행되는 프로그램(Archi Map 등)과 내려받아 설치하는 플러그인(LaserFish 등)을 포함합니다.",
+            "서비스 — 회사가 제공하는 프로그램 전체. 웹에서 실행되는 프로그램(archiMap 등)과 내려받아 설치하는 플러그인(LaserFish 등)을 포함합니다.",
             "이용자 — 본 약관에 따라 서비스를 이용하는 자",
             "건당 결제 — 생성된 결과물의 수량에 따라 그때그때 값을 치르는 방식. 계정 없이도 이용할 수 있습니다.",
             "구독 — 매월 자동으로 결제되는 이용권. 등급(PLUS·PRO·MAX)에 따라 이용 범위와 한도가 다릅니다.",

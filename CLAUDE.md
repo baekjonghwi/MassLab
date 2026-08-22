@@ -9,7 +9,7 @@ MassLabs는 배포되는 프로젝트라 하위 폴더가 빌드 컨텍스트에
 | 폴더 | 무엇 | 배포 |
 |---|---|---|
 | `D:\CODE\MassLabs` ← 여기 | 홈페이지 · 로그인 · 요금제 · 결제 · 구독 · 기기연결 · 다운로드 | `masslabs-archi.com` |
-| `D:\CODE\archiMap` | Archi Map — 정적 사이트(`public/*.js`), 빌드 단계 없음 | `archimap.masslabs-archi.com` |
+| `D:\CODE\archiMap` | archiMap — 정적 사이트(`public/*.js`), 빌드 단계 없음 | `archimap.masslabs-archi.com` |
 | `D:\CODE\Archi_render` | Archi Render — Next.js, 제작중(M0). 기획 원본은 그쪽 `PLAN.md` | `render.masslabs-archi.com` |
 | `D:\CODE\LaserCuttingDrawings` | **LaserFish 본체** — C# 라이노 플러그인 + Grasshopper | 플러그인 직접 배포 |
 | `D:\CODE\LaserFish` | ⚠️코드 아님 — 이미지·`.3dm` 에셋 창고. LaserFish 코드를 여기서 찾지 말 것 | — |

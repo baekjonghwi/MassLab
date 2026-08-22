@@ -91,7 +91,7 @@ export async function POST(request: Request) {
     paymentId,
     billingKey: sub.billing_key,
     channel: sub.channel,
-    orderName: `Archimap 크레딧 ${CREDITS}회`,
+    orderName: `archiMap 크레딧 ${CREDITS}회`,
     amount,
     currency: sub.currency,
     customerId: customerIdOf(uid),

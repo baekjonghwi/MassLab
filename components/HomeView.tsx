@@ -69,7 +69,7 @@ const heroSlides: Slide[] = [
       ko: "QGIS, 포토샵, 일러스트 필요없이 완성본의 사이트 다이어그램 제작",
       en: "Produce finished site diagrams without QGIS, Photoshop, or Illustrator",
     },
-    cta: { ko: "바로가기", en: "Go to Archimap" },
+    cta: { ko: "바로가기", en: "Go to archiMap" },
     href: "https://archimap.masslabs-archi.com/",
     external: true,
     icon: "arrow",
@@ -446,11 +446,6 @@ export default function HomeView({ subscriptionLive }: { subscriptionLive: boole
           height: 64%;
           object-fit: contain;
           display: block;
-        }
-        .product-card-placeholder {
-          font-size: 0.78rem;
-          color: #c4c4c4;
-          letter-spacing: 0.04em;
         }
         .product-card-name {
           position: absolute;
@@ -914,12 +909,20 @@ export default function HomeView({ subscriptionLive }: { subscriptionLive: boole
           <div className={`product-card${product === "archimap" ? " active" : ""}`}>
             <button className="product-card-main" onClick={() => setProduct("archimap")}>
               <span className="product-card-img">
-                {/* Archimap 이미지 준비되면 /images/icon/Archimap.svg 로 교체 */}
-                <span className="product-card-placeholder">Archimap</span>
+                {/* 🔴파일 이름은 archiMap.svg 지만 **내용물은 archiMap 저장소의
+                    `public/icons/archiMap-mark.svg`**(정사각 크롭본)이다. 도형·색은 원본
+                    `archiMap.svg` 와 한 글자도 다르지 않고 viewBox 만 300×300 으로 좁혔다.
+                    ⚠️원본(A4 아트보드 595×842)을 그대로 넣으면 안 된다 — 이 자리는 칸의 64%라
+                      여백까지 축소돼 마크가 점만 하게 줄어든다. 파비콘·앱 상단바가 크롭본을
+                      쓰는 이유도 같다.
+                    ⚠️저쪽에서 마크를 고치면 여기도 **다시 복사해 와야 한다** — 저장소가 달라
+                      자동으로 따라오지 않는다(복사 대상은 -mark.svg 쪽이다). */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/images/icon/archiMap.svg" alt="" />
               </span>
-              <span className="product-card-name">Archimap</span>
+              <span className="product-card-name">archiMap</span>
             </button>
-            {/* 🔴Archi Map 은 열려 있다(2026-08-22). 저장소가 달라 하위 도메인으로
+            {/* 🔴archiMap 은 열려 있다(2026-08-22). 저장소가 달라 하위 도메인으로
                 나간다 — 새 탭으로 여는 이유는 여기서 보던 흐름을 끊지 않기 위해서다. */}
             <a
               className="product-card-go"
@@ -1015,7 +1018,7 @@ export default function HomeView({ subscriptionLive }: { subscriptionLive: boole
         </div>
       </section>
 
-      {/* ── PRICING (LaserFish) / 바로가기 (Archimap) ── */}
+      {/* ── PRICING (LaserFish) / 바로가기 (archiMap) ── */}
       {product === "laserfish" ? (
       <section id="pricing" className="main-pricing" style={{
         background: "#f7f7f7",
@@ -1089,7 +1092,7 @@ export default function HomeView({ subscriptionLive }: { subscriptionLive: boole
               : "Pick a site and build your diagram in the browser — nothing to install."}
           </p>
 
-          {/* ⚠️여기에 가격을 적지 않는다. Archi Map 의 요금 안내는 저쪽 화면과
+          {/* ⚠️여기에 가격을 적지 않는다. archiMap 의 요금 안내는 저쪽 화면과
               /price 가 맡는다 — 값을 두 곳에 적으면 반드시 어긋난다. */}
           <a
             className="archimap-cta"
@@ -1097,7 +1100,7 @@ export default function HomeView({ subscriptionLive }: { subscriptionLive: boole
             target="_blank"
             rel="noreferrer"
           >
-            {lang === "ko" ? "Archi Map 열기 →" : "Open Archi Map →"}
+            {lang === "ko" ? "archiMap 열기 →" : "Open archiMap →"}
           </a>
         </div>
       </section>

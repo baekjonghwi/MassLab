@@ -56,7 +56,7 @@ const TX = {
     confirmDelete1: `회원 탈퇴를 하면 계정과 함께 아래가 모두 사라지며, 되돌릴 수 없습니다.
 
 · 이용 등급과 남은 크레딧
-· Archimap 에 저장한 스타일과 참고 이미지
+· archiMap 에 저장한 스타일과 참고 이미지
 · 연결해 둔 기기와 플러그인 로그인
 
 이용 중인 구독이 있으면 즉시 끝나고, 남은 기간은 환불되지 않습니다.
@@ -84,7 +84,7 @@ const TX = {
     confirmDelete1: `Closing your account permanently deletes it, along with:
 
 · your plan and any remaining credits
-· the styles and reference images saved in Archimap
+· the styles and reference images saved in archiMap
 · your linked devices and plugin sign-ins
 
 Any running subscription ends immediately and the remaining time is not refunded.

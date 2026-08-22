@@ -6,7 +6,7 @@ import { TIER_KEYS, planAllows } from "@/lib/plans";
 // ==========================================================================
 //  요금제 표 — MassLabs가 유일한 출처다.
 //
-//  🔴프로그램마다 요금제 화면을 만들지 않는다. Archimap이든 앞으로 생길 프로그램이든
+//  🔴프로그램마다 요금제 화면을 만들지 않는다. archiMap이든 앞으로 생길 프로그램이든
 //    전부 masslabs-archi.com/price 로 보낸다. 구독이 프로그램별이 아니라 계정
 //    단위라, 표가 여러 벌이면 반드시 서로 어긋난다.
 //    → 홈(app/page.tsx) · /price · /account 세 화면이 이 파일 하나를 함께 본다.
@@ -119,7 +119,7 @@ const gate = (product: string): [Cell, Cell, Cell, Cell] =>
 
 export const PROGRAMS: Program[] = [
   {
-    name: "Archimap",
+    name: "archiMap",
     features: [
       {
         label: { ko: "최대 직경", en: "Max diameter" },
