@@ -72,21 +72,20 @@ export const t = {
             "Payment processing: charging service fees, recurring billing, refunds, and sending receipts",
             "Customer support: receiving enquiries and communicating outcomes",
             "Service analytics: improving the service using country-level usage data",
-            "Output data collection: verifying refund requests and improving product quality",
+            "Data collection: verifying refund requests and improving product quality",
           ],
         },
         {
           title: "Article 2 (Categories of Personal Data Collected)",
           list: [
-            "Account data: email address, password (stored one-way hashed), the account identifier supplied by Google if you signed up with Google, and display name",
+            "Personal data: email address, and the account identifier supplied by Google if you signed up with Google",
             "Usage data: plan tier, credit usage, country of access, and whether the free trial has been used",
-            "Payment data: payment channel, currency and amount, payment method label (e.g. card issuer), payment identifier, payment provider response records, and the billing key used for recurring charges",
-            "Device linking data: device identifier, linking code, plug-in authentication token (stored one-way hashed), device name, and last-seen time",
-            "Review data: nickname, attached photo, and review text (only if you submit a review)",
-            "Output data: samples of the pieces laid out on the plane and the material thickness",
+            "Payment data: payment channel, currency and amount, payment method label, payment identifier, payment provider response records, and the billing key",
+            "Device linking data: device identifier, linking code, and device name",
+            // 🔴프로그램을 가리지 않는다 — 한국어판과 같은 이유(위 주석 참고).
+            "Data: output generated using MassLabs",
             "Automatically generated data: service usage records and access timestamps",
           ],
-          body2: "Sensitive payment details such as card number, expiry date, and password are handled by the payment provider and are never stored by the Company. A billing key stands in for card details and does not reveal the card number by itself.\nIf you only use pay-per-piece, you can pay without an account; in that case we collect only the email address used to send your receipt.",
         },
         {
           title: "Article 3 (Retention and Use Period)",
@@ -94,20 +93,19 @@ export const t = {
             "Account data: retained until you close your account, then destroyed without delay",
             "Payment and subscription data: retained for 5 years under the Act on Consumer Protection in Electronic Commerce, then destroyed",
             "Device linking data: destroyed when the device is unlinked or the account is closed. Device linking codes expire automatically 10 minutes after issue",
-            "Review data: retained until you request its deletion",
-            "Output data: retained until you withdraw consent, then destroyed without delay",
+            "Data: destroyed when you close your account",
             "Country of access: retained in a form that cannot identify an individual once aggregated",
           ],
         },
         {
           title: "Article 4 (Delegation of Personal Data Processing)",
           body: "The Company delegates personal data processing as set out below in order to provide the service. Each processor is supervised so that personal data is handled safely in accordance with the Personal Information Protection Act.",
+          // 🔴결제사는 적지 않는다 — 한국어판과 같은 이유(위 주석 참고).
           list: [
-            "Supabase Inc. — account authentication, database and file storage",
+            "Supabase Inc. — account authentication and data storage",
+            "Cloudflare, Inc. — data storage",
             "Vercel Inc. — service hosting and operation",
-            "Korea PortOne Inc. — payment routing",
-            "Galaxia Money Tree Inc. — domestic payment processing",
-            "Eximbay Co., Ltd. — international payment processing",
+            "Korea PortOne Inc. — payments",
           ],
         },
         {
@@ -120,7 +118,8 @@ export const t = {
         },
         {
           title: "Article 7 (User Rights)",
-          body: "You may at any time request access to, correction of, deletion of, or suspension of processing of your personal data, and you may close your account. You may also withdraw consent to output data collection at any time. Send requests to masslabs.archi@gmail.com and we will act on them within 10 business days.",
+          // ⚠️연락처 줄은 남긴다 — 한국어판과 같은 이유(위 주석 참고).
+          body: "You can close your account and cancel your subscription yourself from the My Plan screen. For anything else — access to, correction of, deletion of, or suspension of processing of your personal data — send a request to masslabs.archi@gmail.com and we will act on it within 10 business days.",
         },
         {
           title: "Article 8 (Destruction of Personal Data)",
@@ -132,7 +131,6 @@ export const t = {
             "Passwords and plug-in authentication tokens are stored one-way hashed; the originals are never kept.",
             "All communication between you and the Company is encrypted with HTTPS.",
             "Row-level security (RLS) is applied to the database so that you can only reach your own records.",
-            "The number of people who handle personal data is kept to a minimum.",
           ],
         },
         {
@@ -347,21 +345,22 @@ export const t = {
             "결제 처리: 서비스 이용료 결제·정기결제·환불 처리 및 영수증 발송",
             "고객 응대: 문의 접수 및 처리 결과 안내",
             "서비스 통계 분석: 이용자 국가 정보를 활용한 서비스 개선",
-            "결과물 데이터 수집: 환불 요청 확인 및 제품 수준 향상",
+            "데이터 수집: 환불 요청 확인 및 제품 수준 향상",
           ],
         },
         {
           title: "제2조 (수집하는 개인정보 항목)",
           list: [
-            "계정 정보: 이메일 주소, 비밀번호(단방향 암호화하여 저장), 구글 계정으로 가입한 경우 구글이 제공하는 계정 식별자, 표시 이름",
+            "개인정보: 이메일 주소, 구글 계정으로 가입한 경우 구글이 제공하는 계정 식별자",
             "이용 정보: 이용 등급, 크레딧 사용량, 접속 국가, 무료 체험 사용 여부",
-            "결제 정보: 결제 채널, 결제 통화 및 금액, 결제수단 표시명(예: 카드사명), 결제 식별자, 결제 대행사 응답 기록, 정기결제를 위한 빌링키",
-            "기기 연결 정보: 기기 식별자, 연결 코드, 플러그인 인증 토큰(단방향 암호화하여 저장), 기기 이름, 마지막 접속 시각",
-            "후기 정보: 닉네임, 첨부 사진, 후기 내용 (후기를 남기는 경우에 한합니다)",
-            "결과물 데이터: 평면에 배치되는 조각들의 표본 및 재질 두께",
+            "결제 정보: 결제 채널, 결제 통화 및 금액, 결제수단 표시명, 결제 식별자, 결제 대행사 응답 기록, 빌링키",
+            "기기 연결 정보: 기기 식별자, 연결 코드, 기기 이름",
+            // 🔴프로그램을 가리지 않는다 — LaserFish·archiMap 은 물론 앞으로 생길
+            //   프로그램의 결과물도 여기에 들어온다. 프로그램이 늘 때마다 이 줄을
+            //   고쳐야 한다면 언젠가 반드시 빠뜨린다.
+            "데이터: MassLabs를 이용하여 생성되는 결과물",
             "자동 생성 정보: 서비스 이용 기록, 접속 일시",
           ],
-          body2: "카드번호·유효기간·비밀번호 등 결제수단의 민감한 정보는 결제 대행사가 처리하며 회사는 저장하지 않습니다. 빌링키는 카드 정보를 대신하는 값으로, 그 자체로는 카드번호를 알 수 없습니다.\n건당 결제만 이용하는 경우에는 계정 없이 결제할 수 있으며, 이때는 영수증을 받을 이메일 주소만 수집합니다.",
         },
         {
           title: "제3조 (개인정보의 보유 및 이용 기간)",
@@ -369,20 +368,21 @@ export const t = {
             "계정 정보: 회원 탈퇴 시까지 보관하며, 탈퇴 시 지체 없이 파기",
             "결제·구독 정보: 「전자상거래 등에서의 소비자보호에 관한 법률」에 따라 5년간 보관 후 파기",
             "기기 연결 정보: 연결이 해제되거나 회원이 탈퇴할 때 파기. 기기 연결 코드는 발급 후 10분이 지나면 자동으로 만료",
-            "후기 정보: 이용자가 삭제를 요청할 때까지 보관",
-            "결과물 데이터: 이용자가 동의를 철회하기 전까지 보관, 철회 시 지체 없이 파기",
+            "데이터: 회원 탈퇴 시 파기",
             "접속 국가 정보: 통계 처리 후 개인을 식별할 수 없는 형태로 보관",
           ],
         },
         {
           title: "제4조 (개인정보 처리의 위탁)",
           body: "회사는 서비스 제공을 위해 아래와 같이 개인정보 처리 업무를 위탁하고 있습니다. 위탁받은 업체는 개인정보보호법에 따라 개인정보를 안전하게 처리하도록 관리·감독됩니다.",
+          // 🔴결제사(갤럭시아·엑심베이)는 적지 않는다 — 포트원을 거쳐 가므로
+          //   회사가 직접 위탁하는 상대가 아니다. 결제 채널이 바뀔 때마다 방침을
+          //   고쳐야 한다면 언젠가 실제와 어긋난 채로 남는다.
           list: [
-            "Supabase Inc. — 계정 인증, 데이터베이스 및 첨부파일 보관",
+            "Supabase Inc. — 계정 인증, 데이터 보관",
+            "Cloudflare, Inc. — 데이터 보관",
             "Vercel Inc. — 서비스 호스팅 및 운영",
-            "(주)코리아포트원 — 결제 중계",
-            "(주)갤럭시아머니트리 — 국내 결제 처리",
-            "(주)엑심베이 — 해외 결제 처리",
+            "(주)코리아포트원 — 결제",
           ],
         },
         {
@@ -395,7 +395,9 @@ export const t = {
         },
         {
           title: "제7조 (이용자의 권리)",
-          body: "이용자는 언제든지 개인정보 열람, 정정, 삭제, 처리 정지 및 회원 탈퇴를 요청할 수 있습니다. 결과물 데이터 수집에 대한 동의도 언제든지 철회할 수 있습니다. 요청은 masslabs.archi@gmail.com으로 접수해 주시면 영업일 기준 10일 이내에 처리합니다.",
+          // ⚠️연락처 줄은 남긴다. 열람·정정처럼 화면에 버튼이 없는 권리까지
+          //   [내 구독]으로 떠넘기면, 그 권리를 행사할 통로가 사라진다.
+          body: "이용자는 [내 구독] 화면에서 직접 회원 탈퇴와 구독 해지를 할 수 있습니다. 그 밖에 개인정보 열람·정정·삭제·처리 정지가 필요한 경우 masslabs.archi@gmail.com으로 접수해 주시면 영업일 기준 10일 이내에 처리합니다.",
         },
         {
           title: "제8조 (개인정보의 파기)",
@@ -407,7 +409,6 @@ export const t = {
             "비밀번호와 플러그인 인증 토큰은 단방향 암호화하여 저장하며, 원문을 보관하지 않습니다.",
             "이용자와 회사 사이의 모든 통신은 HTTPS로 암호화합니다.",
             "데이터베이스에 행 단위 접근 제어(RLS)를 적용하여, 이용자가 자신의 정보에만 접근할 수 있도록 합니다.",
-            "개인정보를 처리하는 인원을 최소한으로 제한합니다.",
           ],
         },
         {

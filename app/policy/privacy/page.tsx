@@ -50,7 +50,10 @@ export default function PrivacyPage() {
               {section.list.map((item, j) => <li key={j}>{item}</li>)}
             </ul>
           )}
-          {"body2" in section && section.body2 && (
+          {/* 🔴typeof 검사가 필요하다 — 지금 방침에는 body2 를 쓰는 조가 하나도
+              없어서, "body2" in section 만으로는 타입이 unknown 으로 남는다.
+              조를 다시 두 문단으로 쓰게 되면 이 가지가 그대로 살아난다. */}
+          {"body2" in section && typeof section.body2 === "string" && (
             <p style={{ fontSize: "0.88rem", color: "#555", lineHeight: 1.9, marginTop: "8px" }}>
               {section.body2}
             </p>
