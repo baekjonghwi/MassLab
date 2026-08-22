@@ -41,13 +41,28 @@ const TX = {
     title: "내 구독", logout: "로그아웃",
     toPrice: "요금제 보러 가기 →",
     none: "미구독",
-    nextBilling: "다음 결제일", amount: "결제 금액",
+    nextBilling: "다음 결제일", firstBilling: "첫 결제일", amount: "결제 금액",
     cancelBtn: "구독 해지", working: "처리 중…",
+    cancelNone: "해지할 구독이 없습니다.",
     endsOn: "이용 종료일",
     canceledNote: "해지되었습니다. 위 날짜까지는 그대로 사용하실 수 있습니다.",
     pastDue: "결제에 실패해 이용이 중지되었습니다. 다시 구독해 주세요.",
     adminNote: "운영자 권한으로 모든 프로그램을 이용 중입니다.",
     cancelFail: "해지에 실패했습니다.",
+    // ── 회원 탈퇴 ──
+    deleteBtn: "회원 탈퇴",
+    deleting: "탈퇴 처리 중…",
+    deleteFail: "탈퇴에 실패했습니다. 잠시 후 다시 시도해 주세요.",
+    // 🔴두 번 묻는다. 되돌릴 수 없는 일이라 한 번은 부족하다.
+    confirmDelete1: `회원 탈퇴를 하면 계정과 함께 아래가 모두 사라지며, 되돌릴 수 없습니다.
+
+· 이용 등급과 남은 크레딧
+· Archimap 에 저장한 스타일과 참고 이미지
+· 연결해 둔 기기와 플러그인 로그인
+
+이용 중인 구독이 있으면 즉시 끝나고, 남은 기간은 환불되지 않습니다.
+계속하시겠습니까?`,
+    confirmDelete2: "정말 탈퇴하시겠습니까? 이 창을 확인하면 계정이 바로 삭제됩니다.",
     // 🔴체험 중이면 "결제하신 기간"이라는 말이 거짓이 된다 — 낸 돈이 없다.
     confirmPaid: "구독을 해지하시겠습니까?\n이미 결제하신 기간까지는 그대로 사용하실 수 있습니다.",
   },
@@ -56,13 +71,27 @@ const TX = {
     title: "My subscription", logout: "Sign out",
     toPrice: "See the plans →",
     none: "Not subscribed",
-    nextBilling: "Next billing date", amount: "Amount",
+    nextBilling: "Next billing date", firstBilling: "First billing date", amount: "Amount",
     cancelBtn: "Cancel subscription", working: "Working…",
+    cancelNone: "There's no subscription to cancel.",
     endsOn: "Access ends",
     canceledNote: "Canceled. You can keep using it until the date above.",
     pastDue: "Payment failed, so access is paused. Please subscribe again.",
     adminNote: "You have admin access to every program.",
     cancelFail: "Couldn't cancel the subscription.",
+    // ── Close account ──
+    deleteBtn: "Close account",
+    deleting: "Closing…",
+    deleteFail: "Couldn't close the account. Please try again in a moment.",
+    confirmDelete1: `Closing your account permanently deletes it, along with:
+
+· your plan and any remaining credits
+· the styles and reference images saved in Archimap
+· your linked devices and plugin sign-ins
+
+Any running subscription ends immediately and the remaining time is not refunded.
+Continue?`,
+    confirmDelete2: "Are you sure? Confirming this deletes your account right away.",
     confirmPaid: "Cancel your subscription?\nYou can keep using it through the period you've already paid for.",
   },
 } as const;
@@ -111,10 +140,33 @@ export default function AccountPage() {
     load();
   };
 
+  // ==========================================================================
+  //  회원 탈퇴 — 되돌릴 수 없다.
+  //
+  //  🔴두 번 묻는다. 첫 창은 "무엇이 사라지는가", 둘째 창은 "정말인가".
+  //  성공하면 서버에 계정이 없으므로 signOut 이 실패할 수 있다 — 그래도 무시하고
+  //  홈으로 보낸다. 남은 건 이 브라우저의 죽은 쿠키뿐이다.
+  // ==========================================================================
+  const closeAccount = async () => {
+    if (!confirm(x.confirmDelete1)) return;
+    if (!confirm(x.confirmDelete2)) return;
+    setBusy("account"); setError("");
+    const r = await fetch("/api/account/delete", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${await token()}` },
+    });
+    if (!r.ok) { setBusy(""); setError(x.deleteFail); return; }
+    try { await supabase().auth.signOut(); } catch { /* 계정이 이미 없다 */ }
+    window.location.href = "/";
+  };
+
   if (!ready) return <Shell><p className="dim">{x.loading}</p></Shell>;
 
   const sub = subs.find((s) => s.product === PRODUCT);
   const entitled = plan !== "free";
+  // 🔴체험 중(trialing)도 해지할 수 있어야 한다. active만 보면 체험자가 카드를
+  //   등록해 두고 끊을 방법이 없어진다.
+  const cancelable = sub?.status === "active" || sub?.status === "trialing";
 
   return (
     <Shell>
@@ -139,13 +191,13 @@ export default function AccountPage() {
           </span>
         </div>
 
-        {sub?.status === "active" && (
+        {cancelable && sub && (
           <>
-            <Line k={x.nextBilling} v={day(sub.next_billing_at, isKo)} />
+            <Line
+              k={sub.status === "trialing" ? x.firstBilling : x.nextBilling}
+              v={day(sub.next_billing_at, isKo)}
+            />
             <Line k={x.amount} v={money(sub.amount, sub.currency)} />
-            <button className="ghost wide" disabled={busy === PRODUCT} onClick={() => cancel(PRODUCT)}>
-              {busy === PRODUCT ? x.working : x.cancelBtn}
-            </button>
           </>
         )}
 
@@ -159,6 +211,15 @@ export default function AccountPage() {
         {sub?.status === "past_due" && (
           <p className="note warn">{x.pastDue}</p>
         )}
+
+        {/* 🔴[구독 해지]는 항상 자리에 있다. 구독이 없을 때 버튼째 사라지면
+            "해지할 방법이 없는 화면"으로 보인다 — 비활성으로 두고 왜 못 누르는지
+            바로 밑에 적어 준다. 해지·미납은 위에서 이미 사정을 말했으므로 또 말하지 않는다. */}
+        <button className="ghost wide" disabled={!cancelable || busy === PRODUCT}
+                onClick={() => cancel(PRODUCT)}>
+          {busy === PRODUCT ? x.working : x.cancelBtn}
+        </button>
+        {!cancelable && !sub && <p className="note">{x.cancelNone}</p>}
 
         {/* 🔴표는 홈·/price와 같은 것을 쓴다. 등급 설명이 화면마다 따로 있으면
             반드시 어긋나고, 그때 어느 쪽이 맞는지 아무도 모른다(2026-08-18 UI 통일).
@@ -178,6 +239,14 @@ export default function AccountPage() {
           <p className="note">{x.adminNote}</p>
         )}
       </section>
+
+      {/* 🔴탈퇴는 구독 카드 밖, 맨 아래 구석이다. 해지와 나란히 두면 둘을
+          헷갈려 누른다 — 하나는 되돌릴 수 있고 하나는 아니다. */}
+      <div className="danger-zone">
+        <button className="link-danger" disabled={busy === "account"} onClick={closeAccount}>
+          {busy === "account" ? x.deleting : x.deleteBtn}
+        </button>
+      </div>
     </Shell>
   );
 }
@@ -219,6 +288,11 @@ function Shell({ children }: { children: React.ReactNode }) {
         .ghost.sm { padding:6px 10px; font-size:0.74rem; }
         .wide { width:100%; margin-top:14px; }
         button:disabled { opacity:0.5; cursor:not-allowed; }
+        .danger-zone { display:flex; justify-content:flex-end; padding:4px 2px 8px; }
+        .link-danger { background:none; border:none; padding:4px 2px; font-family:inherit;
+                       font-size:0.75rem; color:#a0a0a0; cursor:pointer; text-decoration:underline;
+                       text-underline-offset:3px; }
+        .link-danger:hover { color:#c53030; }
         .err { background:#fff5f5; color:#c53030; font-size:0.8rem; padding:11px 14px; border-radius:8px; margin-bottom:14px; }
         code { background:#f2f2f2; padding:1px 5px; border-radius:4px; font-size:0.92em; }
       `}</style>

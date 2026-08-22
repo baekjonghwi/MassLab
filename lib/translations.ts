@@ -189,10 +189,9 @@ export const t = {
           body2: "The Company may add programs to the Service; unless stated otherwise, added programs are included in existing subscriptions. The products and prices actually on sale are limited to those shown on the pricing screen.",
         },
         {
-          title: "Article 5 (Accounts and Devices)",
+          title: "Article 5 (Accounts)",
           body: "You sign up with an email address or a Google account, and a single account signs you in to every program the Company provides. If you only use pay-per-piece, you do not need to create an account.",
           list: [
-            "The Rhino plug-in may be used on one device at a time per account. Linking a new device automatically unlinks the previous one.",
             "You are responsible for managing your account credentials, and may not share or transfer them to a third party.",
           ],
         },
@@ -214,7 +213,7 @@ export const t = {
           list: [
             "Pay-per-piece is charged once, at the amount displayed at the time of payment. Minimum and maximum order amounts apply as stated on the pricing screen.",
             "Subscription fees are charged automatically to your registered payment method on the same day each month and continue until you cancel.",
-            "Domestic payments include 10% VAT. International payments are zero-rated, so no VAT is added.",
+            "Payments made in the Republic of Korea include 10% VAT. Payments made outside the Republic of Korea are zero-rated, so no VAT is added.",
             "Payments are processed through payment providers designated by the Company, and the available payment methods are limited to those shown on the payment screen.",
             "The Company may change its fees, giving at least 30 days' notice; changes apply from the following billing cycle.",
             "If a subscription payment fails, service may be suspended; updating your payment method and paying again restores it immediately.",
@@ -465,10 +464,9 @@ export const t = {
           body2: "회사는 서비스에 프로그램을 추가할 수 있으며, 추가된 프로그램은 별도 안내가 없는 한 기존 구독에 포함됩니다. 실제로 판매되는 상품과 금액은 요금제 화면에 표시된 것에 한합니다.",
         },
         {
-          title: "제5조 (계정 및 기기)",
+          title: "제5조 (계정)",
           body: "이용자는 이메일 또는 구글 계정으로 가입하며, 하나의 계정으로 회사가 제공하는 모든 프로그램에 로그인합니다. 건당 결제만 이용하는 경우에는 계정을 만들지 않아도 됩니다.",
           list: [
-            "라이노 플러그인은 계정당 동시 1대의 기기에서 사용할 수 있습니다. 새 기기를 연결하면 이전 기기의 연결은 자동으로 해제됩니다.",
             "계정 정보의 관리 책임은 이용자에게 있으며, 제3자와 공유하거나 양도할 수 없습니다.",
           ],
         },
@@ -490,7 +488,7 @@ export const t = {
           list: [
             "건당 결제는 결제 시점에 화면에 표시된 금액을 1회 청구합니다. 최소·최대 주문 금액이 있으며, 그 기준은 요금제 화면에 따릅니다.",
             "구독료는 등록된 결제수단으로 매월 같은 날 자동으로 청구되며, 해지 전까지 계속됩니다.",
-            "국내 결제 금액에는 부가가치세 10%가 포함됩니다. 해외 결제는 영세율이 적용되어 부가가치세가 붙지 않습니다.",
+            "대한민국에서 결제하는 경우 결제 금액에 부가가치세 10%가 포함됩니다. 대한민국 외의 국가에서 결제하는 경우에는 영세율이 적용되어 부가가치세가 붙지 않습니다.",
             "결제는 회사가 지정한 결제 대행사를 통해 처리되며, 이용할 수 있는 결제수단은 결제 화면에 표시된 것에 한합니다.",
             "회사는 이용료를 변경할 수 있으며, 변경 시 최소 30일 전에 공지하고 그 다음 결제 주기부터 적용합니다.",
             "구독 결제가 실패한 경우 서비스 이용이 중지될 수 있으며, 결제수단을 갱신하여 다시 결제하면 즉시 복구됩니다.",
