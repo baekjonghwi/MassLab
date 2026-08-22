@@ -1,6 +1,7 @@
 "use client";
 import { useLanguage } from "@/lib/i18n";
 import { SUBSCRIPTION_LIVE } from "@/lib/interim";
+import AuthNavLink from "@/components/AuthNavLink";
 
 // ==========================================================================
 //  모든 화면이 함께 쓰는 상단 막대.
@@ -65,6 +66,9 @@ export default function SiteHeader({ active }: { active?: string }) {
                 {lang === "ko" ? l.ko : l.en}
               </a>
             ))}
+            {/* 🔴로그인 자리. 홈(HomeView)의 막대와 같은 것을 쓴다 —
+                한쪽에만 있으면 화면을 옮길 때마다 로그인 문이 사라진다. */}
+            <AuthNavLink />
           </div>
         </div>
       </nav>

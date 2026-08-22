@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useLanguage } from "@/lib/i18n";
 import PlanTable, { PLAN_CSS } from "@/components/PlanTable";
 import PerPiecePricing, { PerPieceNote } from "@/components/PerPiecePricing";
+import AuthNavLink from "@/components/AuthNavLink";
 import { SUBSCRIPTION_LIVE } from "@/lib/interim";
 
 // ==========================================================================
@@ -680,6 +681,11 @@ export default function HomeView({ subscriptionLive }: { subscriptionLive: boole
           .feature-title { font-size: 1.4rem; }
         }
 
+        /* 🔴상단 막대가 sticky(58px)라, #pricing 으로 굴러가면 제목이 그 밑에
+           깔린다. 막대 높이만큼 여유를 준다. */
+        html { scroll-behavior: smooth; }
+        .main-pricing { scroll-margin-top: 70px; }
+
         @media (max-width: 640px) {
           .main-nav-inner {
             flex-direction: column !important;
@@ -747,7 +753,10 @@ export default function HomeView({ subscriptionLive }: { subscriptionLive: boole
             <a href="/download" className="hnav-link">
               {lang === "ko" ? "다운로드" : "Download"}
             </a>
-            <a href="/price" className="hnav-link">
+            {/* 🔴이 화면에는 가격 구역(#pricing)이 이미 있다. /price 로 내보내면
+                같은 값을 보러 화면을 떠나게 되고, /main 에서는 구독표를 보다가
+                건당결제 화면으로 튕긴다. 아래로 굴려 보낸다. */}
+            <a href="#pricing" className="hnav-link">
               {lang === "ko" ? "비용" : "Pricing"}
             </a>
             <a href="/contact" className="hnav-link">
@@ -761,6 +770,7 @@ export default function HomeView({ subscriptionLive }: { subscriptionLive: boole
                 {lang === "ko" ? "내 구독" : "My Plan"}
               </a>
             )}
+            <AuthNavLink />
           </div>
         </div>
       </nav>
