@@ -1,0 +1,116 @@
+/* ==========================================================================
+   MassLabs UI — 토큰 원본
+   출처: D:\CODE\archiMap\public\styles.css (2026-08-22 기준). 값을 고칠 땐 archiMap을
+   먼저 고치고 여기로 옮긴다 — 저쪽은 1,100줄이 이 이름들에 매달려 있어 여기가 원본이 될 수 없다.
+
+   🔴이 파일은 **읽고 베끼는 원본**이다. `.claude/` 아래라 빌드에 안 실린다.
+     각 저장소는 이 블록을 자기 `globals.css`(또는 styles.css)에 **복사해서** 쓴다.
+     쓰는 곳이 곧 원본이면 안 되지만, 빌드에 실리려면 복사 말고는 길이 없다
+     (저장소들이 형제라 import를 공유할 수 없다 — CLAUDE.md의 폴더 규칙).
+   ========================================================================== */
+
+/* 🔴🔴다크모드는 **우리가 직접 칠한다**. 이 선언이 없으면 크롬 Auto Dark Mode가 밝은 페이지를
+     강제 반전시켜 흰 카드가 새까매진다. 'light dark'를 선언하는 순간 브라우저는 "이 페이지가
+     다크를 직접 지원한다"고 보고 강제 반전을 끈다 ⇒ 그 대가로 아래 다크 블록을 우리가 다 줘야 한다.
+   ⚠️HTML <head>에도 <meta name="color-scheme" content="light dark">를 같이 넣는다 —
+     CSS가 도착하기 전 첫 페인트를 덮는 몫이 따로 있다. */
+:root { color-scheme: light dark; }
+
+:root {
+  /* ── 바닥과 칸 ──
+     🔴바닥은 회색, 그 위의 칸이 흰색이다. 순수 검정(#000)·순수 흰 바닥은 쓰지 않는다. */
+  --pan:  #f7f7f7;   /* 페이지·패널 바닥(회색) */
+  --card: #ffffff;   /* 그 위에 얹는 칸(흰 카드) */
+  --cbd:  #ececec;   /* 카드 테두리 */
+  --bd:   #e5e5e5;   /* 일반 테두리 */
+  --bd2:  #d4d4d4;   /* 진한 테두리(버튼·입력칸) */
+  --chip: #f5f5f5;   /* 칸 안의 회색 칩 */
+  --hov:  #f2f2f2;   /* hover 바닥 */
+
+  /* ── 글자 ── */
+  --tx:  #333333;    /* 본문 */
+  --tx2: #262626;    /* 강조(제목·활성) */
+  --tx3: #939393;    /* 흐린 글자(보조 설명·개수) */
+
+  /* ── 강조 ──
+     🔴UI는 흑백이다. 색은 사용자 데이터(팔레트 색·지도 레이어 색)의 몫이지 UI의 몫이 아니다.
+       브랜드 마크만 예외 — 로고의 파스텔 배색은 그대로 둔다. */
+  --ac:  #1a1a1a;    /* 강조색(주 버튼 바닥·선택 상태) */
+  --acx: #ffffff;    /* 강조색 위에 얹는 글자 */
+
+  /* ── 모서리 ──
+     🔴모서리는 얕다(5~8px). 알약(999px)은 아주 드물게, 16px 이상은 안 쓴다.
+       칸을 가르는 일은 둥근 모서리가 아니라 아래 그림자가 한다. */
+  --r:  8px;         /* 칸·카드 */
+  --r2: 6px;         /* 버튼·입력칸·칩 */
+
+  /* ── 그림자 ──
+     모서리를 각진 대신 바닥에서 살짝 띄워 칸을 가른다(2026-08-20 결정). */
+  --cardsh: 0 1px 2px rgba(0,0,0,.05), 0 3px 10px rgba(0,0,0,.045);
+}
+
+/* 🔴다크 = 같은 이름만 갈아 끼운다. 새 이름을 만들지 말 것 —
+     한쪽에만 있는 이름이 생기는 순간 그 자리가 다크에서 조용히 깨진다. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --pan:  #1e1e1e;
+    --card: #2a2a2a;
+    --cbd:  #3a3a3a;
+    --bd:   #3d3d3d;
+    --bd2:  #4a4a4a;
+    --chip: #343434;
+    --hov:  #383838;
+    --tx:  #e8e8e8;
+    --tx2: #f0f0f0;
+    --tx3: #9a9a9a;
+    --ac:  #e9e9e9;   /* ⚠️강조는 다크에서 **뒤집힌다** — 밝은 바닥에 어두운 글자 */
+    --acx: #1a1a1a;
+    --cardsh: 0 1px 2px rgba(0,0,0,.4), 0 3px 10px rgba(0,0,0,.32);
+  }
+}
+
+/* ==========================================================================
+   글자체 — 영문 Geist + 한글 에스코어드림
+   ========================================================================== */
+
+/* 🔴한글은 '에스코어드림'(S-Core Dream). Geist엔 한글이 없어 **한국어 글자만** 여기로 떨어진다.
+     상업적 이용·웹폰트 배포가 허용된 무료 서체다 (https://www.s-core.co.kr/company/font).
+   🔴🔴**무게 구간이 곧 굵기다.** @font-face의 font-weight 범위는 "이 파일이 이 구간을 담당한다"는
+     뜻이라, 구간이 두 벌뿐이면 CSS에서 700을 600으로 낮춰도 **같은 Bold 파일**이 나와 화면이 안 바뀐다.
+     그래서 세 구간으로 쪼갠다 — 100~500=Regular / 501~700=Medium / 701~900=Bold.
+     ⇒ 굵게 쓴 한글이 Bold에서 Medium으로 한 단계 내려가 영문과 무게가 맞는다.
+   ⚠️woff2판이 없어 세 벌 다 woff다 — 한 벌 늘 때마다 첫 화면이 그만큼 느려진다.
+   ⚠️화면에 한글이 아예 안 나오는 사이트라면 이 세 줄을 넣지 말 것(순수한 손해다). */
+@font-face { font-family:'S-Core Dream'; font-style:normal; font-weight:100 500; font-display:swap;
+  src:url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-4Regular.woff') format('woff'); }
+@font-face { font-family:'S-Core Dream'; font-style:normal; font-weight:501 700; font-display:swap;
+  src:url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-5Medium.woff') format('woff'); }
+@font-face { font-family:'S-Core Dream'; font-style:normal; font-weight:701 900; font-display:swap;
+  src:url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-6Bold.woff') format('woff'); }
+
+/* 🔴Geist가 앞, 에스코어드림이 뒤 — 영문은 Geist가 먹고 한글만 뒤로 떨어진다(순서가 뒤집히면 영문까지 한글 서체가 먹는다).
+   Next.js면 next/font/google 의 Geist가 --font-geist-sans 를 주므로 그 변수를 맨 앞에 둔다. */
+body { font-family: var(--font-geist-sans), 'Geist', 'S-Core Dream',
+  -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Malgun Gothic', sans-serif; }
+
+/* 🔴폼 요소는 글자체를 물려받지 않는다 — 이 줄이 없으면 버튼·입력칸·드롭다운만 옛 서체로 남는다.
+   ⚠️`font:` 단축 속성은 글꼴을 반드시 요구하므로, 크기·굵기·행간은 낱개 속성으로 써야 inherit이 산다. */
+button, input, select, textarea { font-family: inherit; }
+
+/* ==========================================================================
+   Tailwind v4 를 쓰는 저장소는 이 블록을 함께 복사한다.
+   그러면 bg-card · border-bd · text-tx3 · bg-ac text-acx 처럼 클래스로 쓸 수 있다.
+   ========================================================================== */
+/*
+@theme inline {
+  --color-pan: var(--pan);   --color-card: var(--card);
+  --color-cbd: var(--cbd);   --color-bd: var(--bd);    --color-bd2: var(--bd2);
+  --color-chip: var(--chip); --color-hov: var(--hov);
+  --color-tx: var(--tx);     --color-tx2: var(--tx2);  --color-tx3: var(--tx3);
+  --color-ac: var(--ac);     --color-acx: var(--acx);
+  --radius-card: var(--r);   --radius-ctl: var(--r2);
+  --shadow-card: var(--cardsh);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+*/
