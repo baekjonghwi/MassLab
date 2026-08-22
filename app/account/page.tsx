@@ -43,7 +43,6 @@ const TX = {
     none: "미구독",
     nextBilling: "다음 결제일", firstBilling: "첫 결제일", amount: "결제 금액",
     cancelBtn: "구독 해지", working: "처리 중…",
-    cancelNone: "해지할 구독이 없습니다.",
     endsOn: "이용 종료일",
     canceledNote: "해지되었습니다. 위 날짜까지는 그대로 사용하실 수 있습니다.",
     pastDue: "결제에 실패해 이용이 중지되었습니다. 다시 구독해 주세요.",
@@ -73,7 +72,6 @@ const TX = {
     none: "Not subscribed",
     nextBilling: "Next billing date", firstBilling: "First billing date", amount: "Amount",
     cancelBtn: "Cancel subscription", working: "Working…",
-    cancelNone: "There's no subscription to cancel.",
     endsOn: "Access ends",
     canceledNote: "Canceled. You can keep using it until the date above.",
     pastDue: "Payment failed, so access is paused. Please subscribe again.",
@@ -231,15 +229,16 @@ export default function AccountPage() {
         )}
       </section>
 
-      {/* 🔴해지와 탈퇴를 한 줄에 둔다(2026-08-22 사용자 결정).
-          ⚠️원래는 일부러 떼어 놓았다 — "나란히 두면 둘을 헷갈려 누른다. 하나는
-            되돌릴 수 있고 하나는 아니다." 그 걱정은 그대로 유효하므로, 붙이는
-            대신 **생김새로 갈라 놓는다**: 해지는 테두리 있는 버튼, 탈퇴는 밑줄
-            글자(회색 → 빨강). 탈퇴는 여전히 두 번 묻는다.
-          🔴[구독 해지]는 구독이 없어도 자리를 지킨다. 버튼째 사라지면 "해지할
-            방법이 없는 화면"으로 보인다 — 비활성으로 두고 이유를 밑에 적는다. */}
+      {/* 🔴해지와 탈퇴를 같은 모양으로 한 줄에 둔다(2026-08-22 사용자 결정).
+          ⚠️원래 코드는 일부러 떼어 놓았고 이유가 이랬다 — "나란히 두면 둘을
+            헷갈려 누른다. 하나는 되돌릴 수 있고 하나는 아니다."
+            생김새까지 같아졌으니 **오조작을 막는 것은 이제 확인 창뿐이다.**
+            해지는 한 번, 탈퇴는 두 번 묻는다(closeAccount 참고) — 그 차이를
+            줄이지 말 것.
+          🔴[구독 해지]는 구독이 없어도 자리를 지킨다(비활성). 버튼째 사라지면
+            "해지할 방법이 없는 화면"으로 보인다. */}
       <div className="danger-zone">
-        <button className="ghost" disabled={!cancelable || busy === PRODUCT}
+        <button className="link-danger" disabled={!cancelable || busy === PRODUCT}
                 onClick={() => cancel(PRODUCT)}>
           {busy === PRODUCT ? x.working : x.cancelBtn}
         </button>
@@ -247,7 +246,6 @@ export default function AccountPage() {
           {busy === "account" ? x.deleting : x.deleteBtn}
         </button>
       </div>
-      {!cancelable && !sub && <p className="note dz-note">{x.cancelNone}</p>}
     </Shell>
   );
 }
@@ -290,7 +288,6 @@ function Shell({ children }: { children: React.ReactNode }) {
         .wide { width:100%; margin-top:14px; }
         button:disabled { opacity:0.5; cursor:not-allowed; }
         .danger-zone { display:flex; justify-content:flex-end; align-items:center; gap:14px; padding:4px 2px 8px; }
-        .dz-note { text-align:right; margin-top:0; }
         .link-danger { background:none; border:none; padding:4px 2px; font-family:inherit;
                        font-size:0.75rem; color:#a0a0a0; cursor:pointer; text-decoration:underline;
                        text-underline-offset:3px; }
