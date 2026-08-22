@@ -742,8 +742,10 @@ export default function HomeView({ subscriptionLive }: { subscriptionLive: boole
           alignItems: "center",
           justifyContent: "space-between",
         }}>
+          {/* 🔴미리보기(/main)에서는 로고도 /main 으로 돌아온다. "/"로 보내면
+              구독을 팔던 홈을 보다 건당결제 홈으로 갈아타 버린다. */}
           <button
-            onClick={() => router.push("/")}
+            onClick={() => router.push(preview ? "/main" : "/")}
             style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}
           >
             <span style={{ fontSize: "1.1rem", fontWeight: 800, letterSpacing: "-0.03em", color: "#111" }}>

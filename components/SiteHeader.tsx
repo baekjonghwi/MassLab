@@ -1,4 +1,5 @@
 "use client";
+import { useState, useEffect } from "react";
 import { useLanguage } from "@/lib/i18n";
 import { SUBSCRIPTION_LIVE } from "@/lib/interim";
 import AuthNavLink from "@/components/AuthNavLink";
@@ -41,6 +42,16 @@ export const HEADER_CSS = `
 export default function SiteHeader({ active }: { active?: string }) {
   const { lang } = useLanguage();
 
+  // 🔴/main(구독을 팔던 시절의 홈, PG 심사용)에서 넘어온 화면인가.
+  //   그렇다면 이 막대의 링크들도 그쪽으로 돌려보내야 한다 — 안 그러면
+  //   [MassLabs]나 [비용] 한 번에 건당결제 화면으로 갈아타 버린다.
+  //   ⚠️서버에서는 판정할 수 없으므로(주소 뒤 ?preview 는 브라우저만 안다)
+  //     첫 그림은 항상 평소 링크이고, 붙은 뒤에 바뀐다.
+  const [preview, setPreview] = useState(false);
+  useEffect(() => {
+    setPreview(new URLSearchParams(window.location.search).has("preview"));
+  }, []);
+
   return (
     <>
       <style>{HEADER_CSS}</style>
@@ -53,13 +64,16 @@ export default function SiteHeader({ active }: { active?: string }) {
           maxWidth: "1200px", margin: "0 auto", padding: "0 48px", height: "58px",
           display: "flex", alignItems: "center", justifyContent: "space-between",
         }}>
-          <a href="/" className="hnav-brand">MassLabs</a>
+          <a href={preview ? "/main" : "/"} className="hnav-brand">MassLabs</a>
 
           <div className="hnav-links" style={{ display: "flex", alignItems: "center", gap: "2px" }}>
             {LINKS.map((l) => (
               <a
                 key={l.href}
-                href={l.href}
+                // 🔴미리보기로 들어온 화면(/account?preview=1)에서는 구독을 팔던
+                //   쪽으로 돌려보낸다. /price 로 내보내면 지금은 건당결제가 떠서,
+                //   구독을 보던 사람이 딴 상품에 떨어진다.
+                href={preview && l.href === "/price" ? "/main#pricing" : l.href}
                 className="hnav-link"
                 style={l.href === active ? { color: "#111", fontWeight: 700 } : undefined}
               >
