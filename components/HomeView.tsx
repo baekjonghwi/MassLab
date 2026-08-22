@@ -919,8 +919,19 @@ export default function HomeView({ subscriptionLive }: { subscriptionLive: boole
               </span>
               <span className="product-card-name">Archimap</span>
             </button>
-            {/* 🔴준비 중이라 링크가 아니다 — a 태그로 두면 눌러서 들어가진다 */}
-            <span className="product-card-go soon" aria-disabled="true">Coming soon</span>
+            {/* 🔴Archi Map 은 열려 있다(2026-08-22). 저장소가 달라 하위 도메인으로
+                나간다 — 새 탭으로 여는 이유는 여기서 보던 흐름을 끊지 않기 위해서다. */}
+            <a
+              className="product-card-go"
+              href="https://archimap.masslabs-archi.com/"
+              target="_blank"
+              rel="noreferrer"
+            >
+              {lang === "ko" ? "바로가기" : "Open"}
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </a>
           </div>
         </div>
 
@@ -1070,18 +1081,24 @@ export default function HomeView({ subscriptionLive }: { subscriptionLive: boole
             marginBottom: "14px",
             color: "#111",
           }}>
-            {lang === "ko" ? "곧 만나보실 수 있습니다" : "Coming soon"}
+            {lang === "ko" ? "웹에서 바로 시작하세요" : "Start in your browser"}
           </h2>
           <p style={{ color: "#888", marginBottom: "40px", lineHeight: 1.7, fontSize: "1rem" }}>
             {lang === "ko"
-              ? "설치 없이 웹에서 바로 사이트 다이어그램을 만들 수 있도록 준비하고 있습니다."
-              : "We're getting it ready — site diagrams in the browser, no installation needed."}
+              ? "설치 없이 브라우저에서 대지를 고르고 사이트 다이어그램을 만듭니다."
+              : "Pick a site and build your diagram in the browser — nothing to install."}
           </p>
 
-          {/* 🔴준비 중이라 링크가 아니다 */}
-          <span className="archimap-cta soon" aria-disabled="true">
-            Coming soon
-          </span>
+          {/* ⚠️여기에 가격을 적지 않는다. Archi Map 의 요금 안내는 저쪽 화면과
+              /price 가 맡는다 — 값을 두 곳에 적으면 반드시 어긋난다. */}
+          <a
+            className="archimap-cta"
+            href="https://archimap.masslabs-archi.com/"
+            target="_blank"
+            rel="noreferrer"
+          >
+            {lang === "ko" ? "Archi Map 열기 →" : "Open Archi Map →"}
+          </a>
         </div>
       </section>
       )}

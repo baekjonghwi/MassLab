@@ -212,15 +212,6 @@ export default function AccountPage() {
           <p className="note warn">{x.pastDue}</p>
         )}
 
-        {/* 🔴[구독 해지]는 항상 자리에 있다. 구독이 없을 때 버튼째 사라지면
-            "해지할 방법이 없는 화면"으로 보인다 — 비활성으로 두고 왜 못 누르는지
-            바로 밑에 적어 준다. 해지·미납은 위에서 이미 사정을 말했으므로 또 말하지 않는다. */}
-        <button className="ghost wide" disabled={!cancelable || busy === PRODUCT}
-                onClick={() => cancel(PRODUCT)}>
-          {busy === PRODUCT ? x.working : x.cancelBtn}
-        </button>
-        {!cancelable && !sub && <p className="note">{x.cancelNone}</p>}
-
         {/* 🔴표는 홈·/price와 같은 것을 쓴다. 등급 설명이 화면마다 따로 있으면
             반드시 어긋나고, 그때 어느 쪽이 맞는지 아무도 모른다(2026-08-18 UI 통일).
             ⚠️여기서는 가격도 구독 버튼도 걷어낸 status 모양이다 — 구독을 시작하는
@@ -240,13 +231,23 @@ export default function AccountPage() {
         )}
       </section>
 
-      {/* 🔴탈퇴는 구독 카드 밖, 맨 아래 구석이다. 해지와 나란히 두면 둘을
-          헷갈려 누른다 — 하나는 되돌릴 수 있고 하나는 아니다. */}
+      {/* 🔴해지와 탈퇴를 한 줄에 둔다(2026-08-22 사용자 결정).
+          ⚠️원래는 일부러 떼어 놓았다 — "나란히 두면 둘을 헷갈려 누른다. 하나는
+            되돌릴 수 있고 하나는 아니다." 그 걱정은 그대로 유효하므로, 붙이는
+            대신 **생김새로 갈라 놓는다**: 해지는 테두리 있는 버튼, 탈퇴는 밑줄
+            글자(회색 → 빨강). 탈퇴는 여전히 두 번 묻는다.
+          🔴[구독 해지]는 구독이 없어도 자리를 지킨다. 버튼째 사라지면 "해지할
+            방법이 없는 화면"으로 보인다 — 비활성으로 두고 이유를 밑에 적는다. */}
       <div className="danger-zone">
+        <button className="ghost" disabled={!cancelable || busy === PRODUCT}
+                onClick={() => cancel(PRODUCT)}>
+          {busy === PRODUCT ? x.working : x.cancelBtn}
+        </button>
         <button className="link-danger" disabled={busy === "account"} onClick={closeAccount}>
           {busy === "account" ? x.deleting : x.deleteBtn}
         </button>
       </div>
+      {!cancelable && !sub && <p className="note dz-note">{x.cancelNone}</p>}
     </Shell>
   );
 }
@@ -288,7 +289,8 @@ function Shell({ children }: { children: React.ReactNode }) {
         .ghost.sm { padding:6px 10px; font-size:0.74rem; }
         .wide { width:100%; margin-top:14px; }
         button:disabled { opacity:0.5; cursor:not-allowed; }
-        .danger-zone { display:flex; justify-content:flex-end; padding:4px 2px 8px; }
+        .danger-zone { display:flex; justify-content:flex-end; align-items:center; gap:14px; padding:4px 2px 8px; }
+        .dz-note { text-align:right; margin-top:0; }
         .link-danger { background:none; border:none; padding:4px 2px; font-family:inherit;
                        font-size:0.75rem; color:#a0a0a0; cursor:pointer; text-decoration:underline;
                        text-underline-offset:3px; }
