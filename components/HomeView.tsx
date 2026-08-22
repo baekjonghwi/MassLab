@@ -433,8 +433,12 @@ export default function HomeView({ subscriptionLive }: { subscriptionLive: boole
           background: #fafafa;
           font-family: inherit;
           cursor: pointer;
-          /* Colorgram 칸은 <button>이 아니라 <a>다(고를 게 없어 바로 나간다) — 밑줄을 지운다 */
+          /* 🔴Colorgram 칸은 <button>이 아니라 <a>다(고를 게 없어 바로 나간다).
+             그래서 버튼 기본값에 기대던 두 가지를 여기서 직접 준다 —
+             ①밑줄 제거 ②가운데 정렬(<button>은 UA 기본이 text-align:center 지만 <a>는 아니다.
+             이게 없으면 그 칸의 제품명만 왼쪽에 붙는다). */
           text-decoration: none;
+          text-align: center;
         }
         .product-card-img {
           position: absolute;
