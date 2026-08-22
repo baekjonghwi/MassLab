@@ -53,14 +53,22 @@ UI는 흑백이다. 색은 **사용자 데이터**의 몫이다 — 지도 레�
 ```css
 :root, .paper { --pan: …; --card: …; --tx: …; }        /* 라이트, 한 번만 */
 @media (prefers-color-scheme: dark) { :root { … } }     /* 다크는 :root 만 */
-.paper { color-scheme: light; background: var(--pan); color: var(--tx); }
+.paper { color-scheme: only light; background: var(--pan); color: var(--tx); }
 ```
 
 그리고 색이 놓이는 영역을 `.paper` 로 감싼다. 상단바·바닥글은 그 밖에 두어 어두워지게 한다.
-⚠️`color-scheme: light` 를 같이 걸어야 그 안의 네이티브 위젯(색 선택기·숫자 스피너·스크롤바)도
-밝게 남는다 — 안 걸면 그것들만 다크로 튄다.
-archiMap 은 같은 일을 `#map`·`#legend-box` 에 직접 한다(클래스 없이 id 로).
 Colorgram 은 `<main class="paper">` 한 겹이다.
+
+🔴🔴**`light` 가 아니라 `only light`.** 둘은 뜻이 다르다 —
+`light` 는 "라이트를 지원한다"는 **선언**이고, `only light` 는 "라이트만 쓴다,
+브라우저는 건드리지 마라"는 **거부**다. 크롬 강제 다크(Auto Dark Theme)는 앞엣것으론
+안 멈춘다: 배경은 물론 **인라인 `background-color` 까지** 알고리즘으로 어둡게 칠해,
+팔레트 스와치가 통째로 탁해진다(2026-08-23 Colorgram 실측).
+`color-scheme` 은 그 안의 네이티브 위젯(색 선택기·숫자 스피너·스크롤바)도 같이 밝게 남긴다.
+
+⚠️**archiMap 이 멀쩡하다는 걸 근거로 삼지 말 것.** 저쪽 지도는 WebGL 캔버스라
+크롬이 픽셀을 못 건드리는 것뿐이지, 방어가 돼 있어서가 아니다. DOM 으로 색을 그리는
+화면은 전부 이 선언이 필요하다.
 
 ### 글자
 영문 **Geist**, 한글 **에스코어드림**. 한 사이트 안에서 글꼴이 갈리지 않게 한다 —

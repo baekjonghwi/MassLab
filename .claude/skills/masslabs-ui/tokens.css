@@ -73,7 +73,11 @@
   }
 }
 
-.paper { color-scheme: light; background: var(--pan); color: var(--tx); }
+/* 🔴🔴`only light` 다 — `light` 로는 부족하다.
+     light      = "라이트를 지원한다"(선언) / only light = "라이트만 쓴다, 건드리지 마라"(거부)
+     크롬 강제 다크(Auto Dark Theme)는 앞엣것으론 안 멈추고, 인라인 background-color 까지
+     알고리즘으로 어둡게 칠한다(2026-08-23 Colorgram 실측). */
+.paper { color-scheme: only light; background: var(--pan); color: var(--tx); }
 
 /* ==========================================================================
    글자체 — 영문 Geist + 한글 에스코어드림
