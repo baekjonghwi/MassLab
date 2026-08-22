@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Colorgram mark — 한 색(#E07A5F)의 명도 사다리로 세운 스카이라인.
+       🔴원본은 D:\CODE\Colorgram 의 app/icon.svg · components/BrandMark.tsx 다.
+         저쪽에서 마크를 고치면 여기도 다시 복사해 와야 한다 — 저장소가 달라 자동으로 안 따라온다.
+       ⚠️UI 흑백 규칙의 예외 = 브랜드 마크. 이 여섯 색은 토큰으로 바꾸지 않는다. -->
+  <rect x="0"     y="17" width="4.9" height="12" rx="0.75" fill="#6F2816"/>
+  <rect x="5.40"  y="9"  width="4.9" height="20" rx="0.75" fill="#9A381E"/>
+  <rect x="10.80" y="13" width="4.9" height="16" rx="0.75" fill="#C54726"/>
+  <rect x="16.20" y="3"  width="4.9" height="26" rx="0.75" fill="#DB6343"/>
+  <rect x="21.60" y="7"  width="4.9" height="22" rx="0.75" fill="#E3866E"/>
+  <rect x="27.00" y="15" width="4.9" height="14" rx="0.75" fill="#EBAA98"/>
+</svg>

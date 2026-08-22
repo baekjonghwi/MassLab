@@ -402,6 +402,9 @@ export default function HomeView({ subscriptionLive }: { subscriptionLive: boole
           gap: 20px;
           justify-content: center;
           margin-bottom: 44px;
+          /* 🔴칸이 셋이 되면서 넣었다(2026-08-23). 모바일 규격(132px)으로도 셋이면
+             132×3+12×2 = 420px 라 좁은 폰에서 가로로 넘친다 — 넘치느니 줄을 바꾼다. */
+          flex-wrap: wrap;
         }
         .product-card {
           width: 168px;
@@ -430,6 +433,8 @@ export default function HomeView({ subscriptionLive }: { subscriptionLive: boole
           background: #fafafa;
           font-family: inherit;
           cursor: pointer;
+          /* Colorgram 칸은 <button>이 아니라 <a>다(고를 게 없어 바로 나간다) — 밑줄을 지운다 */
+          text-decoration: none;
         }
         .product-card-img {
           position: absolute;
@@ -930,7 +935,38 @@ export default function HomeView({ subscriptionLive }: { subscriptionLive: boole
               target="_blank"
               rel="noreferrer"
             >
-              {lang === "ko" ? "바로가기" : "Open"}
+              {lang === "ko" ? "바로가기" : "Link"}
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </a>
+          </div>
+          {/* 🔴Colorgram 은 **고르는 칸이 아니다**(2026-08-23). 아래 기능 탭·요금 구역이
+              product 상태를 보고 그려지는데 Colorgram 은 실을 기능도 요금도 없다 —
+              그래서 위 칸이 <button>(setProduct)이 아니라 저쪽으로 바로 나가는 <a>다.
+              ⚠️나중에 기능 소개를 붙이려면 Product 타입과 아래 두 구역을 같이 손봐야 한다.
+                여기만 <button>으로 바꾸면 탭을 눌렀을 때 빈 화면이 뜬다. */}
+          <div className="product-card">
+            <a
+              className="product-card-main"
+              href="https://colorgram.masslabs-archi.com/"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <span className="product-card-img">
+                {/* 원본은 Colorgram 저장소의 app/icon.svg — 저쪽을 고치면 여기도 복사해 온다 */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/images/icon/Colorgram.svg" alt="" />
+              </span>
+              <span className="product-card-name">Colorgram</span>
+            </a>
+            <a
+              className="product-card-go"
+              href="https://colorgram.masslabs-archi.com/"
+              target="_blank"
+              rel="noreferrer"
+            >
+              {lang === "ko" ? "바로가기" : "Link"}
               <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
                 <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
