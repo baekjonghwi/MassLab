@@ -15,8 +15,19 @@ const nextConfig: NextConfig = {
       //   화면 파일은 그대로 두고 길만 막는다(lib/interim.ts의 SUBSCRIPTION_LIVE로 복귀).
       //   ⚠️permanent:false(307)여야 한다 — 308로 캐시되면 정기결제를 열어도
       //     브라우저가 기억한 리다이렉트 때문에 /subscribe가 안 열린다.
+      //   🔴?preview 가 붙어 있으면 비껴간다. /main(심사용, 구독을 팔던 시절의 홈)
+      //     에서 [내 구독]을 누른 사람이 홈으로 튕기면, 구독표를 보다 건당결제
+      //     화면에 떨어져 "왜 옛날 걸로 돌아갔지"가 된다.
+      //     ⚠️/account 는 보여 주기만 하는 화면이라 열어도 안전하다(결제를
+      //       시작하지 않는다 — components/PlanTable 의 variant="status").
+      //       /subscribe 는 **실제 결제 화면**이라 preview 로도 열지 않는다.
       ...(SUBSCRIPTION_LIVE ? [] : [
-        { source: "/account", destination: "/", permanent: false },
+        {
+          source: "/account",
+          missing: [{ type: "query" as const, key: "preview" }],
+          destination: "/",
+          permanent: false,
+        },
         { source: "/subscribe", destination: "/", permanent: false },
       ]),
     ];

@@ -177,10 +177,16 @@ type Props = {
   currentPlan?: string;
   /** 없으면 버튼이 /price 링크가 된다(홍보용). 있으면 실제 결제로 간다. */
   onSubscribe?: (plan: string) => void;
+  /**
+   * onSubscribe 가 없을 때 [구독하기]가 향할 곳. 기본은 /price.
+   * 🔴/main(심사용 미리보기)은 /price 로 보내면 안 된다 — 거기는 지금
+   *   건당결제를 보여줘서, 구독표를 보다 누른 사람이 딴 상품으로 떨어진다.
+   */
+  ctaHref?: string;
   busy?: string;
 };
 
-export default function PlanTable({ lang, currentPlan, onSubscribe, busy, variant = "sell" }: Props) {
+export default function PlanTable({ lang, currentPlan, onSubscribe, busy, variant = "sell", ctaHref = "/price" }: Props) {
   const L = (t: { ko: string; en: string }) => t[lang] ?? t.ko;
   const live = !!onSubscribe;
   const isKo = lang === "ko";
@@ -273,7 +279,7 @@ export default function PlanTable({ lang, currentPlan, onSubscribe, busy, varian
                     {busy === t.key ? "…" : isKo ? "구독하기" : "Subscribe"}
                   </button>
                 ) : (
-                  <a href="/price">{isKo ? "구독하기" : "Subscribe"}</a>
+                  <a href={ctaHref}>{isKo ? "구독하기" : "Subscribe"}</a>
                 )}
               </div>
             ))}

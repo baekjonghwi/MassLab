@@ -260,6 +260,11 @@ const archimapFeatures: Feature[] = [
 ];
 
 export default function HomeView({ subscriptionLive }: { subscriptionLive: boolean }) {
+  // 🔴"구독 화면을 그리라고 했는데 실제로는 안 파는" 상태 = 미리보기(/main).
+  //   이때만 구독 쪽 링크에 ?preview 를 달아 next.config.ts 의 임시 리다이렉트를
+  //   비껴간다. 진짜로 구독을 여는 날(SUBSCRIPTION_LIVE=true)에는 저절로 false가
+  //   되어 평범한 링크로 돌아간다 — 나중에 손으로 지울 것이 없다.
+  const preview = subscriptionLive && !SUBSCRIPTION_LIVE;
   const [product, setProduct] = useState<Product>("laserfish");
   const [slide, setSlide] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -762,11 +767,11 @@ export default function HomeView({ subscriptionLive }: { subscriptionLive: boole
             <a href="/contact" className="hnav-link">
               {lang === "ko" ? "문의하기" : "Contact"}
             </a>
-            {/* 🔴메뉴만은 **진짜 스위치**를 본다(prop이 아니다) — /account 는 구독을
-                안 파는 동안 next.config.ts 가 홈으로 돌린다. /main 에서 이걸 띄우면
-                누르는 순간 홈으로 튕기는 죽은 링크가 된다. */}
-            {SUBSCRIPTION_LIVE && (
-              <a href="/account" className="hnav-link">
+            {/* 🔴미리보기(/main)에서는 ?preview 를 달아 보낸다 — 안 달면 구독을
+                안 파는 동안 next.config.ts 가 /account 를 홈으로 돌려, 구독표를
+                보던 사람이 건당결제 화면에 떨어진다. */}
+            {subscriptionLive && (
+              <a href={preview ? "/account?preview=1" : "/account"} className="hnav-link">
                 {lang === "ko" ? "내 구독" : "My Plan"}
               </a>
             )}
@@ -1027,7 +1032,17 @@ export default function HomeView({ subscriptionLive }: { subscriptionLive: boole
 
           {/* 🔴표와 카드는 /price와 같은 것을 쓴다(출처가 둘이면 어긋난다).
               어느 쪽을 싣느냐는 부르는 쪽이 넘긴 subscriptionLive 가 정한다. */}
-          {subscriptionLive ? <PlanTable lang={lang} /> : <PerPiecePricing lang={lang} />}
+          {subscriptionLive ? (
+            /* 🔴미리보기에서는 [구독하기]를 /price 로 보내지 않는다 — 거기는 지금
+               건당결제를 보여줘서, 구독표를 보다 누른 사람이 딴 상품에 떨어진다.
+               구독은 어차피 로그인이 먼저이므로 로그인으로 보낸다. */
+            <PlanTable
+              lang={lang}
+              ctaHref={preview ? `/login?next=${encodeURIComponent("/main")}` : undefined}
+            />
+          ) : (
+            <PerPiecePricing lang={lang} />
+          )}
 
           {/* 구독표에만 붙는다 — 건당결제 카드는 최소·최대 금액을 카드 안에 이미
               적고 있어 여기서 또 말하면 두 번 말하는 셈이다. */}
