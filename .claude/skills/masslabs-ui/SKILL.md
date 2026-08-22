@@ -93,7 +93,7 @@ SVG 문자열을 만들어 내보내는 경로에는 **웹폰트를 넣지 않�
 | 저장소 | 상태 |
 |---|---|
 | `archiMap` | **원본**. 생 CSS, 토큰 15개 |
-| `Colorgram` | 적용됨 (2026-08-22). Tailwind v4 `@theme inline` 경유 |
+| `Colorgram` | 적용됨 (2026-08-22). Tailwind v4 `@theme inline` 경유. 🔴**다크모드는 안 쓴다** — 색이 곧 내용물이라 바탕이 흔들리면 안 된다(`color-scheme: only light`). 제품군에서 여기만 예외다 |
 | `MassLabs` | ⏳미적용. 색 리터럴 507개가 인라인 style로 박혀 있다 |
 | `Archi_render` | ⏳미적용 |
 
