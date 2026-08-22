@@ -111,31 +111,23 @@ export const t = {
           ],
         },
         {
-          title: "Article 5 (Transfer of Personal Data Overseas)",
-          body: "The Company transfers personal data overseas as set out below in order to provide the service. You may refuse the transfer, but if you do you will not be able to use services that require an account.",
-          list: [
-            "Recipient: Supabase Inc. / Country: Singapore / Data transferred: the account, usage, payment, device linking, and review data listed in Article 2 / When and how: transmitted over the network at the time you use the service / Purpose: account authentication and data storage / Retention: as stated in Article 3 / Contact: privacy@supabase.io",
-            "Recipient: Vercel Inc. / Country: United States / Data transferred: service usage records and access timestamps / When and how: transmitted over the network at the time you use the service / Purpose: service hosting and operation / Retention: until the processing agreement ends / Contact: privacy@vercel.com",
-          ],
-        },
-        {
-          title: "Article 6 (Use of Cookies)",
+          title: "Article 5 (Use of Cookies)",
           body: "The Company uses cookies to keep you signed in. These cookies are shared by masslabs-archi.com and its subdomains, so signing in once keeps you signed in across every program the Company provides.\nYou may refuse cookies in your browser settings. If you do, you will not be able to use services that require signing in.",
         },
         {
-          title: "Article 7 (Provision to Third Parties)",
+          title: "Article 6 (Provision to Third Parties)",
           body: "As a rule the Company does not provide your personal data to third parties. Exceptions apply only where you have given prior consent or where disclosure is required by law.",
         },
         {
-          title: "Article 8 (User Rights)",
+          title: "Article 7 (User Rights)",
           body: "You may at any time request access to, correction of, deletion of, or suspension of processing of your personal data, and you may close your account. You may also withdraw consent to output data collection at any time. Send requests to masslabs.archi@gmail.com and we will act on them within 10 business days.",
         },
         {
-          title: "Article 9 (Destruction of Personal Data)",
+          title: "Article 8 (Destruction of Personal Data)",
           body: "Personal data whose retention period has passed or whose purpose has been fulfilled is destroyed without delay. Electronic files are permanently deleted by a method that makes recovery impossible.",
         },
         {
-          title: "Article 10 (Security Measures)",
+          title: "Article 9 (Security Measures)",
           list: [
             "Passwords and plug-in authentication tokens are stored one-way hashed; the originals are never kept.",
             "All communication between you and the Company is encrypted with HTTPS.",
@@ -144,11 +136,11 @@ export const t = {
           ],
         },
         {
-          title: "Article 11 (Data Protection Officer)",
+          title: "Article 10 (Data Protection Officer)",
           body: "For enquiries about personal data processing, please contact:\nRepresentative: Baek Jonghwi | Email: masslabs.archi@gmail.com",
         },
         {
-          title: "Article 12 (Remedies for Rights Infringement)",
+          title: "Article 11 (Remedies for Rights Infringement)",
           body: "You may contact the following bodies for relief from personal data infringement.",
           list: [
             "Personal Information Dispute Mediation Committee: 1833-6972 / www.kopico.go.kr",
@@ -158,7 +150,7 @@ export const t = {
           ],
         },
         {
-          title: "Article 13 (Changes to This Policy)",
+          title: "Article 12 (Changes to This Policy)",
           body: "This policy applies from its effective date. If it changes, notice will be given on the service at least 7 days before the change takes effect.",
         },
       ],
@@ -395,31 +387,23 @@ export const t = {
           ],
         },
         {
-          title: "제5조 (개인정보의 국외 이전)",
-          body: "회사는 서비스 제공을 위해 아래와 같이 개인정보를 국외로 이전합니다. 이용자는 국외 이전을 거부할 수 있으나, 거부하는 경우 계정이 필요한 서비스를 이용할 수 없습니다.",
-          list: [
-            "이전받는 자: Supabase Inc. / 이전 국가: 싱가포르 / 이전 항목: 제2조의 계정·이용·결제·기기 연결·후기 정보 / 이전 시기 및 방법: 서비스 이용 시점에 정보통신망을 통해 전송 / 이용 목적: 계정 인증 및 데이터 보관 / 보유 기간: 제3조와 같음 / 연락처: privacy@supabase.io",
-            "이전받는 자: Vercel Inc. / 이전 국가: 미국 / 이전 항목: 서비스 이용 기록, 접속 일시 / 이전 시기 및 방법: 서비스 이용 시점에 정보통신망을 통해 전송 / 이용 목적: 서비스 호스팅 및 운영 / 보유 기간: 위탁 계약 종료 시까지 / 연락처: privacy@vercel.com",
-          ],
-        },
-        {
-          title: "제6조 (쿠키의 사용)",
+          title: "제5조 (쿠키의 사용)",
           body: "회사는 로그인 상태를 유지하기 위해 쿠키를 사용합니다. 이 쿠키는 masslabs-archi.com 및 그 하위 도메인이 함께 사용하므로, 한 번 로그인하면 회사가 제공하는 모든 프로그램에서 로그인 상태가 유지됩니다.\n이용자는 브라우저 설정에서 쿠키 저장을 거부할 수 있습니다. 다만 이 경우 로그인이 필요한 서비스는 이용할 수 없습니다.",
         },
         {
-          title: "제7조 (개인정보의 제3자 제공)",
+          title: "제6조 (개인정보의 제3자 제공)",
           body: "회사는 원칙적으로 이용자의 개인정보를 제3자에게 제공하지 않습니다. 다만, 이용자가 사전에 동의한 경우 또는 법령에 의한 요구가 있는 경우에는 예외로 합니다.",
         },
         {
-          title: "제8조 (이용자의 권리)",
+          title: "제7조 (이용자의 권리)",
           body: "이용자는 언제든지 개인정보 열람, 정정, 삭제, 처리 정지 및 회원 탈퇴를 요청할 수 있습니다. 결과물 데이터 수집에 대한 동의도 언제든지 철회할 수 있습니다. 요청은 masslabs.archi@gmail.com으로 접수해 주시면 영업일 기준 10일 이내에 처리합니다.",
         },
         {
-          title: "제9조 (개인정보의 파기)",
+          title: "제8조 (개인정보의 파기)",
           body: "보유 기간이 지났거나 처리 목적이 달성된 개인정보는 지체 없이 파기합니다. 전자적 파일은 복원이 불가능한 방법으로 영구 삭제합니다.",
         },
         {
-          title: "제10조 (개인정보의 안전성 확보 조치)",
+          title: "제9조 (개인정보의 안전성 확보 조치)",
           list: [
             "비밀번호와 플러그인 인증 토큰은 단방향 암호화하여 저장하며, 원문을 보관하지 않습니다.",
             "이용자와 회사 사이의 모든 통신은 HTTPS로 암호화합니다.",
@@ -428,11 +412,11 @@ export const t = {
           ],
         },
         {
-          title: "제11조 (개인정보 보호책임자)",
+          title: "제10조 (개인정보 보호책임자)",
           body: "개인정보 처리에 관한 문의는 아래 책임자에게 연락해 주세요.\n대표: 백종휘 | 이메일: masslabs.archi@gmail.com",
         },
         {
-          title: "제12조 (권익침해 구제 방법)",
+          title: "제11조 (권익침해 구제 방법)",
           body: "개인정보 침해로 인한 구제를 받기 위해 아래 기관에 문의하실 수 있습니다.",
           list: [
             "개인정보분쟁조정위원회: 1833-6972 / www.kopico.go.kr",
@@ -442,7 +426,7 @@ export const t = {
           ],
         },
         {
-          title: "제13조 (개인정보처리방침 변경)",
+          title: "제12조 (개인정보처리방침 변경)",
           body: "본 방침은 시행일부터 적용되며, 변경 사항이 있을 경우 시행 7일 전부터 서비스 화면을 통해 고지합니다.",
         },
       ],
