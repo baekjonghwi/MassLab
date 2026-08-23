@@ -105,7 +105,10 @@ export const PLAN_CSS = `
   }
 `;
 
-type Cell = string | null;                 // null = 제공 안 함(×)
+// 🔴칸 안에 말이 들어가면 {ko,en}으로 적는다. 단위가 붙은 숫자("10 / 달")를
+//   글자열 하나로 두면 영어 화면에 한국어가 그대로 선다(2026-08-23 고침).
+//   "1km"처럼 말이 아닌 칸은 그냥 글자열로 둔다.
+type Cell = string | { ko: string; en: string } | null;   // null = 제공 안 함(×)
 type Feature = { label: { ko: string; en: string }; cells: [Cell, Cell, Cell, Cell] };
 type Program = {
   name: string;
@@ -127,7 +130,12 @@ export const PROGRAMS: Program[] = [
       },
       {
         label: { ko: "크레딧", en: "Credits" },
-        cells: ["3 / 달", "10 / 달", "15 / 달", "20 / 달"],
+        cells: [
+          { ko: "3 / 달",  en: "3 / mo" },
+          { ko: "10 / 달", en: "10 / mo" },
+          { ko: "15 / 달", en: "15 / mo" },
+          { ko: "20 / 달", en: "20 / mo" },
+        ],
       },
       {
         label: { ko: "내보내기 (2D)", en: "Export (2D)" },
@@ -194,10 +202,14 @@ export default function PlanTable({ lang, currentPlan, onSubscribe, busy, varian
   // 🔴파는 등급만 싣는다. cells 배열은 free를 포함한 순서라 자리를 따로 찾는다.
   const tiers = TIERS.filter((t) => t.key !== "free");
 
-  // 🔴구독 중일 때만 나머지를 물린다. 아직 구독이 없으면 전부 또렷하게 둔다 —
-  //   고를 것이 남아 있는데 다 흐려 놓으면 고장 난 화면으로 보인다.
+  // 🔴내 구독 화면(status)에서는 **쓰고 있는 등급만** 또렷하다.
+  //   구독이 없으면 또렷한 등급이 하나도 없으므로 전부 물린다(2026-08-23 결정) —
+  //   MAX만 새까맣게 남아 있으면 "MAX를 쓰는 중"으로 읽힌다.
+  //   ⚠️파는 표(sell)는 이 규칙 밖이다. 고르라고 내놓은 표를 흐려 놓으면
+  //     고장 난 화면으로 보인다.
   const focus = variant === "status" && tiers.some((t) => t.key === currentPlan);
-  const faded = (key: string) => (focus && key !== currentPlan ? " dim" : "");
+  const none  = variant === "status" && !focus;             // 미구독
+  const faded = (key: string) => (none || (focus && key !== currentPlan) ? " dim" : "");
   const at = (cells: readonly Cell[], key: string): Cell =>
     cells[TIER_KEYS.indexOf(key as (typeof TIER_KEYS)[number])] ?? null;
 
@@ -239,14 +251,17 @@ export default function PlanTable({ lang, currentPlan, onSubscribe, busy, varian
 
               return (
                 <div className={`pg-cell${focus && t.key === currentPlan ? " on" : ""}${faded(t.key)}`} key={t.key}>
-                  {lines.map((l, i) => (
-                    <div className="pg-line" key={i}>
-                      {l.label && <span>{l.label}</span>}
-                      <b className={l.value === "○" ? "mark" : undefined}>
-                        {l.value === "○" ? (isKo ? "사용가능" : "Available") : l.value}
-                      </b>
-                    </div>
-                  ))}
+                  {lines.map((l, i) => {
+                    const v = typeof l.value === "string" ? l.value : L(l.value!);
+                    return (
+                      <div className="pg-line" key={i}>
+                        {l.label && <span>{l.label}</span>}
+                        <b className={v === "○" ? "mark" : undefined}>
+                          {v === "○" ? (isKo ? "사용가능" : "Available") : v}
+                        </b>
+                      </div>
+                    );
+                  })}
                 </div>
               );
             })}

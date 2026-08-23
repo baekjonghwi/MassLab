@@ -10,6 +10,12 @@ import SiteHeader from "@/components/SiteHeader";
 //
 //  🔴구독 상태는 my_plan RPC로 묻는다. subscriptions를 직접 세면 'all' 번들
 //    구독자가 free로 보인다(번들은 product='all' 행 하나뿐이라서).
+//
+//  🔴닉네임도 여기서 고친다(2026-08-23). 저장소는 profiles.display_name —
+//    archiMap이 진작부터 읽고 쓰던 **바로 그 칸**이라, 여기서 바꾸면 archiMap ·
+//    Colorgram 에 그대로 따라간다. 새 칸을 만들면 이름이 두 개로 갈라진다.
+//    ⚠️쓰기는 set_display_name RPC 한 곳으로만 한다(supabase/migrations/006) —
+//      길이·공백 규칙이 화면마다 따로 있으면 프로그램별로 다른 이름이 들어온다.
 // ==========================================================================
 
 type Sub = {
@@ -39,8 +45,17 @@ const TX = {
   ko: {
     loading: "불러오는 중…",
     title: "내 구독", logout: "로그아웃",
-    toPrice: "요금제 보러 가기 →",
     none: "미구독",
+    subscribeBtn: "구독하기",
+    // ── 닉네임(계정 하나에 하나, 모든 프로그램 공용) ──
+    nickTitle: "닉네임",
+    nickEdit: "수정", nickSave: "저장", nickCancel: "취소",
+    nickNone: "아직 없음",
+    // 🔴글자 종류는 안 막는다 — 한글·한자·가나·키릴·아랍 문자·이모지 다 된다.
+    //   ⚠️평소엔 규칙을 미리 늘어놓지 않는다(사용자 지시). 걸렸을 때만 말한다.
+    nickLen: "2~20자로 지어 주세요.",
+    nickBad: "쓸 수 없는 문자가 들어 있습니다. 다른 이름을 써 주세요.",
+    nickFail: "닉네임을 바꾸지 못했습니다.",
     nextBilling: "다음 결제일", firstBilling: "첫 결제일", amount: "결제 금액",
     cancelBtn: "구독 해지", working: "처리 중…",
     endsOn: "이용 종료일",
@@ -68,8 +83,15 @@ const TX = {
   en: {
     loading: "Loading…",
     title: "My subscription", logout: "Sign out",
-    toPrice: "See the plans →",
     none: "Not subscribed",
+    subscribeBtn: "Subscribe",
+    // ── Nickname (one per account, shared by every program) ──
+    nickTitle: "Nickname",
+    nickEdit: "Edit", nickSave: "Save", nickCancel: "Cancel",
+    nickNone: "Not set",
+    nickLen: "Please use 2–20 characters.",
+    nickBad: "That name contains characters we can't use. Please try another.",
+    nickFail: "Couldn't change the nickname.",
     nextBilling: "Next billing date", firstBilling: "First billing date", amount: "Amount",
     cancelBtn: "Cancel subscription", working: "Working…",
     endsOn: "Access ends",
@@ -105,18 +127,40 @@ export default function AccountPage() {
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
 
+  // 닉네임 — name은 저장된 값, draft는 고치는 중인 값.
+  const [name, setName] = useState("");
+  const [draft, setDraft] = useState<string | null>(null);   // null = 편집 중 아님
+  const [nickErr, setNickErr] = useState("");
+
+  // ==========================================================================
+  //  [구독하기]가 갈 곳.
+  //
+  //  🔴미리보기로 들어온 화면(/account?preview=1)에서는 구독을 팔던 쪽으로 보낸다.
+  //    지금 /price 는 건당결제라, 구독표를 보던 사람이 딴 상품에 떨어진다
+  //    (components/SiteHeader 와 같은 판정 — 한쪽만 고치면 화면 안에서 길이 갈린다).
+  //  ⚠️링크가 아니라 버튼인 이유 — ?preview 는 브라우저만 아는 값이라 서버가 그린
+  //    첫 그림에는 없다. href 에 넣으면 붙기 전후로 주소가 달라진다(hydration).
+  //    누를 때 정하면 그런 일이 없다.
+  // ==========================================================================
+  const toPrice = () => {
+    const preview = new URLSearchParams(window.location.search).has("preview");
+    window.location.href = preview ? "/main#pricing" : "/price";
+  };
+
   const load = useCallback(async () => {
     const sb = supabase();
     const { data: u } = await sb.auth.getUser();
     if (!u.user) { window.location.href = `/login?next=${encodeURIComponent("/account")}`; return; }
     setEmail(u.user.email ?? "");
 
-    const [{ data: p }, { data: rows }] = await Promise.all([
+    const [{ data: p }, { data: rows }, { data: prof }] = await Promise.all([
       sb.rpc("my_plan", { p_product: PRODUCT }),
       sb.from("subscriptions").select("*"),
+      sb.from("profiles").select("display_name").eq("id", u.user.id).maybeSingle(),
     ]);
     setPlan(typeof p === "string" ? p : "free");
     setSubs((rows ?? []) as Sub[]);
+    setName(prof?.display_name ?? "");
     setReady(true);
   }, []);
 
@@ -124,6 +168,41 @@ export default function AccountPage() {
 
   const token = async () => (await supabase().auth.getSession()).data.session?.access_token ?? "";
 
+
+  // ==========================================================================
+  //  닉네임 저장 — 규칙의 원본은 서버(set_display_name)다.
+  //
+  //  🔴여기서도 같은 규칙으로 한 번 걸러 준다. 서버만 믿으면 화면에는
+  //    "닉네임을 바꾸지 못했습니다"라는 말만 뜨고 **왜 안 되는지**가 안 나온다.
+  //  🔴돌려받은 값을 그대로 쓴다 — 공백을 서버가 다듬으므로, 내가 보낸 값을
+  //    화면에 쓰면 저장된 이름과 보이는 이름이 어긋난다.
+  // ==========================================================================
+  const saveNick = async () => {
+    const v = (draft ?? "").trim().replace(/\s+/g, " ");
+    // 🔴폭 없는 문자만으로 지은 이름은 길이는 차지만 화면에는 빈 줄로 선다.
+    //   서버(set_display_name)도 같은 것을 막는다 — 여기서 먼저 걸러 말을 해 준다.
+    const visible = v.replace(/[\u00ad\u200b-\u200f\u202a-\u202e\u2060-\u2064\ufeff]/g, "").trim();
+    // 🔴글자 수는 Array.from 으로 센다 — 서버(char_length)와 세는 단위를 맞춘다.
+    //   "🙂".length 는 2라, 그대로 세면 이모지 이름만 절반에서 잘린다.
+    const len = Array.from(v).length;
+    if (len < 2 || len > 20) { setNickErr(x.nickLen); return; }
+    if (visible === "") { setNickErr(x.nickBad); return; }
+    if (v === name) { setDraft(null); setNickErr(""); return; }
+    setBusy("nick"); setNickErr("");
+    const { data, error: e } = await supabase().rpc("set_display_name", { p_name: v });
+    setBusy("");
+    // 🔴서버가 왜 거절했는지 그대로 옮긴다. "바꾸지 못했습니다"만 뜨면 사람은
+    //   같은 이름을 몇 번이고 다시 넣어 본다.
+    if (e) {
+      const m = e.message ?? "";
+      setNickErr(/visible|control/.test(m) ? x.nickBad
+               : /2\.\.20/.test(m)       ? x.nickLen
+               : x.nickFail);
+      return;
+    }
+    setName(typeof data === "string" ? data : v);
+    setDraft(null);
+  };
 
   const cancel = async (product: string) => {
     if (!confirm(x.confirmPaid)) return;
@@ -181,6 +260,51 @@ export default function AccountPage() {
 
       {error && <div className="err">{error}</div>}
 
+      {/* ── 닉네임 — 계정 하나에 하나. 구독보다 위에 둔다(구독이 없어도 있는 것이라).
+             🔴여기서 바꾼 이름이 archiMap · Colorgram 에 그대로 간다. */}
+      <section className="card">
+        <div className="nick-row">
+          <div className="nick-l">
+            <div className="nick-k">{x.nickTitle}</div>
+            {draft === null ? (
+              <div className="nick-v">{name || x.nickNone}</div>
+            ) : (
+              <input
+                className="nick-in"
+                autoFocus
+                value={draft}
+                maxLength={20}
+                placeholder={x.nickTitle}
+                onChange={(e) => setDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") saveNick();
+                  if (e.key === "Escape") { setDraft(null); setNickErr(""); }
+                }}
+              />
+            )}
+          </div>
+
+          {draft === null ? (
+            <button className="ghost sm" onClick={() => { setDraft(name); setNickErr(""); }}>
+              {x.nickEdit}
+            </button>
+          ) : (
+            <div className="nick-btns">
+              <button className="ghost sm" disabled={busy === "nick"}
+                      onClick={() => { setDraft(null); setNickErr(""); }}>
+                {x.nickCancel}
+              </button>
+              <button className="dark sm" disabled={busy === "nick"} onClick={saveNick}>
+                {busy === "nick" ? x.working : x.nickSave}
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* 🔴아무 말도 미리 붙이지 않는다 — 걸렸을 때 그 까닭만 말한다 */}
+        {nickErr && <p className="note warn">{nickErr}</p>}
+      </section>
+
       {/* ── MassLabs 구독 (모든 프로그램 공통) ── */}
       <section className="card">
         <div className="badge-row">
@@ -218,11 +342,9 @@ export default function AccountPage() {
           <PlanTable lang={lang} currentPlan={plan} variant="status" />
         </div>
 
-        {!entitled && (
-          <p className="note">
-            <a href="/price" style={{ color: "#555", textDecoration: "underline" }}>{x.toPrice}</a>
-          </p>
-        )}
+        {/* 🔴여기 있던 [요금제 보러 가기 →]는 걷어냈다(2026-08-23) — 아래
+            [구독하기]와 같은 곳으로 가는 링크가 두 개였다. 구독을 시작하는
+            문은 화면에 하나만 둔다. */}
 
         {entitled && !sub && (
           <p className="note">{x.adminNote}</p>
@@ -235,13 +357,21 @@ export default function AccountPage() {
             생김새까지 같아졌으니 **오조작을 막는 것은 이제 확인 창뿐이다.**
             해지는 한 번, 탈퇴는 두 번 묻는다(closeAccount 참고) — 그 차이를
             줄이지 말 것.
-          🔴[구독 해지]는 구독이 없어도 자리를 지킨다(비활성). 버튼째 사라지면
-            "해지할 방법이 없는 화면"으로 보인다. */}
+          🔴이 자리는 비워 두지 않는다. 해지할 구독이 없으면 대신 [구독하기]가
+            선다(2026-08-23) — 예전엔 흐린 [구독 해지]가 그대로 있었는데,
+            구독이 없는 사람에게는 누를 수 없는 버튼 하나가 전부였다.
+            ⚠️해지·탈퇴와 나란히 서지만 [구독하기]만 붉다. 되돌릴 수 없는 두
+              동작이 회색이고 시작하는 동작이 붉은 것이 뒤집힌 것처럼 보여도,
+              여기서 색은 위험이 아니라 **지금 할 수 있는 일**을 가리킨다. */}
       <div className="danger-zone">
-        <button className="link-danger" disabled={!cancelable || busy === PRODUCT}
-                onClick={() => cancel(PRODUCT)}>
-          {busy === PRODUCT ? x.working : x.cancelBtn}
-        </button>
+        {cancelable ? (
+          <button className="link-danger" disabled={busy === PRODUCT}
+                  onClick={() => cancel(PRODUCT)}>
+            {busy === PRODUCT ? x.working : x.cancelBtn}
+          </button>
+        ) : (
+          <button className="link-danger go" onClick={toPrice}>{x.subscribeBtn}</button>
+        )}
         <button className="link-danger" disabled={busy === "account"} onClick={closeAccount}>
           {busy === "account" ? x.deleting : x.deleteBtn}
         </button>
@@ -292,6 +422,22 @@ function Shell({ children }: { children: React.ReactNode }) {
                        font-size:0.75rem; color:#a0a0a0; cursor:pointer; text-decoration:underline;
                        text-underline-offset:3px; }
         .link-danger:hover { color:#c53030; }
+        /* 🔴[구독하기]만 처음부터 붉다 — 회색 두 개 사이에서 유일하게 '하는' 동작이다 */
+        .link-danger.go { color:#c53030; font-weight:700; }
+        .link-danger.go:hover { color:#9b2c2c; }
+        .nick-row { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+        .nick-l { min-width:0; flex:1; }
+        .nick-k { font-size:0.7rem; font-weight:700; color:#999; letter-spacing:0.02em; }
+        .nick-v { font-size:1rem; font-weight:700; margin-top:5px; word-break:break-all; }
+        .nick-in { width:100%; max-width:280px; margin-top:4px; padding:7px 10px;
+                   border:1.5px solid #e0e0e0; border-radius:8px; background:#fff;
+                   font-family:inherit; font-size:0.95rem; font-weight:700; color:#1a1a1a; }
+        .nick-in:focus { outline:none; border-color:#1a1a1a; }
+        .nick-btns { display:flex; gap:6px; flex-shrink:0; }
+        .dark { padding:8px 14px; background:#1a1a1a; color:#fff; border:1.5px solid #1a1a1a;
+                border-radius:8px; font-size:0.8rem; font-weight:600; font-family:inherit; cursor:pointer; }
+        .dark:hover { background:#333; }
+        .dark.sm { padding:6px 12px; font-size:0.74rem; }
         .err { background:#fff5f5; color:#c53030; font-size:0.8rem; padding:11px 14px; border-radius:8px; margin-bottom:14px; }
         code { background:#f2f2f2; padding:1px 5px; border-radius:4px; font-size:0.92em; }
       `}</style>
