@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { useLanguage } from "@/lib/i18n";
 import PlanTable, { PLAN_CSS } from "@/components/PlanTable";
 import PerPiecePricing, { PerPieceNote } from "@/components/PerPiecePricing";
-import AuthNavLink from "@/components/AuthNavLink";
 import { SUBSCRIPTION_LIVE } from "@/lib/interim";
 
 // ==========================================================================
@@ -781,7 +780,6 @@ export default function HomeView({ subscriptionLive }: { subscriptionLive: boole
                 {lang === "ko" ? "내 구독" : "My Plan"}
               </a>
             )}
-            <AuthNavLink />
           </div>
         </div>
       </nav>

@@ -16,6 +16,11 @@ import { useLanguage } from "@/lib/i18n";
 //
 //  🔴판정이 끝나기 전에도 아무것도 그리지 않는다. "로그인"을 먼저 띄웠다가
 //    지우면, 이미 로그인한 사람 눈에는 로그아웃된 것처럼 번쩍인다.
+//
+//  ⛔2026-08-24 상단 막대에서 뺐다(사용자 결정) — 지금 이걸 쓰는 화면이 없다.
+//    /login 은 다시 /account · /link · /price 의 리다이렉트로만 열린다.
+//    막대에 로그인을 되돌리려면 SiteHeader 와 HomeView 의 .hnav-links 끝에
+//    <AuthNavLink /> 를 **둘 다** 다시 넣는다(한쪽만 넣으면 화면을 옮길 때 사라진다).
 // ==========================================================================
 
 export default function AuthNavLink({ className = "hnav-link" }: { className?: string }) {
