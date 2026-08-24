@@ -54,9 +54,8 @@ export const t = {
     },
     contact: {
       title: "Contact",
-      inquiryText: "For service-related inquiries, reach out through either channel below.",
-      gmailLabel: "Email us",
-      instaLabel: "Instagram DM",
+      // 🔴메일 주소 하나만 적는다(2026-08-24 결정). Instagram DM 은 걷어냈다.
+      inquiryText: "For service-related inquiries, please write to us at:",
     },
     privacy: {
       back: "← Back",
@@ -102,10 +101,12 @@ export const t = {
           body: "The Company delegates personal data processing as set out below in order to provide the service. Each processor is supervised so that personal data is handled safely in accordance with the Personal Information Protection Act.",
           // 🔴결제사는 적지 않는다 — 한국어판과 같은 이유(위 주석 참고).
           list: [
-            "Supabase Inc. — account authentication and data storage",
-            "Cloudflare, Inc. — data storage",
-            "Vercel Inc. — service hosting and operation",
-            "Korea PortOne Inc. — payments",
+            "Supabase — account authentication and data storage",
+            "Cloudflare — data storage",
+            // 🔴한국어판과 같은 이유(아래 주석 참고).
+            "Vultr — data storage",
+            "Vercel — service hosting and operation",
+            "PortOne — payments",
           ],
         },
         {
@@ -327,9 +328,7 @@ export const t = {
     },
     contact: {
       title: "문의",
-      inquiryText: "서비스 이용 관련 문의는 아래 두 가지 방법 중 편한 곳으로 연락해 주세요.",
-      gmailLabel: "Gmail로 문의",
-      instaLabel: "Instagram DM",
+      inquiryText: "서비스 이용 관련 문의는 아래 메일로 보내 주세요.",
     },
     privacy: {
       back: "← 뒤로",
@@ -379,10 +378,17 @@ export const t = {
           //   회사가 직접 위탁하는 상대가 아니다. 결제 채널이 바뀔 때마다 방침을
           //   고쳐야 한다면 언젠가 실제와 어긋난 채로 남는다.
           list: [
-            "Supabase Inc. — 계정 인증, 데이터 보관",
-            "Cloudflare, Inc. — 데이터 보관",
-            "Vercel Inc. — 서비스 호스팅 및 운영",
-            "(주)코리아포트원 — 결제",
+            // 🔴법인격(Inc.·LLC·(주))은 다섯 줄 모두에서 뗀다(2026-08-24 결정) — Vultr 만 법인이
+            //   `The Constant Company, LLC` 라 이름이 혼자 길어졌다. 붙이려면 다섯 줄이 다 길어지고,
+            //   Vultr 에 없는 `Inc.` 를 붙이면 방침에 틀린 법인명이 남는다. ⛔줄마다 다르게 적지 말 것.
+            "Supabase — 계정 인증, 데이터 보관",
+            "Cloudflare — 데이터 보관",
+            // 🔴Vultr 가 따로 있는 이유 — archiMap 의 한국 지형고도 타일(`krdem.masslabs-archi.com`)은
+            //   국토지리정보원 1:5,000 측량성과에서 만든 것이라 **국외 반출이 금지**돼 있다
+            //   (공간정보관리법 제16·21조). R2·Vercel·Supabase 에 못 얹어 서울 리전 서버를 따로 뒀다.
+            "Vultr — 데이터 보관",
+            "Vercel — 서비스 호스팅 및 운영",
+            "포트원 — 결제",
           ],
         },
         {
