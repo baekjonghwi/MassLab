@@ -23,7 +23,6 @@ import { SUBSCRIPTION_LIVE } from "@/lib/interim";
 // ==========================================================================
 
 type Tab = "wall" | "terrain" | "centerline";
-type Product = "laserfish" | "archimap";
 
 interface Feature {
   title: { ko: string; en: string };
@@ -57,21 +56,6 @@ const heroSlides: Slide[] = [
     cta: { ko: "다운로드", en: "Download" },
     href: "/download",
     icon: "download",
-  },
-  {
-    badge: "Web Service",
-    title: {
-      ko: <>사이트 다이어그램을<br />3분 이내로</>,
-      en: <>Site diagrams<br />in under 3 minutes</>,
-    },
-    desc: {
-      ko: "QGIS, 포토샵, 일러스트 필요없이 완성본의 사이트 다이어그램 제작",
-      en: "Produce finished site diagrams without QGIS, Photoshop, or Illustrator",
-    },
-    cta: { ko: "바로가기", en: "Go to archiMap" },
-    href: "https://archimap.masslabs-archi.com/",
-    external: true,
-    icon: "arrow",
   },
 ];
 
@@ -211,60 +195,12 @@ const centerlineFeatures: Feature[] = [
   },
 ];
 
-const archimapFeatures: Feature[] = [
-  {
-    title: {
-      ko: "QGIS·포토샵·일러스트 없이, 완성본 그대로",
-      en: "No QGIS, Photoshop, or Illustrator — just the finished diagram",
-    },
-    desc: {
-      ko: "지도 데이터를 내려받고, 정리하고, 다시 그리는 과정을 모두 건너뜁니다. 대지 위치만 지정하면 바로 발표에 쓸 수 있는 완성된 사이트 다이어그램이 만들어집니다.",
-      en: "Skip downloading, cleaning, and redrawing map data. Pick your site and get a presentation-ready diagram right away.",
-    },
-    img: null,
-  },
-  {
-    title: {
-      ko: "건물·도로·녹지·수계를 레이어별로 자동 분리",
-      en: "Buildings, roads, greenery & water split into layers automatically",
-    },
-    desc: {
-      ko: "실제 지형·지물 데이터를 바탕으로 건물, 도로, 녹지, 수계가 각각의 레이어로 정리되어 출력됩니다. 필요한 레이어만 켜고 끄면서 원하는 다이어그램을 구성할 수 있습니다.",
-      en: "Real geospatial data is organized into separate building, road, greenery, and water layers. Toggle only the layers you need.",
-    },
-    img: null,
-  },
-  {
-    title: {
-      ko: "선 두께·색상·스타일을 그대로 반영한 출력",
-      en: "Line weights, colors, and styles applied on export",
-    },
-    desc: {
-      ko: "다이어그램의 선 두께와 색상, 스타일을 화면에서 바로 조정하고 그 결과 그대로 내려받습니다. 후보정 없이 판넬과 포트폴리오에 바로 배치할 수 있습니다.",
-      en: "Adjust line weights, colors, and styles on screen and download exactly what you see — ready to place on a panel or portfolio.",
-    },
-    img: null,
-  },
-  {
-    title: {
-      ko: "벡터와 이미지, 필요한 형식으로 내보내기",
-      en: "Export as vector or image, whichever you need",
-    },
-    desc: {
-      ko: "벡터 형식으로 내보내면 캐드나 일러스트에서 추가 편집이 가능하고, 이미지 형식으로 내보내면 곧바로 문서에 삽입할 수 있습니다.",
-      en: "Export vectors for further editing in CAD or Illustrator, or images to drop straight into a document.",
-    },
-    img: null,
-  },
-];
-
 export default function HomeView({ subscriptionLive }: { subscriptionLive: boolean }) {
   // 🔴"구독 화면을 그리라고 했는데 실제로는 안 파는" 상태 = 미리보기(/main).
   //   이때만 구독 쪽 링크에 ?preview 를 달아 next.config.ts 의 임시 리다이렉트를
   //   비껴간다. 진짜로 구독을 여는 날(SUBSCRIPTION_LIVE=true)에는 저절로 false가
   //   되어 평범한 링크로 돌아간다 — 나중에 손으로 지울 것이 없다.
   const preview = subscriptionLive && !SUBSCRIPTION_LIVE;
-  const [product, setProduct] = useState<Product>("laserfish");
   const [slide, setSlide] = useState(0);
   const [paused, setPaused] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>("wall");
@@ -272,7 +208,8 @@ export default function HomeView({ subscriptionLive }: { subscriptionLive: boole
   const { lang } = useLanguage();
 
   useEffect(() => {
-    if (paused) return;
+    // 🔴슬라이드가 하나뿐이면 돌리지 않는다(2026-08-24, archiMap 슬라이드를 뺐다).
+    if (paused || heroSlides.length < 2) return;
     const id = setInterval(
       () => setSlide((s) => (s + 1) % heroSlides.length),
       2000
@@ -294,14 +231,12 @@ export default function HomeView({ subscriptionLive }: { subscriptionLive: boole
 
 
   const features =
-    product === "archimap"
-      ? archimapFeatures
-      : activeTab === "wall"
+    activeTab === "wall"
       ? wallFeatures
       : activeTab === "terrain"
       ? terrainFeatures
       : centerlineFeatures;
-  const showCenterline = product === "laserfish" && activeTab === "centerline";
+  const showCenterline = activeTab === "centerline";
   const L = (t: { ko: string; en: string }) => t[lang] ?? t.ko;
 
   return (
@@ -401,8 +336,7 @@ export default function HomeView({ subscriptionLive }: { subscriptionLive: boole
           gap: 20px;
           justify-content: center;
           margin-bottom: 44px;
-          /* 🔴칸이 셋이 되면서 넣었다(2026-08-23). 모바일 규격(132px)으로도 셋이면
-             132×3+12×2 = 420px 라 좁은 폰에서 가로로 넘친다 — 넘치느니 줄을 바꾼다. */
+          /* 칸이 다시 늘어도 좁은 폰에서 가로로 넘치지 않게 — 넘치느니 줄을 바꾼다. */
           flex-wrap: wrap;
         }
         .product-card {
@@ -432,10 +366,10 @@ export default function HomeView({ subscriptionLive }: { subscriptionLive: boole
           background: #fafafa;
           font-family: inherit;
           cursor: pointer;
-          /* 🔴Colorgram 칸은 <button>이 아니라 <a>다(고를 게 없어 바로 나간다).
+          /* 🔴이 칸은 <button>이 아니라 <a>다(고를 게 없어 바로 나간다).
              그래서 버튼 기본값에 기대던 두 가지를 여기서 직접 준다 —
              ①밑줄 제거 ②가운데 정렬(<button>은 UA 기본이 text-align:center 지만 <a>는 아니다.
-             이게 없으면 그 칸의 제품명만 왼쪽에 붙는다). */
+             이게 없으면 제품명이 왼쪽에 붙는다). */
           text-decoration: none;
           text-align: center;
         }
@@ -495,31 +429,6 @@ export default function HomeView({ subscriptionLive }: { subscriptionLive: boole
           letter-spacing: 0.01em;
         }
         .product-card-go.soon:hover { background: #fafafa; }
-
-        .archimap-cta {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          background: #111;
-          color: #fff;
-          text-decoration: none;
-          padding: 16px 34px;
-          border-radius: 12px;
-          font-size: 1rem;
-          font-weight: 700;
-          letter-spacing: -0.01em;
-          box-shadow: 0 4px 20px rgba(0,0,0,0.14);
-          transition: opacity 0.15s, transform 0.1s;
-        }
-        .archimap-cta:hover { opacity: 0.88; transform: translateY(-1px); }
-        /* 준비 중 — 링크가 아니라 표시일 뿐이다 */
-        .archimap-cta.soon {
-          background: #e6e6e6;
-          color: #999;
-          box-shadow: none;
-          cursor: default;
-        }
-        .archimap-cta.soon:hover { opacity: 1; transform: none; }
 
         .tab-btn {
           display: flex;
@@ -863,7 +772,9 @@ export default function HomeView({ subscriptionLive }: { subscriptionLive: boole
           ))}
         </div>
 
-        {/* Slide dots + 정지 버튼 */}
+        {/* Slide dots + 정지 버튼. 🔴슬라이드가 둘 이상일 때만 —
+            점 하나짜리 줄은 누를 것도 볼 것도 없다(2026-08-24). */}
+        {heroSlides.length > 1 && (
         <div className="hero-dots">
           {heroSlides.map((_, i) => (
             <button
@@ -891,21 +802,26 @@ export default function HomeView({ subscriptionLive }: { subscriptionLive: boole
             )}
           </button>
         </div>
+        )}
       </section>
 
       {/* ── PRODUCT TABS + FEATURES ── */}
       <section id="features" className="main-features" style={{ maxWidth: "1200px", margin: "0 auto", padding: "88px 48px 80px" }}>
 
-        {/* Product selector */}
+        {/* 🔴제품 칸. 2026-08-24 archiMap · Colorgram 을 뺐고 LaserFish 하나만 남았다.
+            그래서 이 칸은 **고르는 칸이 아니라 다운로드로 나가는 칸**이다 —
+            누를 데가 하나뿐이라 <button>(setProduct)이 아니라 <a>다.
+            ⚠️제품을 다시 늘리려면 Product 타입 · 아래 기능 탭 · 요금 구역을 함께 되살려야
+              한다. 칸만 늘리면 눌러도 아무것도 안 바뀐다. */}
         <div className="product-cards">
-          <div className={`product-card${product === "laserfish" ? " active" : ""}`}>
-            <button className="product-card-main" onClick={() => setProduct("laserfish")}>
+          <div className="product-card active">
+            <a className="product-card-main" href="/download">
               <span className="product-card-img">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src="/images/icon/LaserFish.svg" alt="" />
               </span>
               <span className="product-card-name">LaserFish</span>
-            </button>
+            </a>
             <a className="product-card-go" href="/download">
               {lang === "ko" ? "다운로드" : "Download"}
               <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
@@ -913,72 +829,11 @@ export default function HomeView({ subscriptionLive }: { subscriptionLive: boole
               </svg>
             </a>
           </div>
-          <div className={`product-card${product === "archimap" ? " active" : ""}`}>
-            <button className="product-card-main" onClick={() => setProduct("archimap")}>
-              <span className="product-card-img">
-                {/* 🔴파일 이름은 archiMap.svg 지만 **내용물은 archiMap 저장소의
-                    `public/icons/archiMap-mark.svg`**(정사각 크롭본)이다. 도형·색은 원본
-                    `archiMap.svg` 와 한 글자도 다르지 않고 viewBox 만 300×300 으로 좁혔다.
-                    ⚠️원본(A4 아트보드 595×842)을 그대로 넣으면 안 된다 — 이 자리는 칸의 64%라
-                      여백까지 축소돼 마크가 점만 하게 줄어든다. 파비콘·앱 상단바가 크롭본을
-                      쓰는 이유도 같다.
-                    ⚠️저쪽에서 마크를 고치면 여기도 **다시 복사해 와야 한다** — 저장소가 달라
-                      자동으로 따라오지 않는다(복사 대상은 -mark.svg 쪽이다). */}
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/images/icon/archiMap.svg" alt="" />
-              </span>
-              <span className="product-card-name">archiMap</span>
-            </button>
-            {/* 🔴archiMap 은 열려 있다(2026-08-22). 저장소가 달라 하위 도메인으로
-                나간다 — 새 탭으로 여는 이유는 여기서 보던 흐름을 끊지 않기 위해서다. */}
-            <a
-              className="product-card-go"
-              href="https://archimap.masslabs-archi.com/"
-              target="_blank"
-              rel="noreferrer"
-            >
-              {lang === "ko" ? "바로가기" : "Link"}
-              <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-                <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </a>
-          </div>
-          {/* 🔴Colorgram 은 **고르는 칸이 아니다**(2026-08-23). 아래 기능 탭·요금 구역이
-              product 상태를 보고 그려지는데 Colorgram 은 실을 기능도 요금도 없다 —
-              그래서 위 칸이 <button>(setProduct)이 아니라 저쪽으로 바로 나가는 <a>다.
-              ⚠️나중에 기능 소개를 붙이려면 Product 타입과 아래 두 구역을 같이 손봐야 한다.
-                여기만 <button>으로 바꾸면 탭을 눌렀을 때 빈 화면이 뜬다. */}
-          <div className="product-card">
-            <a
-              className="product-card-main"
-              href="https://colorgram.masslabs-archi.com/"
-              target="_blank"
-              rel="noreferrer"
-            >
-              <span className="product-card-img">
-                {/* 원본은 Colorgram 저장소의 app/icon.svg — 저쪽을 고치면 여기도 복사해 온다 */}
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/images/icon/Colorgram.svg" alt="" />
-              </span>
-              <span className="product-card-name">Colorgram</span>
-            </a>
-            <a
-              className="product-card-go"
-              href="https://colorgram.masslabs-archi.com/"
-              target="_blank"
-              rel="noreferrer"
-            >
-              {lang === "ko" ? "바로가기" : "Link"}
-              <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-                <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </a>
-          </div>
         </div>
 
-        {/* Tab selector (LaserFish 전용) */}
+        {/* Tab selector */}
         <div style={{
-          display: product === "laserfish" ? "flex" : "none",
+          display: "flex",
           gap: "12px",
           justifyContent: "center",
           flexWrap: "wrap",
@@ -1014,7 +869,7 @@ export default function HomeView({ subscriptionLive }: { subscriptionLive: boole
         <div>
           {showCenterline
             ? features.map((f, i) => (
-                <div key={`${product}-${activeTab}-${i}`} className="centerline-block">
+                <div key={`${activeTab}-${i}`} className="centerline-block">
                   <div className="centerline-video-box">
                     {f.video
                       ? <video src={f.video} autoPlay loop muted playsInline />
@@ -1029,7 +884,7 @@ export default function HomeView({ subscriptionLive }: { subscriptionLive: boole
               ))
             : features.map((f, i) => (
                 <div
-                  key={`${product}-${activeTab}-${i}`}
+                  key={`${activeTab}-${i}`}
                   className={`feature-row${i % 2 === 1 ? " rev" : ""}`}
                 >
                   <div className="feature-img-box">
@@ -1056,8 +911,7 @@ export default function HomeView({ subscriptionLive }: { subscriptionLive: boole
         </div>
       </section>
 
-      {/* ── PRICING (LaserFish) / 바로가기 (archiMap) ── */}
-      {product === "laserfish" ? (
+      {/* ── PRICING ── */}
       <section id="pricing" className="main-pricing" style={{
         background: "#f7f7f7",
         padding: "88px 48px",
@@ -1108,41 +962,6 @@ export default function HomeView({ subscriptionLive }: { subscriptionLive: boole
 
         </div>
       </section>
-      ) : (
-      <section id="pricing" className="main-pricing" style={{
-        background: "#f7f7f7",
-        padding: "88px 48px",
-        textAlign: "center",
-      }}>
-        <div style={{ maxWidth: "600px", margin: "0 auto" }}>
-          <h2 style={{
-            fontSize: "2.25rem",
-            fontWeight: 900,
-            letterSpacing: "-0.03em",
-            marginBottom: "14px",
-            color: "#111",
-          }}>
-            {lang === "ko" ? "웹에서 바로 시작하세요" : "Start in your browser"}
-          </h2>
-          <p style={{ color: "#888", marginBottom: "40px", lineHeight: 1.7, fontSize: "1rem" }}>
-            {lang === "ko"
-              ? "설치 없이 브라우저에서 대지를 고르고 사이트 다이어그램을 만듭니다."
-              : "Pick a site and build your diagram in the browser — nothing to install."}
-          </p>
-
-          {/* ⚠️여기에 가격을 적지 않는다. archiMap 의 요금 안내는 저쪽 화면과
-              /price 가 맡는다 — 값을 두 곳에 적으면 반드시 어긋난다. */}
-          <a
-            className="archimap-cta"
-            href="https://archimap.masslabs-archi.com/"
-            target="_blank"
-            rel="noreferrer"
-          >
-            {lang === "ko" ? "archiMap 열기 →" : "Open archiMap →"}
-          </a>
-        </div>
-      </section>
-      )}
 
       {/* ── CONTACT / SOCIAL ── */}
       <section className="main-contact" style={{
