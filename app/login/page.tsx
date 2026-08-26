@@ -2,7 +2,7 @@
 import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { supabase, safeNext } from "@/lib/supabase";
-import { AuthCard, AuthShell } from "@/components/AuthCard";
+import { AuthCard, AuthShell, PasswordField } from "@/components/AuthCard";
 import { useLanguage } from "@/lib/i18n";
 
 // ==========================================================================
@@ -41,6 +41,7 @@ const TX = {
     firstTime: "처음이시면 구글 계정으로 바로 시작됩니다.",
     googleFail: "구글 로그인을 사용할 수 없습니다.",
     email: "이메일", password: "비밀번호", password2: "비밀번호 확인",
+    showPw: "비밀번호 보기", hidePw: "비밀번호 가리기",
     mismatch: "비밀번호가 일치하지 않습니다.",
     or: "또는",
     busy: "처리 중…",
@@ -60,6 +61,7 @@ const TX = {
     firstTime: "New here? Your Google account gets you started right away.",
     googleFail: "Google sign-in isn't available right now.",
     email: "Email", password: "Password", password2: "Confirm password",
+    showPw: "Show password", hidePw: "Hide password",
     mismatch: "Those passwords don't match.",
     or: "or",
     busy: "Working…",
@@ -77,11 +79,20 @@ const TX = {
 
 function LoginContent() {
   const sp = useSearchParams();
-  const next = safeNext(sp.get("next"));
+  // 🔴로그인을 마치면 갈 곳. next 가 없으면 /main 이다(2026-08-26 사용자 결정).
+  //   ⚠️next 를 무시하고 늘 /main 으로 보내면 안 된다 — /link(라이노 기기연결)와
+  //     /price(결제)는 로그인한 뒤 **그 자리로 돌아가야** 하던 일이 끝난다.
+  //     거기서 /main 으로 끌고 오면 기기연결이 중간에 끊긴다.
+  const next = safeNext(sp.get("next") ?? "/main");
   const { lang } = useLanguage();
   const x = lang === "ko" ? TX.ko : TX.en;
 
-  const [mode, setMode] = useState<Mode>(sp.get("mode") === "signup" ? "signup" : "login");
+  // 🔴mode 는 세 값을 다 받는다. "reset"을 빠뜨리면 /reset-password 의
+  //   "재설정 메일 다시 받기"(→ /login?mode=reset)가 그냥 로그인 폼으로 떨어져,
+  //   링크가 만료된 사람이 다시 [비밀번호를 잊으셨나요?]를 찾아 눌러야 한다.
+  const mode0 = sp.get("mode");
+  const [mode, setMode] = useState<Mode>(
+    mode0 === "signup" ? "signup" : mode0 === "reset" ? "reset" : "login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
@@ -121,6 +132,12 @@ function LoginContent() {
           },
         });
         if (error) throw error;
+        // 🔴이미 가입된 메일이면 Supabase는 오류를 주지 않는다 — 이메일 열거 방지 때문에
+        //   HTTP 200에 "가짜 사용자"(무작위 id, confirmation_sent_at까지 채워서)를 돌려주고
+        //   메일은 실제로 안 보낸다. 그래서 "메일 보냈습니다"만 뜨고 아무것도 안 오는
+        //   막다른 길이 생긴다(2026-08-26 실제 응답으로 확인).
+        //   구별되는 자리는 identities 하나뿐이다 — 새 메일이면 1개, 이미 있으면 빈 배열.
+        if (data.user && data.user.identities?.length === 0) { setError(x.already); return; }
         // 이메일 확인이 켜져 있으면 세션 없이 돌아온다.
         if (data.session) go();
         else setNotice(x.sentSignup);
@@ -137,13 +154,16 @@ function LoginContent() {
       if (error) throw error;
       setNotice(x.sentReset);
     } catch (err) {
+      // 🔴Supabase 오류 원문은 로그에만 남긴다. 영어 한 줄이라 그대로 띄우면
+      //   한국어 화면에 "AuthApiError: …"가 그대로 뜬다(예전엔 msg 를 흘렸다).
+      console.error("로그인/가입 실패:", err);
       const msg = err instanceof Error ? err.message : "";
       setError(
         /Invalid login/i.test(msg) ? x.badLogin
         : /already registered|already been/i.test(msg) ? x.already
         : /Password should be/i.test(msg) ? x.shortPw
         : /Email not confirmed/i.test(msg) ? x.unconfirmed
-        : msg || x.failed);
+        : x.failed);
     } finally {
       setBusy(false);
     }
@@ -163,7 +183,7 @@ function LoginContent() {
   return (
     <AuthCard>
       <h1 style={{ fontSize: "1.3rem", fontWeight: 700, letterSpacing: "-0.02em", marginBottom: 4 }}>
-        MassLabs {title}
+        {title}
       </h1>
       <div style={{ marginBottom: 22 }} />
       {!EMAIL_AUTH_ENABLED && (
@@ -194,22 +214,20 @@ function LoginContent() {
 
         {mode !== "reset" && (
           <>
-            <label className="fld-label">{x.password}</label>
-            <input
-              className="fld" type="password" value={password} required minLength={6}
+            <PasswordField
+              label={x.password} value={password} onChange={setPassword}
               autoComplete={mode === "signup" ? "new-password" : "current-password"}
-              onChange={(e) => setPassword(e.target.value)}
+              showLabel={x.showPw} hideLabel={x.hidePw}
             />
           </>
         )}
 
         {mode === "signup" && (
           <>
-            <label className="fld-label">{x.password2}</label>
-            <input
-              className="fld" type="password" value={password2} required minLength={6}
+            <PasswordField
+              label={x.password2} value={password2} onChange={setPassword2}
               autoComplete="new-password"
-              onChange={(e) => setPassword2(e.target.value)}
+              showLabel={x.showPw} hideLabel={x.hidePw}
             />
           </>
         )}
