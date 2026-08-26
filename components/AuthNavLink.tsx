@@ -1,7 +1,6 @@
 "use client";
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lib/i18n";
+import { useSignedIn } from "@/lib/use-signed-in";
 
 // ==========================================================================
 //  상단 막대의 로그인 자리.
@@ -17,6 +16,11 @@ import { useLanguage } from "@/lib/i18n";
 //  🔴판정이 끝나기 전에도 아무것도 그리지 않는다. "로그인"을 먼저 띄웠다가
 //    지우면, 이미 로그인한 사람 눈에는 로그아웃된 것처럼 번쩍인다.
 //
+//  ⛔[내 구독]과 **함께 뜨면 안 된다**(2026-08-26). 예전엔 [내 구독]에 로그인
+//    조건이 아예 없어서, 로그아웃한 사람 눈에 [My Plan][Sign in]이 나란히 떴다.
+//    로컬에서는 늘 로그인돼 있어 안 보였고 프로덕션에서만 드러났다.
+//    → 이제 둘 다 lib/use-signed-in 의 같은 답을 본다. 한쪽만 고치지 말 것.
+//
 //  ⛔2026-08-24 상단 막대에서 뺐다(사용자 결정) — 지금 이걸 쓰는 화면이 없다.
 //    /login 은 다시 /account · /link · /price 의 리다이렉트로만 열린다.
 //    막대에 로그인을 되돌리려면 SiteHeader 와 HomeView 의 .hnav-links 끝에
@@ -25,15 +29,9 @@ import { useLanguage } from "@/lib/i18n";
 
 export default function AuthNavLink({ className = "hnav-link" }: { className?: string }) {
   const { lang } = useLanguage();
-  const [signedIn, setSignedIn] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    const sb = supabase();
-    sb.auth.getUser().then(({ data }) => setSignedIn(!!data.user));
-    // 다른 탭에서 로그인/로그아웃해도 따라 바뀐다.
-    const { data } = sb.auth.onAuthStateChange((_e, s) => setSignedIn(!!s?.user));
-    return () => data.subscription.unsubscribe();
-  }, []);
+  // 🔴판정은 lib/use-signed-in 한 곳에서 한다 — [내 구독]도 같은 답을 봐야
+  //   둘이 겹치지 않는다(아래 ⛔ 항목).
+  const signedIn = useSignedIn();
 
   if (signedIn !== false) return null;
 

@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/lib/i18n";
 import { SUBSCRIPTION_LIVE } from "@/lib/interim";
+import { useSignedIn } from "@/lib/use-signed-in";
 
 // ==========================================================================
 //  모든 화면이 함께 쓰는 상단 막대.
@@ -13,15 +14,22 @@ import { SUBSCRIPTION_LIVE } from "@/lib/interim";
 //    일이 생기면 그 화면들도 같이 고쳐야 한다.
 // ==========================================================================
 
-// 🔴[내 구독]은 구독을 파는 동안에만 있다(lib/interim.ts, 임시) — 구독을 안 파는 동안
-//   /account 자체가 next.config.ts에서 홈으로 돌아가므로, 메뉴에 두면 죽은 링크가 된다.
 const LINKS = [
   { href: "/howtouse", ko: "사용방법", en: "How to Use" },
   { href: "/download", ko: "다운로드", en: "Download" },
   { href: "/price", ko: "비용", en: "Pricing" },
   { href: "/contact", ko: "문의하기", en: "Contact" },
-  ...(SUBSCRIPTION_LIVE ? [{ href: "/account", ko: "내 구독", en: "My Plan" }] : []),
 ];
+
+// 🔴[내 구독]이 붙는 조건은 두 가지다 —
+//   1) 구독을 파는 동안에만(lib/interim.ts, 임시). 안 파는 동안에는 /account 자체가
+//      next.config.ts 에서 홈으로 돌아가므로, 메뉴에 두면 죽은 링크가 된다.
+//   2) **로그인한 사람에게만.** 로그아웃한 사람에게는 남의 구독 화면으로 가는
+//      문일 뿐이고, 눌러도 /login 으로 튕긴다.
+//   ⛔HomeView 의 막대(components/HomeView.tsx)가 같은 규칙을 갖는다 — 거기서
+//     조건 1만 걸려 있던 탓에 로그아웃한 사람 눈에 [My Plan]과 [Sign in]이
+//     나란히 떴다(2026-08-26). 한쪽만 고치지 말 것.
+const MY_PLAN = { href: "/account", ko: "내 구독", en: "My Plan" };
 
 export const HEADER_CSS = `
   .hnav-link {
@@ -40,6 +48,8 @@ export const HEADER_CSS = `
 
 export default function SiteHeader({ active }: { active?: string }) {
   const { lang } = useLanguage();
+  // null(아직 모른다)이면 [내 구독]을 그리지 않는다 — 먼저 띄웠다 지우면 깜빡인다.
+  const signedIn = useSignedIn();
 
   // 🔴/main(구독을 팔던 시절의 홈, PG 심사용)에서 넘어온 화면인가.
   //   그렇다면 이 막대의 링크들도 그쪽으로 돌려보내야 한다 — 안 그러면
@@ -66,7 +76,7 @@ export default function SiteHeader({ active }: { active?: string }) {
           <a href={preview ? "/main" : "/"} className="hnav-brand">MassLabs</a>
 
           <div className="hnav-links" style={{ display: "flex", alignItems: "center", gap: "2px" }}>
-            {LINKS.map((l) => (
+            {[...LINKS, ...(SUBSCRIPTION_LIVE && signedIn === true ? [MY_PLAN] : [])].map((l) => (
               <a
                 key={l.href}
                 // 🔴미리보기로 들어온 화면(/account?preview=1)에서는 구독을 팔던

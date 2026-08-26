@@ -5,6 +5,7 @@ import { useLanguage } from "@/lib/i18n";
 import PlanTable, { PLAN_CSS } from "@/components/PlanTable";
 import PerPiecePricing, { PerPieceNote } from "@/components/PerPiecePricing";
 import AuthNavLink from "@/components/AuthNavLink";
+import { useSignedIn } from "@/lib/use-signed-in";
 import { SUBSCRIPTION_LIVE } from "@/lib/interim";
 
 // ==========================================================================
@@ -265,6 +266,9 @@ export default function HomeView({ subscriptionLive }: { subscriptionLive: boole
   //   비껴간다. 진짜로 구독을 여는 날(SUBSCRIPTION_LIVE=true)에는 저절로 false가
   //   되어 평범한 링크로 돌아간다 — 나중에 손으로 지울 것이 없다.
   const preview = subscriptionLive && !SUBSCRIPTION_LIVE;
+  // 🔴막대의 [내 구독]·[로그인]이 보는 같은 답(lib/use-signed-in).
+  //   null 이면 아직 모른다 — 그동안은 둘 다 안 그린다.
+  const signedIn = useSignedIn();
   const [product, setProduct] = useState<Product>("laserfish");
 
   // 🔴지금 홈(/)은 LaserFish 하나만 소개한다(2026-08-24 사용자 결정) —
@@ -787,7 +791,13 @@ export default function HomeView({ subscriptionLive }: { subscriptionLive: boole
             {/* 🔴미리보기(/main)에서는 ?preview 를 달아 보낸다 — 안 달면 구독을
                 안 파는 동안 next.config.ts 가 /account 를 홈으로 돌려, 구독표를
                 보던 사람이 건당결제 화면에 떨어진다. */}
-            {subscriptionLive && (
+            {/* ⛔로그인한 사람에게만 그린다(2026-08-26). 조건이 없던 시절에는
+                로그아웃한 사람 눈에 [내 구독]과 [로그인]이 나란히 떴다 — 로컬에서는
+                늘 로그인돼 있어 안 보였고 프로덕션에서만 드러났다.
+                ⚠️게다가 로그아웃 상태로 누르면 /account 가 /login?next=/account 로
+                  보내는데 거기엔 ?preview 가 안 붙는다. 로그인을 마쳐도 리다이렉트에
+                  걸려 홈으로 튕긴다 — 구독표를 보러 들어와 건당결제 홈에 떨어진다. */}
+            {subscriptionLive && signedIn === true && (
               <a href={preview ? "/account?preview=1" : "/account"} className="hnav-link">
                 {lang === "ko" ? "내 구독" : "My Plan"}
               </a>
@@ -1045,7 +1055,7 @@ export default function HomeView({ subscriptionLive }: { subscriptionLive: boole
                   <div className="centerline-video-box">
                     {f.video
                       ? <video src={f.video} autoPlay loop muted playsInline />
-                      : <div className="feature-placeholder">영상 준비 중</div>
+                      : <div className="feature-placeholder">Coming soon</div>
                     }
                   </div>
                   <div className="centerline-text">
@@ -1069,7 +1079,7 @@ export default function HomeView({ subscriptionLive }: { subscriptionLive: boole
                         )
                       : f.img
                       ? <img src={f.img} alt={L(f.title)} />
-                      : <div className="feature-placeholder">이미지 준비 중</div>
+                      : <div className="feature-placeholder">Coming soon</div>
                     }
                   </div>
 
