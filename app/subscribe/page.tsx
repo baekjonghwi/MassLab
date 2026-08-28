@@ -40,6 +40,18 @@ const CHANNEL_BILLING_KRW = USE_TEST_CHANNELS ? TEST_CHANNEL_KRW : REAL_CHANNEL_
 //   개통 확인 후 이 값만 true로 바꾸면 해외 결제수단에 PayPal이 뜬다.
 const PAYPAL_BILLING_ENABLED = false;
 
+// ==========================================================================
+//  결제수단 — DB(subscriptions.method_label)에 그대로 남는 값.
+//
+//  🔴여기에는 **사람이 읽는 말을 넣지 않는다.** 예전엔 "국내 신용카드"처럼
+//    한글을 그대로 넣었는데, 그 값은 영어 화면에서도 한글로 새어 나온다.
+//    저장은 **언어중립 코드**로 하고, 번역은 그것을 **그리는 화면**이 제
+//    TX.ko / TX.en 으로 한다(이 화면의 TX.*.method 가 그 표다).
+//  ✅옛 데이터 걱정은 없다 — subscriptions 는 0행이다(2026-08-26 확인).
+//    하위호환 매핑을 만들지 말 것.
+// ==========================================================================
+type MethodCode = "card_kr" | "card_intl" | "paypal";
+
 type SessionInfo = {
   product: string;
   productLabel: string;
@@ -50,7 +62,8 @@ type SessionInfo = {
   countryKnown: boolean;
   channel: "eximbay" | "galaxia";
   baseUsd: number;
-  vatUsd: number;
+  vat: number;
+  vatCurrency: "USD" | "KRW";
   amount: number;
   currency: "USD" | "KRW";
   // 🔴해외(엑심베이)는 빌링키 발급과 동시에 첫 결제가 일어난다. 그 결제 ID를
@@ -91,6 +104,8 @@ const TX = {
     vat: "부가세 (10%)",
     account: "계정",
     card: "신용카드",
+    // 🔴method_label 코드를 사람이 읽는 말로 옮기는 표. 저장은 코드로만 한다.
+    method: { card_kr: "국내 신용카드", card_intl: "해외 신용카드", paypal: "PayPal" },
     termsTitle: "이용약관",
     agree: "에 동의합니다.",
     termsMore: "전체 이용약관 · 개인정보 처리방침 보기",
@@ -121,6 +136,7 @@ const TX = {
     vat: "VAT (10%)",
     account: "Account",
     card: "Credit card",
+    method: { card_kr: "Credit card (Korea)", card_intl: "Credit card", paypal: "PayPal" },
     termsTitle: "Terms of Service",
     agree: " — I agree.",
     termsMore: "Read the full terms & privacy policy",
@@ -226,8 +242,11 @@ function SubscribeContent() {
     setLoading(true);
     setError("");
 
-    // 🔴DB(method_label)에 남는 값이라 화면 언어가 아니라 채널을 따른다.
-    const methodLabel = isKrw ? "국내 신용카드" : method === "PAYPAL" ? "PayPal" : "해외 신용카드";
+    // 🔴DB(subscriptions.method_label)에 남는 값이라 **언어중립 코드**로 적는다.
+    //   화면 언어로도 채널 언어로도 적지 않는다 — 어느 쪽으로 적어도 반대편
+    //   화면에서 그대로 새어 나온다. 그리는 쪽에서 TX.*.method 로 옮긴다.
+    const methodLabel: MethodCode =
+      isKrw ? "card_kr" : method === "PAYPAL" ? "paypal" : "card_intl";
     const issueId = `${product}-bk-${sid.slice(0, 8)}-${Date.now()}`;
     // 복귀 주소에 채널·수단을 실어 둔다(리디렉션으로 돌아오면 상태가 다 날아간다).
     const back = `${window.location.origin}/subscribe?sid=${encodeURIComponent(sid)}`
@@ -304,8 +323,20 @@ function SubscribeContent() {
     }
   };
 
+  // ========================================================================
+  //  통화 표기 — 🔴기호만 쓴다(2026-08-26 결정).
+  //
+  //  채널을 알기 전에는 홈페이지에서 고른 언어로 말하는 화면이다. 한글 "원"을
+  //  붙이면 원화로 결제하는데 영어로 보는 사람이 "12,000원"을 보게 된다.
+  //
+  //  🔴금액에는 손대지 않는다 — **실제로 청구되는 금액**이다. 환산하지 않고,
+  //    자릿수 처리도 통화마다 그대로 둔다(KRW는 정수 원 단위, USD는 센트 단위로
+  //    저장돼 있어 나누는 방식이 다르다).
+  //  🔴이 함수는 app/account/page.tsx 에도 **똑같은 것**이 복제돼 있다.
+  //    한쪽만 고치면 /account 와 /subscribe 가 다른 말을 한다 — 반드시 함께 고칠 것.
+  // ========================================================================
   const money = (n: number, cur: string) =>
-    cur === "KRW" ? `${n.toLocaleString()}원` : `$${(n / 100).toFixed(2)}`;
+    cur === "KRW" ? `₩${n.toLocaleString()}` : `$${(n / 100).toFixed(2)}`;
 
   if (fatal) return <Card><p style={{ fontWeight: 600, marginBottom: 8 }}>{x.fatalTitle}</p><p style={{ fontSize: "0.82rem", color: "#888", lineHeight: 1.6 }}>{fatal}</p></Card>;
   if (done)
@@ -339,7 +370,9 @@ function SubscribeContent() {
         </div>
 
         {/* 🔴해외는 영세율(0%)이라 부가세가 없다. 0원짜리 줄을 보여주면 오해를 산다. */}
-        {info.vatUsd > 0 && <Row label={x.vat} value={`${info.vatUsd.toFixed(2)}`} />}
+        {/* 🔴부가세도 구독료와 같은 통화로 그린다(2026-08-26). 예전엔 이 줄만
+              달러였고 기호조차 없어서, 원화 결제자에게 "₩8,234 / 0.50"으로 떴다. */}
+        {info.vat > 0 && <Row label={x.vat} value={money(info.vat, info.vatCurrency)} />}
 
       </div>
 

@@ -21,6 +21,14 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // 🔴<html lang> 도 함께 갱신한다. app/layout.tsx 는 서버 컴포넌트라 lang="en" 으로
+  //   고정돼 있는데, 그대로 두면 한국어 본문을 스크린리더·번역기·검색엔진이 영어로 읽는다.
+  //   여기서 처리해야 초기 자동판정(저장값·브라우저 언어)과 언어 토글이 한 곳에서 끝난다 —
+  //   layout 쪽에 따로 심으면 판정 로직이 두 벌이 되어 반드시 어긋난다.
+  useEffect(() => {
+    document.documentElement.lang = lang;
+  }, [lang]);
+
   const handleSetLang = (l: Lang) => {
     setLang(l);
     localStorage.setItem("lang", l);

@@ -79,11 +79,12 @@ const TX = {
 
 function LoginContent() {
   const sp = useSearchParams();
-  // 🔴로그인을 마치면 갈 곳. next 가 없으면 /main 이다(2026-08-26 사용자 결정).
-  //   ⚠️next 를 무시하고 늘 /main 으로 보내면 안 된다 — /link(라이노 기기연결)와
+  // 🔴로그인을 마치면 갈 곳. next 가 없으면 **홈(/)** 이다.
+  //   ⚠️2026-08-27 /main 에서 홈으로 바꿨다(그 /main 은 2026-08-28 에 지웠다).
+  //   ⚠️next 를 무시하고 늘 홈으로 보내면 안 된다 — /link(라이노 기기연결)와
   //     /price(결제)는 로그인한 뒤 **그 자리로 돌아가야** 하던 일이 끝난다.
-  //     거기서 /main 으로 끌고 오면 기기연결이 중간에 끊긴다.
-  const next = safeNext(sp.get("next") ?? "/main");
+  //     거기서 홈으로 끌고 오면 기기연결이 중간에 끊긴다.
+  const next = safeNext(sp.get("next") ?? "/");
   const { lang } = useLanguage();
   const x = lang === "ko" ? TX.ko : TX.en;
 

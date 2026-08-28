@@ -132,17 +132,20 @@ export async function GET(request: Request) {
       continue;
     }
 
+    // 🔴여기 실리는 건 charge.detail(운영자용 원인)이다. charge.message는 손님용
+    //   "Payment failed" 한 줄이라 크론 출력에 쓰면 무엇이 틀렸는지 알 수가 없다.
+    //   이 응답은 위에서 CRON_SECRET Bearer로 잠가 두었으므로 손님에게 안 나간다.
     const tries = s.retry_count + 1;
     if (tries >= MAX_RETRY) {
       // 세 번 실패 = 연체 확정. 크론 대상에서 빼고 권한을 다시 계산한다.
       await patchSub(s.user_id, s.product, { status: "past_due", retry_count: tries });
       const plan = await syncPlanCache(s.user_id);
-      out.push({ user: s.user_id, product: s.product, action: "past_due", plan, message: charge.message });
+      out.push({ user: s.user_id, product: s.product, action: "past_due", plan, message: charge.detail });
     } else {
       // 하루 뒤 다시 시도.
       const next = new Date(now.getTime() + 24 * 60 * 60 * 1000);
       await patchSub(s.user_id, s.product, { next_billing_at: next.toISOString(), retry_count: tries });
-      out.push({ user: s.user_id, product: s.product, action: "retry", tries, message: charge.message });
+      out.push({ user: s.user_id, product: s.product, action: "retry", tries, message: charge.detail });
     }
   }
 

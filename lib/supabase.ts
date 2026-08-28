@@ -61,6 +61,17 @@ export function supabase(): SupabaseClient {
   const https = window.location.protocol === "https:";
   cached = createBrowserClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
     cookieOptions: cookieOptionsFor(window.location.hostname, https),
+    // 🔴메일 링크에 sb_flow_id 를 붙인다(2026-08-26). 안 붙이면 PKCE verifier 를
+    //   "가장 최근 flow 하나"만 미러링하는 레거시 키로 찾게 되어, 재설정 메일을
+    //   두 번 요청하거나 메일을 기다리는 사이 구글 로그인을 하면 **먼저 온 메일의
+    //   링크가 죽는다**. 재설정·가입확인 메일은 flow id 를 받아올 다른 길이 없어
+    //   이 플래그로만 짝을 맞출 수 있다(@supabase/auth-js types.d.ts:154-160).
+    //   받는 쪽은 app/auth/callback/route.ts 가 이미 읽고 있다.
+    // ⚠️리다이렉트 주소는 **물음표 뒤까지 통째로** 검사된다. 그래서 Supabase 의
+    //   Redirect URLs 가 와일드카드여야 한다 — 정확일치만 등록돼 있으면 파라미터가
+    //   하나 늘어난 순간 인증 메일이 전부 깨진다.
+    //   ✅2026-08-26 확인: masslabs-archi.com/** 와 *.masslabs-archi.com/** 로 등록돼 있다.
+    auth: { experimental: { appendPkceFlowIdToRedirects: true } },
   });
   return cached;
 }

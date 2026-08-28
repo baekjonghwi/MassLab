@@ -1,5 +1,7 @@
 "use client";
 import { useState, type ReactNode } from "react";
+import Link from "next/link";
+import { useLanguage } from "@/lib/i18n";
 
 // ==========================================================================
 //  로그인·비밀번호 재설정 화면이 함께 쓰는 껍데기.
@@ -7,59 +9,183 @@ import { useState, type ReactNode } from "react";
 //  🔴두 화면이 같은 상자를 쓴다(app/login, app/reset-password). 스타일을 한쪽에
 //    복사해 두면 나중에 한쪽만 고쳐져서 재설정 화면만 옛날 모양으로 남는다.
 //    → 고칠 일이 생기면 여기 한 곳만 고친다.
+//
+//  🔴2026-08-27 어두운 화면으로 갈아입혔다 — 홈(components/LandingView)과 같은
+//    결이어야 로그인이 "딴 사이트로 튕긴 것"처럼 안 느껴진다. 값도 저쪽과 같은
+//    이름으로 맞춰 뒀다(--bg/--card/--acc …).
+//    ⚠️값을 두 벌 적는 셈이라 완전히 안전하진 않다. 홈의 --acc 를 바꾸면 여기
+//      --acc 도 함께 바꿀 것. (한 파일로 묶기엔 홈 CSS 가 이 화면에 안 온다.)
+//
+//  ⚠️/account/security 는 이 파일에서 **PwEyeIcon 그림만** 가져다 쓴다. 저 화면은
+//    아직 밝은 화면이라 여기 색을 따라오지 않는다 — 같이 어둡게 만들지 말 것.
 // ==========================================================================
 
+const AUTH_CSS = `
+  .auth-shell {
+    --bg:   #0e0e0f;
+    --bg2:  #131315;
+    --card: #17171a;
+    --line: rgba(255,255,255,0.10);
+    --line2:rgba(255,255,255,0.22);
+    --tx:   #eceae6;
+    --mut:  #8a8a86;
+    --dim:  #555552;
+    --acc:  #e8802e;
+    --accx: #140f0a;
+    --r:    2px;
+    --mono: var(--font-geist-mono), ui-monospace, monospace;
+
+    font-family: var(--font-geist-sans), -apple-system, 'Helvetica Neue', sans-serif;
+    letter-spacing: -0.01em;
+    background: var(--bg); color: var(--tx); min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 92px 24px 40px;
+  }
+  .auth-shell *, .auth-shell *::before, .auth-shell *::after { box-sizing: border-box; }
+  .auth-shell ::selection { background: var(--acc); color: var(--accx); }
+  .auth-shell a { color: inherit; text-decoration: none; }
+
+  /* 위 줄 — 돌아갈 길과 언어. 🔴이게 없으면 로그인 화면이 막다른 길이 된다. */
+  .auth-top {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 5;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 60px; padding: 0 clamp(20px, 3.6vw, 60px);
+    border-bottom: 1px solid var(--line); background: rgba(14,14,15,0.82); backdrop-filter: blur(14px);
+  }
+  .auth-brand { font-size: 1rem; font-weight: 800; letter-spacing: -0.03em; }
+  .auth-brand span { color: var(--dim); }
+  .auth-lang { display: flex; border: 1px solid var(--line); border-radius: var(--r); }
+  .auth-lang button {
+    background: none; border: none; cursor: pointer; font-family: var(--mono);
+    font-size: 0.66rem; letter-spacing: 0.08em; color: var(--mut);
+    padding: 7px 11px; transition: background .15s, color .15s;
+  }
+  .auth-lang button.on { background: var(--tx); color: var(--bg); }
+
+  .auth-box {
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--r);
+    padding: 34px 30px 26px; width: 100%; max-width: 392px;
+    box-shadow: 0 22px 60px rgba(0,0,0,0.45);
+  }
+
+  .fld-label {
+    display: block; font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--dim); margin-bottom: 7px;
+  }
+  .fld {
+    width: 100%; padding: 11px 12px; background: var(--bg2); color: var(--tx);
+    border: 1px solid var(--line); border-radius: var(--r);
+    font-size: 0.9rem; font-family: inherit; margin-bottom: 15px;
+    transition: border-color .15s;
+  }
+  .fld::placeholder { color: var(--dim); }
+  .fld:focus { outline: none; border-color: var(--acc); }
+  /* 🔴크롬 자동완성은 제 흰 바닥을 강제로 칠한다. 안 막으면 어두운 화면에
+       흰 칸 하나만 덩그러니 남고 글자가 안 보인다. */
+  .fld:-webkit-autofill, .fld:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--tx);
+    -webkit-box-shadow: inset 0 0 0 1000px #131315;
+    caret-color: var(--tx);
+  }
+
+  .pw-wrap { position: relative; }
+  .pw-wrap .fld { padding-right: 40px; }
+  /* 🔴height 는 .fld 의 margin-bottom(15px)을 뺀 값 — 감싸개 높이엔 그 여백이 포함된다. */
+  .pw-eye {
+    position: absolute; top: 0; right: 0; height: calc(100% - 15px); width: 38px;
+    display: flex; align-items: center; justify-content: center;
+    background: none; border: none; padding: 0; color: var(--dim); cursor: pointer;
+    transition: color .15s;
+  }
+  .pw-eye:hover { color: var(--tx); }
+  .pw-eye:focus-visible { outline: 2px solid var(--acc); outline-offset: -2px; border-radius: var(--r); }
+
+  .seg { display: flex; gap: 8px; }
+  .seg-btn {
+    flex: 1; padding: 10px 8px; border: 1px solid var(--line); border-radius: var(--r);
+    background: var(--bg2); font-size: 0.82rem; font-family: inherit; color: var(--mut);
+    cursor: pointer; transition: border-color .15s, color .15s, background .15s;
+  }
+  .seg-btn:hover { border-color: var(--line2); color: var(--tx); }
+  .seg-btn.on { border-color: var(--acc); background: var(--acc); color: var(--accx); }
+
+  .hint { font-size: 0.72rem; color: var(--dim); margin-top: 7px; line-height: 1.6; }
+
+  .main-btn {
+    width: 100%; padding: 12px; background: var(--acc); color: var(--accx);
+    border: none; border-radius: var(--r);
+    font-size: 0.88rem; font-weight: 700; font-family: inherit; cursor: pointer;
+    margin-top: 18px; transition: filter .18s, transform .18s;
+  }
+  .main-btn:hover:not(:disabled) { filter: brightness(1.08); transform: translateY(-2px); }
+  .main-btn:disabled { background: #2a2a2d; color: var(--dim); cursor: not-allowed; }
+
+  .g-btn {
+    width: 100%; display: flex; align-items: center; justify-content: center; gap: 9px;
+    padding: 11px; background: var(--bg2); border: 1px solid var(--line); border-radius: var(--r);
+    font-size: 0.86rem; font-weight: 600; font-family: inherit; color: var(--tx);
+    cursor: pointer; transition: border-color .15s, transform .18s;
+  }
+  .g-btn:hover:not(:disabled) { border-color: var(--line2); transform: translateY(-2px); }
+  .g-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  .divider { display: flex; align-items: center; gap: 10px; margin: 20px 0 15px; }
+  .divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+  .divider span { font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--dim); }
+
+  .msg { font-size: 0.78rem; margin-top: 13px; line-height: 1.6; }
+  /* ⚠️밝은 화면에서 쓰던 #e53e3e · #2f855a 는 어두운 바닥에서 안 읽힌다. */
+  .msg.err { color: #ff6f60; }
+  .msg.ok { color: #62d191; }
+
+  .links {
+    display: flex; justify-content: space-between; gap: 12px;
+    margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line);
+  }
+  .links button {
+    background: none; border: none; padding: 0; font-size: 0.76rem; color: var(--mut);
+    font-family: inherit; cursor: pointer; transition: color .15s;
+  }
+  .links button:hover { color: var(--acc); }
+
+  .auth-back {
+    margin-top: 22px; font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--dim); transition: color .15s;
+  }
+  .auth-back:hover { color: var(--acc); }
+
+  @media (max-width: 560px) {
+    .auth-shell { padding: 84px 18px 36px; }
+    .auth-box { padding: 26px 20px 22px; }
+  }
+`;
+
 export function AuthShell({ children }: { children: ReactNode }) {
+  const { lang, setLang } = useLanguage();
+
   return (
-    <main style={{
-      fontFamily: "-apple-system, 'Helvetica Neue', sans-serif",
-      background: "#f5f5f5", color: "#1a1a1a", minHeight: "100vh",
-      display: "flex", alignItems: "center", justifyContent: "center", padding: 24,
-    }}>
+    <main className="auth-shell">
+      <style>{AUTH_CSS}</style>
+
+      <div className="auth-top">
+        <Link href="/" className="auth-brand">Mass<span>Labs</span></Link>
+        <div className="auth-lang">
+          <button className={lang === "en" ? "on" : ""} onClick={() => setLang("en")}>EN</button>
+          <button className={lang === "ko" ? "on" : ""} onClick={() => setLang("ko")}>한국어</button>
+        </div>
+      </div>
+
       {children}
+
+      <Link href="/" className="auth-back">
+        {lang === "ko" ? "← 홈으로" : "← Back to home"}
+      </Link>
     </main>
   );
 }
 
 export function AuthCard({ children }: { children: ReactNode }) {
-  return (
-    <>
-      <style>{`
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        .auth-box { background:#fff; border-radius:16px; padding:30px 28px 24px; width:100%; max-width:380px; box-shadow:0 8px 32px rgba(0,0,0,0.12); }
-        .fld-label { display:block; font-size:0.75rem; color:#666; margin-bottom:5px; }
-        .fld { width:100%; padding:10px 12px; border:1.5px solid #e0e0e0; border-radius:8px; font-size:0.88rem; font-family:inherit; margin-bottom:14px; }
-        .fld:focus { outline:none; border-color:#1a1a1a; }
-        .pw-wrap { position:relative; }
-        .pw-wrap .fld { padding-right:40px; }
-        /* 🔴height 는 .fld 의 margin-bottom(14px)을 뺀 값 — 감싸개 높이엔 그 여백이 포함된다. */
-        .pw-eye { position:absolute; top:0; right:0; height:calc(100% - 14px); width:38px; display:flex; align-items:center; justify-content:center; background:none; border:none; padding:0; color:#aaa; cursor:pointer; }
-        .pw-eye:hover { color:#555; }
-        .pw-eye:focus-visible { outline:2px solid #1a1a1a; outline-offset:-2px; border-radius:6px; }
-        .seg { display:flex; gap:8px; }
-        .seg-btn { flex:1; padding:10px 8px; border:1.5px solid #e0e0e0; border-radius:8px; background:#fff; font-size:0.82rem; font-family:inherit; color:#555; cursor:pointer; transition:all .15s; }
-        .seg-btn:hover { border-color:#bbb; }
-        .seg-btn.on { border-color:#1a1a1a; background:#1a1a1a; color:#fff; }
-        .hint { font-size:0.7rem; color:#aaa; margin-top:6px; }
-        .main-btn { width:100%; padding:11px; background:#1a1a1a; color:#fff; border:none; border-radius:8px; font-size:0.88rem; font-weight:600; font-family:inherit; cursor:pointer; margin-top:16px; transition:background .2s; }
-        .main-btn:hover { background:#333; }
-        .main-btn:disabled { background:#ccc; cursor:not-allowed; }
-        .g-btn { width:100%; display:flex; align-items:center; justify-content:center; gap:8px; padding:10px; background:#fff; border:1.5px solid #e0e0e0; border-radius:8px; font-size:0.85rem; font-weight:500; font-family:inherit; color:#333; cursor:pointer; transition:border-color .15s; }
-        .g-btn:hover { border-color:#bbb; }
-        .g-btn:disabled { opacity:0.5; cursor:not-allowed; }
-        .divider { display:flex; align-items:center; gap:10px; margin:18px 0 14px; }
-        .divider::before, .divider::after { content:""; flex:1; height:1px; background:#eee; }
-        .divider span { font-size:0.72rem; color:#bbb; }
-        .msg { font-size:0.78rem; margin-top:12px; line-height:1.5; }
-        .msg.err { color:#e53e3e; }
-        .msg.ok { color:#2f855a; }
-        .links { display:flex; justify-content:space-between; gap:12px; margin-top:18px; padding-top:16px; border-top:1px solid #f0f0f0; }
-        .links button { background:none; border:none; padding:0; font-size:0.76rem; color:#888; font-family:inherit; cursor:pointer; text-decoration:underline; }
-        .links button:hover { color:#333; }
-      `}</style>
-      <div className="auth-box">{children}</div>
-    </>
-  );
+  return <div className="auth-box">{children}</div>;
 }
 
 // ==========================================================================

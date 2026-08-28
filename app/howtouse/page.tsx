@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/lib/i18n";
+import { LASERFISH_DOWNLOAD } from "@/lib/products";
 
 type Tab = "wall" | "terrain";
 
@@ -376,7 +377,8 @@ export default function HowToUsePage() {
             <a href="/howtouse" className="hnav-link" style={{ color: "#111", fontWeight: 700 }}>
               {lang === "ko" ? "사용방법" : "How to Use"}
             </a>
-            <a href="/download" className="hnav-link">
+            {/* 🔴밖으로 나간다(2026-08-28) — 설치 안내의 정본은 LaserFish 소개 사이트다 */}
+            <a href={LASERFISH_DOWNLOAD} className="hnav-link">
               {lang === "ko" ? "다운로드" : "Download"}
             </a>
             <a href="/price" className="hnav-link">

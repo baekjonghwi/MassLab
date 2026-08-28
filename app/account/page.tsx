@@ -1,9 +1,11 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lib/i18n";
 import PlanTable, { PLAN_CSS } from "@/components/PlanTable";
-import SiteHeader from "@/components/SiteHeader";
+import DarkTopBar, { DARK_TOPBAR_CSS, type DarkLink } from "@/components/DarkTopBar";
+import { LASERFISH_DOWNLOAD } from "@/lib/products";
 
 // ==========================================================================
 //  /account — 내 구독.
@@ -24,11 +26,32 @@ type Sub = {
   next_billing_at: string | null; canceled_at: string | null;
 };
 
+// 어두운 상단 막대에 걸 링크 — 이 화면에서 갈 만한 곳들.
+// 🔴[다운로드]는 **밖으로 나간다**(2026-08-28) — 설치 안내의 정본이 LaserFish
+//   소개 사이트로 옮겨 갔다. 나머지 둘은 MassLabs 안쪽 그대로다.
+const ACCOUNT_LINKS: DarkLink[] = [
+  { href: LASERFISH_DOWNLOAD, ko: "다운로드", en: "Download" },
+  { href: "/howtouse", ko: "사용방법", en: "How to use" },
+  { href: "/price", ko: "비용", en: "Pricing" },
+];
+
 // 🔴구독 상품은 하나뿐이다. 등급(plus/pro/max)이 모든 프로그램에 함께 적용된다.
 const PRODUCT = "all";
 
+// ==========================================================================
+//  통화 표기 — 🔴기호만 쓴다(2026-08-26 결정).
+//
+//  이 화면은 **홈페이지에서 고른 언어**를 따른다. 한글 "원"을 붙이면 원화
+//  구독자가 영어 화면에서 "12,000원"을 보게 된다. 기호는 어느 말에서도 읽힌다.
+//
+//  🔴금액에는 손대지 않는다 — 여기는 **실제로 청구된 금액**을 적는 자리다.
+//    환산하지 않고, 자릿수 처리도 통화마다 그대로 둔다(KRW는 정수 원 단위,
+//    USD는 센트 단위로 저장돼 있어 나누는 방식이 다르다).
+//  🔴이 함수는 app/subscribe/page.tsx 에도 **똑같은 것**이 복제돼 있다.
+//    한쪽만 고치면 /account 와 /subscribe 가 다른 말을 한다 — 반드시 함께 고칠 것.
+// ==========================================================================
 const money = (n: number, cur: string) =>
-  cur === "KRW" ? `${n.toLocaleString()}원` : `$${(n / 100).toFixed(2)}`;
+  cur === "KRW" ? `₩${n.toLocaleString()}` : `$${(n / 100).toFixed(2)}`;
 const day = (s: string | null, isKo: boolean) =>
   s ? new Date(s).toLocaleDateString(isKo ? "ko-KR" : "en-US",
         { year: "numeric", month: "long", day: "numeric" }) : "—";
@@ -56,6 +79,10 @@ const TX = {
     nickLen: "2~20자로 지어 주세요.",
     nickBad: "쓸 수 없는 문자가 들어 있습니다. 다른 이름을 써 주세요.",
     nickFail: "닉네임을 바꾸지 못했습니다.",
+    // ── 비밀번호 — 여기는 길만 낸다. 바꾸는 자리는 /account/security 다.
+    //   🔴"변경"이라고만 쓰지 않는다. [로그아웃] 옆에 홀로 서는 버튼이라,
+    //     무엇을 변경하는지 붙어 있지 않으면 그 자리에서는 알 길이 없다.
+    pwChange: "비밀번호 변경",
     nextBilling: "다음 결제일", firstBilling: "첫 결제일", amount: "결제 금액",
     cancelBtn: "구독 해지", working: "처리 중…",
     endsOn: "이용 종료일",
@@ -92,6 +119,8 @@ const TX = {
     nickLen: "Please use 2–20 characters.",
     nickBad: "That name contains characters we can't use. Please try another.",
     nickFail: "Couldn't change the nickname.",
+    // ── Password — this screen only links out; /account/security does the work ──
+    pwChange: "Change password",
     nextBilling: "Next billing date", firstBilling: "First billing date", amount: "Amount",
     cancelBtn: "Cancel subscription", working: "Working…",
     endsOn: "Access ends",
@@ -132,20 +161,9 @@ export default function AccountPage() {
   const [draft, setDraft] = useState<string | null>(null);   // null = 편집 중 아님
   const [nickErr, setNickErr] = useState("");
 
-  // ==========================================================================
-  //  [구독하기]가 갈 곳.
-  //
-  //  🔴미리보기로 들어온 화면(/account?preview=1)에서는 구독을 팔던 쪽으로 보낸다.
-  //    지금 /price 는 건당결제라, 구독표를 보던 사람이 딴 상품에 떨어진다
-  //    (components/SiteHeader 와 같은 판정 — 한쪽만 고치면 화면 안에서 길이 갈린다).
-  //  ⚠️링크가 아니라 버튼인 이유 — ?preview 는 브라우저만 아는 값이라 서버가 그린
-  //    첫 그림에는 없다. href 에 넣으면 붙기 전후로 주소가 달라진다(hydration).
-  //    누를 때 정하면 그런 일이 없다.
-  // ==========================================================================
-  const toPrice = () => {
-    const preview = new URLSearchParams(window.location.search).has("preview");
-    window.location.href = preview ? "/main#pricing" : "/price";
-  };
+  // [구독하기]가 갈 곳. 🔴2026-08-28 이전에는 ?preview=1 로 들어온 사람을 /main
+  //   (구독을 팔던 시절의 홈, PG 심사용)으로 돌려보냈다. /main 을 지우면서 없앴다.
+  const toPrice = () => { window.location.href = "/price"; };
 
   const load = useCallback(async () => {
     const sb = supabase();
@@ -252,10 +270,19 @@ export default function AccountPage() {
           <h1 className="ttl">{x.title}</h1>
           <p className="sub">{email}</p>
         </div>
-        <button className="ghost" onClick={async () => {
-          await supabase().auth.signOut();
-          window.location.href = "/";
-        }}>{x.logout}</button>
+        {/* 🔴두 버튼은 **같은 .ghost** 다 — 나란히 서니 크기·테두리가 조금만
+               달라도 바로 티가 난다. 새 규칙을 만들지 말 것.
+            ⚠️줄은 .nick-btns 로 묶는다(display:flex; gap; flex-shrink:0) —
+              버튼 두 개를 붙여 세우는 규칙이 이미 있는데 또 만들 이유가 없다.
+            ⚠️눌러 들어가는 곳은 /account/security 한 곳뿐이다. 중간에 묻는
+              창을 끼우지 않는다 — 비밀번호 변경은 되돌릴 수 없는 일이 아니다. */}
+        <div className="nick-btns">
+          <Link className="ghost" href="/account/security">{x.pwChange}</Link>
+          <button className="ghost" onClick={async () => {
+            await supabase().auth.signOut();
+            window.location.href = "/";
+          }}>{x.logout}</button>
+        </div>
       </div>
 
       {error && <div className="err">{error}</div>}
@@ -386,62 +413,123 @@ function Line({ k, v }: { k: string; v: string }) {
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <main style={{
-      fontFamily: "var(--font-geist-sans), -apple-system, 'Helvetica Neue', sans-serif",
-      background: "#f5f5f5", color: "#1a1a1a", minHeight: "100vh",
-    }}>
+    <main className="acc">
+      {/* ==================================================================
+          🔴2026-08-27 어두운 화면으로 갈아입혔다 — 홈·로그인과 같은 결이다.
+            값 이름도 저쪽과 맞춰 뒀다(--bg/--card/--acc …).
+            ⚠️값을 또 한 벌 적는 셈이다. 홈(components/LandingView)의 --acc 를
+              바꾸면 여기와 components/AuthCard 도 함께 바꿀 것.
+
+          🔴PLAN_CSS 는 밝은 화면용이라 흰 칸·검은 글자가 박혀 있다. 저 파일을
+            어둡게 고치면 /price 가 같이 깨진다 — 그래서 **여기서만** 뒤에
+            덮어쓴다. 순서가 전부다: PLAN_CSS 뒤에.
+      ================================================================== */}
       <style>{`
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        .wrap { max-width: 960px; margin: 0 auto; padding: 40px 20px; }
-        .hd { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:22px; }
-        .ttl { font-size:1.5rem; font-weight:800; letter-spacing:-0.03em; }
-        .sub { font-size:0.8rem; color:#888; margin-top:4px; }
-        .dim { font-size:0.88rem; color:#888; }
-        .card { background:#fff; border-radius:14px; padding:22px; margin-bottom:16px; box-shadow:0 2px 12px rgba(0,0,0,0.06); }
+        .acc {
+          --bg:   #0e0e0f;
+          --bg2:  #131315;
+          --card: #17171a;
+          --line: rgba(255,255,255,0.10);
+          --line2:rgba(255,255,255,0.22);
+          --tx:   #eceae6;
+          --mut:  #8a8a86;
+          --dim:  #555552;
+          --acc:  #e8802e;
+          --accx: #140f0a;
+          --r:    2px;
+          --mono: var(--font-geist-mono), ui-monospace, monospace;
+
+          font-family: var(--font-geist-sans), -apple-system, 'Helvetica Neue', sans-serif;
+          letter-spacing: -0.01em;
+          background: var(--bg); color: var(--tx); min-height: 100vh;
+        }
+        .acc ::selection { background: var(--acc); color: var(--accx); }
+        ${DARK_TOPBAR_CSS}
+
+        .wrap { max-width: 960px; margin: 0 auto; padding: 96px 20px 56px; }
+        /* 🔴wrap — 오른쪽에 버튼이 둘이라 좁은 화면에서는 접혀 내려가야 한다.
+             안 접으면 긴 메일 주소와 맞물려 화면 밖으로 삐져나간다. */
+        .hd { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:22px; }
+        .ttl { font-size:1.6rem; font-weight:800; letter-spacing:-0.035em; }
+        .sub { font-size:0.78rem; color:var(--mut); margin-top:5px; }
+        .dim { font-size:0.86rem; color:var(--mut); }
+        .card { background:var(--card); border:1px solid var(--line); border-radius:var(--r); padding:22px; margin-bottom:14px; }
         .row { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:14px; }
         .badge-row { display:flex; justify-content:flex-end; margin-bottom:14px; }
         .pname { font-size:1rem; font-weight:700; }
-        .pdesc { font-size:0.78rem; color:#999; margin-top:3px; line-height:1.5; }
-        .badge { font-size:0.7rem; font-weight:700; padding:4px 10px; border-radius:100px; background:#f0f0f0; color:#999; white-space:nowrap; }
-        .badge.on { background:#e6f4ec; color:#2f855a; }
-        .ln { display:flex; justify-content:space-between; padding:9px 0; border-top:1px solid #f2f2f2; font-size:0.82rem; }
-        .ln span:first-child { color:#777; }
-        .plan-here { padding-top:16px; border-top:1px solid #f2f2f2; }
+        .pdesc { font-size:0.77rem; color:var(--mut); margin-top:4px; line-height:1.6; }
+        .badge { font-family:var(--mono); font-size:0.62rem; letter-spacing:0.14em; text-transform:uppercase;
+                 font-weight:600; padding:5px 10px; border-radius:var(--r);
+                 background:var(--bg2); border:1px solid var(--line); color:var(--dim); white-space:nowrap; }
+        .badge.on { border-color:var(--acc); color:var(--acc); }
+        .ln { display:flex; justify-content:space-between; gap:12px; padding:10px 0; border-top:1px solid var(--line); font-size:0.81rem; }
+        .ln span:first-child { color:var(--mut); }
+        .plan-here { padding-top:16px; border-top:1px solid var(--line); }
         ${PLAN_CSS}
-        .note { font-size:0.75rem; color:#999; line-height:1.6; margin-top:8px; }
-        .note.warn { color:#c05621; }
-        .primary { padding:11px; background:#1a1a1a; color:#fff; border:none; border-radius:8px; font-size:0.88rem; font-weight:600; font-family:inherit; cursor:pointer; }
-        .primary:hover { background:#333; }
-        .ghost { padding:8px 14px; background:#fff; color:#555; border:1.5px solid #e0e0e0; border-radius:8px; font-size:0.8rem; font-family:inherit; cursor:pointer; }
-        .ghost:hover { border-color:#bbb; }
-        .ghost.sm { padding:6px 10px; font-size:0.74rem; }
+        /* ── 여기부터 PLAN_CSS 를 어둡게 덮는다(위 주석 참고) ── */
+        .pg-tier { background:var(--bg2); border:1px solid var(--line); color:var(--tx); }
+        .pg-tier .cur { color:var(--dim); }
+        .pg-prog, .pg-cell, .pg-price { background:var(--bg2); border-color:var(--line); }
+        .pg-prog-name { color:var(--tx); }
+        .pg-cell.off { background:transparent; }
+        .pg-off-mark { color:var(--dim); }
+        .pg-line span { color:var(--dim); }
+        .pg-line b { color:var(--tx); }
+        .pg-amt { color:var(--acc); }
+        .pg-per { color:var(--mut); }
+        .pg-cta button, .pg-cta a { background:var(--acc); color:var(--accx); border-radius:var(--r); }
+        .pg-cta button:hover, .pg-cta a:hover { background:var(--acc); filter:brightness(1.08); }
+        .pg-cta button:disabled { background:#2a2a2d; color:var(--dim); }
+        .pg-cta .using { color:var(--acc); }
+        .plan-fine { color:var(--dim); }
+
+        .note { font-size:0.74rem; color:var(--dim); line-height:1.7; margin-top:8px; }
+        .note.warn { color:var(--acc); }
+        .primary { padding:12px; background:var(--acc); color:var(--accx); border:none; border-radius:var(--r);
+                   font-size:0.86rem; font-weight:700; font-family:inherit; cursor:pointer;
+                   transition:filter .18s, transform .18s; }
+        .primary:hover:not(:disabled) { filter:brightness(1.08); transform:translateY(-2px); }
+        /* ⚠️a(Link)도 이 클래스를 쓴다 — <a> 는 inline 이라 그대로 두면 padding 이
+             줄 높이에 안 잡혀 옆의 <button> 보다 납작해진다. inline-flex 로 세운다. */
+        .ghost { display:inline-flex; align-items:center; padding:8px 14px; background:var(--bg2); color:var(--mut);
+                 border:1px solid var(--line); border-radius:var(--r); font-size:0.79rem; font-family:inherit;
+                 line-height:1.2; text-decoration:none; white-space:nowrap; cursor:pointer;
+                 transition:border-color .15s, color .15s; }
+        .ghost:hover { border-color:var(--line2); color:var(--tx); }
+        .ghost.sm { padding:6px 10px; font-size:0.73rem; }
         .wide { width:100%; margin-top:14px; }
-        button:disabled { opacity:0.5; cursor:not-allowed; }
-        .danger-zone { display:flex; justify-content:flex-end; align-items:center; gap:14px; padding:4px 2px 8px; }
+        button:disabled { opacity:0.45; cursor:not-allowed; }
+        .danger-zone { display:flex; justify-content:flex-end; align-items:center; gap:14px; padding:6px 2px 8px; }
         .link-danger { background:none; border:none; padding:4px 2px; font-family:inherit;
-                       font-size:0.75rem; color:#a0a0a0; cursor:pointer; text-decoration:underline;
-                       text-underline-offset:3px; }
-        .link-danger:hover { color:#c53030; }
-        /* 🔴[구독하기]만 처음부터 붉다 — 회색 두 개 사이에서 유일하게 '하는' 동작이다 */
-        .link-danger.go { color:#c53030; font-weight:700; }
-        .link-danger.go:hover { color:#9b2c2c; }
+                       font-size:0.74rem; color:var(--dim); cursor:pointer; text-decoration:underline;
+                       text-underline-offset:3px; transition:color .15s; }
+        .link-danger:hover { color:#ff6f60; }
+        /* 🔴[구독하기]만 처음부터 도드라진다 — 회색 두 개 사이에서 유일하게 '하는' 동작이다 */
+        .link-danger.go { color:var(--acc); font-weight:700; }
+        .link-danger.go:hover { color:var(--acc); filter:brightness(1.15); }
         .nick-row { display:flex; justify-content:space-between; align-items:center; gap:12px; }
         .nick-l { min-width:0; flex:1; }
-        .nick-k { font-size:0.7rem; font-weight:700; color:#999; letter-spacing:0.02em; }
-        .nick-v { font-size:1rem; font-weight:700; margin-top:5px; word-break:break-all; }
-        .nick-in { width:100%; max-width:280px; margin-top:4px; padding:7px 10px;
-                   border:1.5px solid #e0e0e0; border-radius:8px; background:#fff;
-                   font-family:inherit; font-size:0.95rem; font-weight:700; color:#1a1a1a; }
-        .nick-in:focus { outline:none; border-color:#1a1a1a; }
+        .nick-k { font-family:var(--mono); font-size:0.6rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--dim); }
+        .nick-v { font-size:1rem; font-weight:700; margin-top:6px; word-break:break-all; }
+        .nick-in { width:100%; max-width:280px; margin-top:5px; padding:8px 10px;
+                   border:1px solid var(--line); border-radius:var(--r); background:var(--bg2);
+                   font-family:inherit; font-size:0.95rem; font-weight:700; color:var(--tx); }
+        .nick-in:focus { outline:none; border-color:var(--acc); }
         .nick-btns { display:flex; gap:6px; flex-shrink:0; }
-        .dark { padding:8px 14px; background:#1a1a1a; color:#fff; border:1.5px solid #1a1a1a;
-                border-radius:8px; font-size:0.8rem; font-weight:600; font-family:inherit; cursor:pointer; }
-        .dark:hover { background:#333; }
-        .dark.sm { padding:6px 12px; font-size:0.74rem; }
-        .err { background:#fff5f5; color:#c53030; font-size:0.8rem; padding:11px 14px; border-radius:8px; margin-bottom:14px; }
-        code { background:#f2f2f2; padding:1px 5px; border-radius:4px; font-size:0.92em; }
+        .dark { padding:8px 14px; background:var(--acc); color:var(--accx); border:1px solid var(--acc);
+                border-radius:var(--r); font-size:0.79rem; font-weight:700; font-family:inherit; cursor:pointer;
+                transition:filter .15s; }
+        .dark:hover { filter:brightness(1.08); }
+        .dark.sm { padding:6px 12px; font-size:0.73rem; }
+        .err { background:rgba(255,111,96,0.10); border:1px solid rgba(255,111,96,0.32); color:#ff8d80;
+               font-size:0.79rem; padding:11px 14px; border-radius:var(--r); margin-bottom:14px; }
+        code { background:var(--bg2); border:1px solid var(--line); padding:1px 5px; border-radius:var(--r); font-size:0.92em; }
       `}</style>
-      <SiteHeader active="/account" />
+
+      {/* 🔴SiteHeader(밝은 막대) 대신 어두운 막대를 쓴다 — SiteHeader 는
+           /price · /download 등 밝은 화면들이 함께 쓰므로 건드리지 않는다. */}
+      <DarkTopBar links={ACCOUNT_LINKS} />
       <div className="wrap">{children}</div>
     </main>
   );

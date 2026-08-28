@@ -1,15 +1,20 @@
 "use client";
-import HomeView from "@/components/HomeView";
-import { SUBSCRIPTION_LIVE } from "@/lib/interim";
+import LandingView from "@/components/LandingView";
 
 // ==========================================================================
-//  홈. 본체는 components/HomeView.tsx 에 있다.
+//  홈. 본체는 components/LandingView.tsx 에 있다.
 //
-//  🔴여기서 화면을 그리지 않는 이유 — 같은 홈을 /main 도 그린다(구독을 팔던
-//    시절의 모습 그대로, PG 심사에 내는 주소다). 두 곳이 각자 그리면 언젠가
-//    반드시 어긋난다.
+//  홈은 제품 전체(archiMap · Colorgram · LaserFish)를 소개하는 어두운 랜딩이다.
+//  🔴2026-08-28 — **홈이 하나로 돌아왔다.** 전에는 구독을 팔던 시절의 홈을 얼려 둔
+//    /main(components/HomeView)이 PG 심사용으로 따로 있었지만, 심사 주소를 이
+//    화면으로 바꾸기로 하면서 /main · HomeView · AuthNavLink · ?preview 배선을
+//    통째로 지웠다. 이제 홈은 여기 하나뿐이다.
+//
+//  ⚠️LanguageBar 와 LayoutFooter(둘 다 밝은 화면)는 이 주소에서만 안 그려진다.
+//    LandingView 가 어두운 상단 막대와 바닥글을 제 안에 갖고 있기 때문이다.
+//    판정은 각 컴포넌트가 usePathname 으로 한다.
 // ==========================================================================
 
 export default function Home() {
-  return <HomeView subscriptionLive={SUBSCRIPTION_LIVE} />;
+  return <LandingView />;
 }

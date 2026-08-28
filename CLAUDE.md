@@ -8,12 +8,12 @@ MassLabs는 배포되는 프로젝트라 하위 폴더가 빌드 컨텍스트에
 
 | 폴더 | 무엇 | 배포 |
 |---|---|---|
-| `D:\CODE\MassLabs` ← 여기 | 홈페이지 · 로그인 · 요금제 · 결제 · 구독 · 기기연결 · 다운로드 | `masslabs-archi.com` |
+| `D:\CODE\MassLabs` ← 여기 | 홈페이지 · 로그인 · 요금제 · 결제 · 구독 · 기기연결 | `masslabs-archi.com` |
 | `D:\CODE\archiMap` | archiMap — 정적 사이트(`public/*.js`), 빌드 단계 없음 | `archimap.masslabs-archi.com` |
 | `D:\CODE\Colorgram` | Colorgram — 색 조합 도구. Next.js. 🔴제품군에서 **유일하게 다크모드를 안 쓴다**(색이 곧 내용물이라) | `colorgram.masslabs-archi.com` |
 | `D:\CODE\Archi_render` | Archi Render — Next.js, 제작중(M0). 기획 원본은 그쪽 `PLAN.md` | `render.masslabs-archi.com` |
 | `D:\CODE\LaserCuttingDrawings` | **LaserFish 본체** — C# 라이노 플러그인 + Grasshopper | 플러그인 직접 배포 |
-| `D:\CODE\LaserFish` | ⚠️코드 아님 — 이미지·`.3dm` 에셋 창고. LaserFish 코드를 여기서 찾지 말 것 | — |
+| `D:\CODE\LaserFish` | **LaserFish 소개 사이트** — Next.js, 제작중(2026-08-28 시작). ⚠️그 전까지 이미지·`.3dm` 에셋 창고였다. 플러그인 **본체 코드는 여기가 아니다**(윗줄) | `laserfish.masslabs-archi.com` |
 | `D:\CODE\Rhino_ai` | Rhino MCP(McNeel 저장소 포크), 제작중 | — |
 | `D:\CODE\masslabs-pay` | ⛔**폐기됨**(2026-08-18, Vercel 프로젝트 삭제) — 결제는 MassLabs가 흡수했다. 새 코드를 넣지 말 것 | — |
 
@@ -27,6 +27,10 @@ MassLabs는 배포되는 프로젝트라 하위 폴더가 빌드 컨텍스트에
   스위치 두 개가 한 벌이다: `lib/interim.ts`의 `SUBSCRIPTION_LIVE` ·
   archiMap `public/app.js`의 `SOLO_PLUS_FREE`. 한쪽만 뒤집으면 두 사이트 말이 어긋난다.
   구독 코드(`/account`·`/subscribe`·`PlanTable`·`/api/subscribe/*`)는 **하나도 안 지웠다** — 되돌리면 그대로 산다.
+- 🔴**설치 안내(`/download`)는 2026-08-28 부터 LaserFish 소개 사이트가 정본이다**(사용자 결정).
+  같은 글이 두 저장소에 살면서 갈라지던 것을 끝냈다 — MassLabs 안쪽 화면은 지웠고,
+  `next.config.ts`의 리다이렉트만 남아 옛 링크를 넘긴다(307, 되돌릴 여지를 남겼다).
+  ⛔MassLabs에 `/download` 화면을 다시 만들지 말 것. 나가는 주소는 `lib/products.ts` 한 곳이다.
 - 제품 저장소는 **기능만** 갖는다. 권한 판정이 필요하면 MassLabs의 `/api/entitlement`에 묻는다.
 - 세션은 `.masslabs-archi.com` 쿠키(앞에 점) 한 벌을 전 제품이 공유한다.
   🔴쿠키 형식은 archiMap의 `ckStore`(`public/app.js`)와 **한 벌로 움직이는 규약**이다 —

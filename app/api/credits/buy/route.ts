@@ -66,8 +66,9 @@ export async function POST(request: Request) {
   }
 
   // 구독과 같은 통화로 청구한다. 국내(KRW)에만 부가세가 붙는다.
+  const isKrw = sub.currency === "KRW";
   let amount: number;
-  if (sub.currency === "KRW") {
+  if (isKrw) {
     let rate = 1500;
     try {
       const r = await fetch(`${new URL(request.url).origin}/api/exchange-rate`, { cache: "no-store" });
@@ -91,7 +92,9 @@ export async function POST(request: Request) {
     paymentId,
     billingKey: sub.billing_key,
     channel: sub.channel,
-    orderName: `archiMap 크레딧 ${CREDITS}회`,
+    // 🔴이 값은 포트원 결제창 상품명·카드 명세서·영수증에 그대로 남는다.
+    //   해외(USD) 결제자에게 한글로 청구되지 않도록 통화로 가른다.
+    orderName: isKrw ? `archiMap 크레딧 ${CREDITS}회` : `archiMap credits ×${CREDITS}`,
     amount,
     currency: sub.currency,
     customerId: customerIdOf(uid),
@@ -109,6 +112,9 @@ export async function POST(request: Request) {
   });
 
   if (!charge.ok) {
+    // 🔴원인(detail)은 서버 로그에만 남긴다 — 여긴 세션 행이 없어 note 칼럼이 없다.
+    //   응답 message는 손님이 읽는 줄이라 Payment failed 한 줄뿐이다.
+    console.error("[credits] 크레딧 청구 실패:", paymentId, uid, charge.detail);
     return Response.json({ error: "charge_failed", message: charge.message }, { status: 402, headers: h });
   }
 

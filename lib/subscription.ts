@@ -242,9 +242,23 @@ export function planAmount(
   return { amount: Math.round(base * 100), currency: "USD" };
 }
 
-// 그 채널에서 실제로 걷는 부가세(USD 기준). 해외는 영세율이라 늘 0이다.
-export function vatOf(base: number, channel: Channel): number {
-  return channel === "galaxia" ? +(base * VAT_RATE).toFixed(2) : 0;
+// 그 채널에서 실제로 걷는 부가세 — **청구 통화 그대로** 돌려준다. 해외는 영세율이라 0.
+// 🔴예전엔 USD로만 계산했다(vatUsd). 그래서 원화 결제자 화면에 구독료가 ₩로,
+//   부가세가 $로 나란히 떴다(2026-08-26 고침). 청구는 원화인데 부가세만 달러면
+//   손님이 영수증을 못 읽는다.
+// 🔴총액에서 공급가액을 빼서 구한다. 부가세를 따로 반올림하면 공급가+부가세가
+//   실제 청구액과 1원씩 어긋나 계산이 안 맞는다.
+//   ⚠️여기 total 식은 planAmount 의 galaxia 갈래와 **반드시 같아야 한다** —
+//     한쪽만 고치면 화면의 부가세가 실제 청구액과 어긋난다.
+export function vatOf(
+  productKey: string, plan: PlanKey, channel: Channel, krwRate: number,
+): Money | null {
+  const base = priceOf(productKey, plan);
+  if (base == null) return null;                       // 팔지 않는 조합
+  if (channel !== "galaxia") return { amount: 0, currency: "USD" };
+  const total = Math.round(base * (1 + VAT_RATE) * krwRate);
+  const supply = Math.round(base * krwRate);
+  return { amount: total - supply, currency: "KRW" };
 }
 
 // --------------------------------------------------------------------------
@@ -299,9 +313,24 @@ export type ChargeArgs = {
   email: string;
 };
 
+// 🔴손님 화면에 나가는 결제 실패 문구는 이 한 줄뿐이다(2026-08-26 사용자 결정).
+//   PG사 이름(포트원)·HTTP 상태코드·결제 상태값·금액 숫자·환경변수 이름은
+//   손님이 알 필요가 없는 내부 사정이라 화면에서 전부 뺐다.
+export const PAY_FAIL_MESSAGE = "Payment failed";
+
+// ⚠️message = 손님용 한 줄, detail = 운영자용 원인. 둘을 섞지 말 것.
+//   detail은 서버 로그와 DB note로만 간다 — 응답 본문에 실어 보내지 않는다.
 export type ChargeResult =
   | { ok: true; alreadyDone?: boolean; raw: unknown }
-  | { ok: false; code?: string; message: string; raw: unknown };
+  | { ok: false; code?: string; message: string; detail: string; raw: unknown };
+
+// 실패 하나를 만드는 자리. 🔴여기서 반드시 로그를 함께 남긴다 — 호출자가 detail을
+//   흘려 버려도 원인은 서버 로그에 남게 하려는 것이다. 결제 사고가 났을 때
+//   무엇이 틀렸는지 되짚을 유일한 단서다. 지우지 말 것.
+function payFail(paymentId: string, detail: string, raw: unknown) {
+  console.error("[billing] 결제 실패:", paymentId, detail, raw ?? "");
+  return { ok: false as const, message: PAY_FAIL_MESSAGE, detail, raw };
+}
 
 // 이미 일어난 결제를 조회한다.
 // 🔴해외(엑심베이)는 빌링키 발급 시점에 첫 결제가 함께 끝난다 — 포트원이
@@ -310,29 +339,30 @@ export type ChargeResult =
 //   청구하는 대신 "정말 그 금액이 결제됐는지"만 확인한다. 안 그러면 이중 청구다.
 export async function getPayment(paymentId: string): Promise<
   | { ok: true; amount: number; currency: string; raw: unknown }
-  | { ok: false; message: string; raw: unknown }
+  | { ok: false; message: string; detail: string; raw: unknown }
 > {
   const secret = process.env.PORTONE_SECRET_KEY?.trim();
-  if (!secret) return { ok: false, message: "PORTONE_SECRET_KEY 없음", raw: null };
+  if (!secret) return payFail(paymentId, "결제 조회 불가 — PORTONE_SECRET_KEY 없음", null);
 
   const res = await fetch(`${PORTONE_API}/payments/${encodeURIComponent(paymentId)}`, {
     headers: { Authorization: `PortOne ${secret}` },
     cache: "no-store",
   });
   const raw = await res.json().catch(() => null);
-  if (!res.ok) return { ok: false, message: `포트원 ${res.status}`, raw };
+  if (!res.ok) return payFail(paymentId, `포트원 결제 조회 실패 HTTP ${res.status}`, raw);
 
   const p = raw as { status?: string; amount?: { total?: number }; currency?: string };
   // 🔴PAID가 아니면 돈이 안 들어온 것이다. 구독을 열어 주면 공짜로 쓰게 된다.
   if (p?.status !== "PAID") {
-    return { ok: false, message: `결제 상태 ${p?.status ?? "알 수 없음"}`, raw };
+    // ⚠️status가 아예 없으면 ERROR로 적는다 — 손님에겐 안 보이고 로그·note에만 남는 값이다.
+    return payFail(paymentId, `결제 상태 ${p?.status ?? "ERROR"}`, raw);
   }
   return { ok: true, amount: p.amount?.total ?? 0, currency: p.currency ?? "", raw };
 }
 
 export async function chargeWithBillingKey(a: ChargeArgs): Promise<ChargeResult> {
   const secret = process.env.PORTONE_SECRET_KEY?.trim();
-  if (!secret) return { ok: false, message: "PORTONE_SECRET_KEY 없음", raw: null };
+  if (!secret) return payFail(a.paymentId, "청구 불가 — PORTONE_SECRET_KEY 없음", null);
 
   const res = await fetch(
     `${PORTONE_API}/payments/${encodeURIComponent(a.paymentId)}/billing-key`,
@@ -361,10 +391,10 @@ export async function chargeWithBillingKey(a: ChargeArgs): Promise<ChargeResult>
   if (res.status === 409 || /ALREADY_PAID|PAYMENT_ALREADY/i.test(code)) {
     return { ok: true, alreadyDone: true, raw };
   }
+  // 🔴포트원이 준 사유는 손님이 아니라 로그·note로 간다. 화면엔 한 줄만 나간다.
+  const reason = (raw as { message?: string })?.message ?? "";
   return {
-    ok: false,
+    ...payFail(a.paymentId, `포트원 청구 실패 HTTP ${res.status}${code ? ` ${code}` : ""}${reason ? ` — ${reason}` : ""}`, raw),
     code,
-    message: (raw as { message?: string })?.message ?? `포트원 ${res.status}`,
-    raw,
   };
 }

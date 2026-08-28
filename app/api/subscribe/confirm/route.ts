@@ -1,7 +1,7 @@
 import {
   CENTRAL, sbFetch, emailOf, syncPlanCache, planAmount, priceOf, productOf,
   chargeWithBillingKey, getPayment, customerIdOf, monthlyPaymentId, ymOf, addMonth, PLAN_LABEL,
-  hasActiveBundle, cancelIndividualSubs,
+  hasActiveBundle, cancelIndividualSubs, PAY_FAIL_MESSAGE,
   type PlanKey, type Channel, type ChargeResult,
 } from "@/lib/subscription";
 
@@ -96,14 +96,15 @@ export async function POST(request: Request) {
       }
     }
     if (!found.ok) {
-      charge = { ok: false, message: found.message, raw: found.raw };
+      charge = { ok: false, message: found.message, detail: found.detail, raw: found.raw };
     } else if (found.amount < money.amount || found.currency !== money.currency) {
       // 🔴결제창이 보낸 금액을 그대로 믿지 않는다. 서버가 계산한 금액과 대조한다.
-      charge = {
-        ok: false,
-        message: `결제 금액 불일치(실제 ${found.amount} ${found.currency} / 기대 ${money.amount} ${money.currency})`,
-        raw: found.raw,
-      };
+      // 🔴실제/기대 숫자는 정산 분쟁의 결정적 증거다 — 화면에선 뺐지만 로그와
+      //   note 양쪽에 반드시 남긴다. 손님에겐 Payment failed 한 줄만 나간다.
+      const detail =
+        `결제 금액 불일치(실제 ${found.amount} ${found.currency} / 기대 ${money.amount} ${money.currency})`;
+      console.error("[subscribe] 금액 불일치:", usedPaymentId, detail, found.raw ?? "");
+      charge = { ok: false, message: PAY_FAIL_MESSAGE, detail, raw: found.raw };
     } else {
       charge = { ok: true, raw: found.raw };
     }
@@ -131,7 +132,10 @@ export async function POST(request: Request) {
   });
 
   if (!charge.ok) {
-    await closeSession(sid, "failed", charge.message);
+    // 🔴원인(detail)은 운영자용 note로만 남긴다. 응답 message는 손님이 읽는 줄이라
+    //   Payment failed 한 줄뿐이다 — 여기에 PG사·상태코드·금액을 실어 보내지 말 것.
+    console.error("[subscribe] 첫 달 청구 실패:", usedPaymentId, s.user_id, charge.detail);
+    await closeSession(sid, "failed", charge.detail);
     return Response.json({ error: "charge_failed", message: charge.message }, { status: 402 });
   }
 

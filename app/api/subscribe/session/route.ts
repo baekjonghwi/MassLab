@@ -81,6 +81,7 @@ export async function GET(request: Request) {
 
   const base = priceOf(s.product, s.plan)!;
   const money = planAmount(s.product, s.plan, channel, krwRate)!;
+  const vat = vatOf(s.product, s.plan, channel, krwRate)!;
 
   return Response.json({
     product: s.product,
@@ -94,7 +95,9 @@ export async function GET(request: Request) {
     krwRate,
     baseUsd: base,
     // 🔴해외는 영세율이라 0이 온다. 결제 페이지는 0이면 부가세 줄을 아예 숨긴다.
-    vatUsd: vatOf(base, channel),
+    //   🔴금액은 **청구 통화** 그대로다(2026-08-26) — 화면이 money()로 그린다.
+    vat: vat.amount,
+    vatCurrency: vat.currency,
     ...money,
     // 🔴해외(엑심베이)는 빌링키 발급과 첫 결제가 한 번에 일어나므로 결제 ID가
     //   결제창 호출 시점에 필요하다. 화면이 만들게 두면 남의 결제 ID를 넣어

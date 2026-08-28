@@ -1,8 +1,8 @@
 "use client";
-import { useState, useEffect } from "react";
 import { useLanguage } from "@/lib/i18n";
 import { SUBSCRIPTION_LIVE } from "@/lib/interim";
 import { useSignedIn } from "@/lib/use-signed-in";
+import { LASERFISH_DOWNLOAD } from "@/lib/products";
 
 // ==========================================================================
 //  모든 화면이 함께 쓰는 상단 막대.
@@ -14,9 +14,11 @@ import { useSignedIn } from "@/lib/use-signed-in";
 //    일이 생기면 그 화면들도 같이 고쳐야 한다.
 // ==========================================================================
 
+// 🔴[다운로드]는 **밖으로 나간다**(2026-08-28) — 설치 안내의 정본이 LaserFish
+//   소개 사이트다. MassLabs 안쪽 /download 화면은 지웠다.
 const LINKS = [
   { href: "/howtouse", ko: "사용방법", en: "How to Use" },
-  { href: "/download", ko: "다운로드", en: "Download" },
+  { href: LASERFISH_DOWNLOAD, ko: "다운로드", en: "Download" },
   { href: "/price", ko: "비용", en: "Pricing" },
   { href: "/contact", ko: "문의하기", en: "Contact" },
 ];
@@ -26,9 +28,8 @@ const LINKS = [
 //      next.config.ts 에서 홈으로 돌아가므로, 메뉴에 두면 죽은 링크가 된다.
 //   2) **로그인한 사람에게만.** 로그아웃한 사람에게는 남의 구독 화면으로 가는
 //      문일 뿐이고, 눌러도 /login 으로 튕긴다.
-//   ⛔HomeView 의 막대(components/HomeView.tsx)가 같은 규칙을 갖는다 — 거기서
-//     조건 1만 걸려 있던 탓에 로그아웃한 사람 눈에 [My Plan]과 [Sign in]이
-//     나란히 떴다(2026-08-26). 한쪽만 고치지 말 것.
+//   ⚠️조건 2 를 빠뜨리면 로그아웃한 사람 눈에 [My Plan]과 [Sign in]이 나란히 뜬다
+//     — 지운 HomeView 의 막대가 실제로 그랬다(2026-08-26).
 const MY_PLAN = { href: "/account", ko: "내 구독", en: "My Plan" };
 
 export const HEADER_CSS = `
@@ -51,16 +52,6 @@ export default function SiteHeader({ active }: { active?: string }) {
   // null(아직 모른다)이면 [내 구독]을 그리지 않는다 — 먼저 띄웠다 지우면 깜빡인다.
   const signedIn = useSignedIn();
 
-  // 🔴/main(구독을 팔던 시절의 홈, PG 심사용)에서 넘어온 화면인가.
-  //   그렇다면 이 막대의 링크들도 그쪽으로 돌려보내야 한다 — 안 그러면
-  //   [MassLabs]나 [비용] 한 번에 건당결제 화면으로 갈아타 버린다.
-  //   ⚠️서버에서는 판정할 수 없으므로(주소 뒤 ?preview 는 브라우저만 안다)
-  //     첫 그림은 항상 평소 링크이고, 붙은 뒤에 바뀐다.
-  const [preview, setPreview] = useState(false);
-  useEffect(() => {
-    setPreview(new URLSearchParams(window.location.search).has("preview"));
-  }, []);
-
   return (
     <>
       <style>{HEADER_CSS}</style>
@@ -73,16 +64,13 @@ export default function SiteHeader({ active }: { active?: string }) {
           maxWidth: "1200px", margin: "0 auto", padding: "0 48px", height: "58px",
           display: "flex", alignItems: "center", justifyContent: "space-between",
         }}>
-          <a href={preview ? "/main" : "/"} className="hnav-brand">MassLabs</a>
+          <a href="/" className="hnav-brand">MassLabs</a>
 
           <div className="hnav-links" style={{ display: "flex", alignItems: "center", gap: "2px" }}>
             {[...LINKS, ...(SUBSCRIPTION_LIVE && signedIn === true ? [MY_PLAN] : [])].map((l) => (
               <a
                 key={l.href}
-                // 🔴미리보기로 들어온 화면(/account?preview=1)에서는 구독을 팔던
-                //   쪽으로 돌려보낸다. /price 로 내보내면 지금은 건당결제가 떠서,
-                //   구독을 보던 사람이 딴 상품에 떨어진다.
-                href={preview && l.href === "/price" ? "/main#pricing" : l.href}
+                href={l.href}
                 className="hnav-link"
                 style={l.href === active ? { color: "#111", fontWeight: 700 } : undefined}
               >

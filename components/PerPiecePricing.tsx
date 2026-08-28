@@ -2,43 +2,37 @@
 import { useState, useEffect } from "react";
 
 // ==========================================================================
-//  LaserFish 건당결제 안내 — 홈(#pricing)과 /price 가 같이 쓴다.
+//  LaserFish 건당결제의 **값과 규칙**이 사는 곳 — 홈(components/LandingView)과
+//  /price 가 같이 읽는다. 🔴여기에 화면은 없다. 카드는 두 화면이 각자 그린다.
 //
 //  🔴2026-08-21 되살림. 원본은 구독 개편 전(commit e38fa17^)의 홈 PRICING 구역이고,
 //    출처가 둘이면 값이 어긋나므로 그때부터 이 한 곳으로 합쳤다.
-//  🔴이 화면이 보이냐 마느냐는 lib/interim.ts 의 SUBSCRIPTION_LIVE 하나가 정한다 —
-//    정기결제가 열리면 false→true, 구독표가 도로 이 자리에 온다.
+//  🔴2026-08-28 — 밝은 카드(기본 export 였던 PerPiecePricing 과 PIECE_CSS)를 지웠다.
+//    /main(HomeView)이 유일한 사용처였고 그 화면을 지우면서 같이 죽었다.
+//    ⛔여기에 화면을 다시 만들지 말 것 — 두 화면의 그림이 또 갈라진다.
 //  ⚠️원화는 **안내일 뿐** 실제 청구 통화가 아니다(청구는 /payment가 정한다).
 //    환율 API가 죽으면 1370원 고정값으로 조용히 떨어진다.
 // ==========================================================================
 
-export const PIECE_CSS = `
-  .price-cards { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
-  .price-card {
-    background: #fff; border: 1px solid #e8e8e8; border-radius: 24px;
-    padding: 48px 40px; max-width: 440px; margin: 0 auto;
-    box-shadow: 0 4px 32px rgba(0,0,0,0.07); text-align: center;
-  }
-  .price-amount { font-size: 3.5rem; font-weight: 900; letter-spacing: -0.05em; color: #111; line-height: 1; }
-  .price-unit { font-size: 0.9rem; color: #999; margin-top: 8px; }
-  .price-detail {
-    border-top: 1px solid #f0f0f0; margin-top: 28px; padding-top: 20px;
-    font-size: 0.875rem; color: #777; line-height: 2;
-  }
-  .price-kind {
-    font-size: 0.8rem; font-weight: 600; color: #888; margin-bottom: 8px;
-    text-transform: uppercase; letter-spacing: 0.05em;
-  }
-  @media (max-width: 640px) {
-    .price-cards { flex-wrap: nowrap !important; gap: 12px !important; }
-    .price-card { padding: 24px 14px; flex: 1; min-width: 0; }
-    .price-amount { font-size: 2rem; }
-    .price-unit { font-size: 0.72rem; }
-    .price-detail { font-size: 0.72rem; line-height: 1.7; margin-top: 18px; padding-top: 14px; }
-  }
-`;
+// ==========================================================================
+//  🔴건당 단가의 유일한 출처. 새 홈(components/LandingView.tsx)의 오른쪽
+//    가격표도 여기서 읽는다 — 값을 두 곳에 적으면 언젠가 반드시 어긋난다.
+//  ⚠️실제 청구 금액을 세는 곳은 /payment 다. 여기 값을 고치면 그쪽도 확인할 것.
+// ==========================================================================
+export const PIECE_PRICES = [
+  { kind: "Wall & Slab", usd: 0.1 },
+  { kind: "Terrain", usd: 0.05 },
+] as const;
+export const PIECE_MIN_USD = 9.9;
+export const PIECE_MAX_USD = 50;
 
-export default function PerPiecePricing({ lang }: { lang: string }) {
+// ==========================================================================
+//  🔴환율 규칙의 유일한 출처. 홈과 /price 가 함께 쓴다 —
+//    fetch 를 두 벌 적으면 한쪽만 폴백 값이 달라지거나 API 주소가 갈린다.
+//  ⚠️원화는 **안내일 뿐** 실제 청구 통화가 아니다(청구는 /payment 가 정한다).
+//    API 가 죽으면 1370원 고정값으로 조용히 떨어진다.
+// ==========================================================================
+export function useUsdToKrw() {
   const [usdToKrw, setUsdToKrw] = useState(1370);
 
   useEffect(() => {
@@ -51,32 +45,7 @@ export default function PerPiecePricing({ lang }: { lang: string }) {
       .catch(() => {});
   }, []);
 
-  const isKo = lang === "ko";
-  const cards = [
-    { kind: "Wall & Slab", usd: "$0.1", krw: Math.round(0.1 * usdToKrw) },
-    { kind: "Terrain", usd: "$0.05", krw: Math.round(0.05 * usdToKrw) },
-  ];
-
-  return (
-    <>
-      <style>{PIECE_CSS}</style>
-      <div className="price-cards">
-        {cards.map((c) => (
-          <div className="price-card" key={c.kind}>
-            <div className="price-kind">{c.kind}</div>
-            <div className="price-amount">{c.usd}</div>
-            <div className="price-unit">
-              {`${isKo ? "조각당" : "per piece"} (₩${c.krw.toLocaleString()})`}
-            </div>
-            <div className="price-detail">
-              <div>{isKo ? "최소 주문 금액 $9.9" : "Minimum order $9.9"}</div>
-              <div>{isKo ? "최대 주문 금액 $50" : "Maximum order $50"}</div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </>
-  );
+  return usdToKrw;
 }
 
 // 카드 위에 붙는 설명 두 줄 — 홈과 /price가 같은 말을 해야 한다.

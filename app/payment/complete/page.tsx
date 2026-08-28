@@ -10,8 +10,10 @@ declare global {
   }
 }
 
-const SUPABASE_URL = "https://arymzgsayptprrbdnzwd.supabase.co";
-const SUPABASE_KEY = "sb_publishable_47O2B2PfD3X_5yOX-P-cTA_wGcpaeU6";
+// 🔴옛 프로젝트(arymzgsayptprrbdnzwd)의 URL·키 상수가 여기 있었는데 지웠다(2026-08-26).
+//   2026-08-17 masslabs 통합 뒤로 **어디에서도 안 쓰이는 죽은 코드**였다 — 저장은
+//   아래 fetch("/api/verify-payment") 가 한다. 그런데 "use client" 파일이라
+//   쓰지도 않는 옛 프로젝트 주소와 키가 브라우저 번들에 그대로 실려 나갔다.
 
 function PaymentCompleteContent() {
   const [status, setStatus] = useState<"loading" | "success" | "fail">("loading");
