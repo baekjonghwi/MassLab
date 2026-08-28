@@ -163,10 +163,13 @@ const AUTH_CSS = `
     margin-top: 22px; width: 100%; max-width: 392px;
     display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px 18px;
   }
+  /* 색은 흰 글자(--tx)다 — 옛 '홈으로'가 쓰던 --dim(#555552)은 돌아갈 길이 눈에 안 띄어도 되는
+     보조 링크였기 때문인데, 이 자리는 이제 가입·비밀번호 찾기라 본문과 같은 무게로 읽혀야 한다
+     (2026-08-29 사용자 지시). */
   .auth-foot button {
     background: none; border: none; padding: 0; cursor: pointer;
     font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.1em;
-    text-transform: uppercase; color: var(--dim); transition: color .15s;
+    text-transform: uppercase; color: var(--tx); transition: color .15s;
   }
   /* 하나뿐일 때는 가운데로 — 옛 '← 홈으로'가 있던 자리라 그 균형을 지킨다
      (둘일 때는 space-between이 양쪽 끝으로 벌린다). */

@@ -215,7 +215,8 @@ function LoginContent() {
       <button type="button" onClick={() => { setMode("reset"); setError(""); setNotice(""); }}>{x.forgot}</button>
     </>
   ) : (
-    <button type="button" onClick={() => { setMode("login"); setError(""); setNotice(""); }}>{x.backToLogin}</button>
+    // 화살표는 옛 '← 홈으로'가 달고 있던 것이다 — 자리를 물려받았으니 '돌아간다'는 표시도 같이 온다.
+    <button type="button" onClick={() => { setMode("login"); setError(""); setNotice(""); }}>{"← "}{x.backToLogin}</button>
   );
 
   return (
