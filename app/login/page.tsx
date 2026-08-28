@@ -170,11 +170,35 @@ function LoginContent() {
     }
   };
 
+  // 🔴이 로그인 화면은 archiMap 앱 안에 iframe으로도 뜬다(2026-08-29). 그때 구글만 프레임에서
+  //   못 돈다 — accounts.google.com이 X-Frame-Options: DENY 라 프레임을 거부해 빈 화면이 된다.
+  //   그래서 프레임 안일 때만 리디렉션을 우리가 가로채(skipBrowserRedirect) 창으로 연다.
+  //   ⚠️PKCE verifier는 이 브라우저의 쿠키라 창과 프레임이 같은 쿠키통을 쓴다 — /auth/callback이
+  //     서버에서 그대로 읽는다(창을 따로 띄운다고 흐름이 갈라지지 않는다).
+  //   ⚠️창이 막히면 최후로 최상위 창을 그리로 보낸다(사용자 조작 중이라 top 이동이 허용된다).
+  //   ⛔프레임 밖(평소 로그인 페이지)에서는 예전 그대로다 — 여기서 창을 띄우면 평소 로그인이
+  //     팝업 차단에 걸린다.
   const google = async () => {
     setBusy(true); setError("");
+    const framed = window.top !== window.self;
+    const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
+    if (framed) {
+      const { data, error } = await supabase().auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo, skipBrowserRedirect: true },
+      });
+      if (error || !data?.url) { setError(x.googleFail); setBusy(false); return; }
+      const w = window.open(data.url, "masslabs-google", "width=480,height=680");
+      if (!w) {
+        try { window.top!.location.href = data.url; }
+        catch { window.location.href = data.url; }
+      }
+      setBusy(false);
+      return;
+    }
     const { error } = await supabase().auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}` },
+      options: { redirectTo },
     });
     if (error) { setError(x.googleFail); setBusy(false); }
   };
