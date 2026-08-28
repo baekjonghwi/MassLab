@@ -205,7 +205,21 @@ function LoginContent() {
 
   const title = mode === "login" ? x.login : mode === "signup" ? x.signup : x.reset;
 
+  // 상자 아래 줄 = 옛 '← 홈으로' 자리(2026-08-29 사용자 지시로 갈아 끼웠다).
+  //   로그인이면 양쪽 끝에 [가입]·[비밀번호 찾기], 그 밖이면 [로그인으로 돌아가기] 하나.
+  //   ⚠️이메일 인증을 끄면(EMAIL_AUTH_ENABLED=false) 갈 곳이 없으므로 넣지 않는다 — 그때는
+  //     AuthShell이 예전처럼 '홈으로'를 그린다(막다른 길이 되지 않게).
+  const footer = !EMAIL_AUTH_ENABLED ? undefined : mode === "login" ? (
+    <>
+      <button type="button" onClick={() => { setMode("signup"); setError(""); setNotice(""); }}>{x.signup}</button>
+      <button type="button" onClick={() => { setMode("reset"); setError(""); setNotice(""); }}>{x.forgot}</button>
+    </>
+  ) : (
+    <button type="button" onClick={() => { setMode("login"); setError(""); setNotice(""); }}>{x.backToLogin}</button>
+  );
+
   return (
+    <AuthShell footer={footer}>
     <AuthCard>
       <h1 style={{ fontSize: "1.3rem", fontWeight: 700, letterSpacing: "-0.02em", marginBottom: 4 }}>
         {title}
@@ -281,27 +295,22 @@ function LoginContent() {
         </>
       )}
 
-      <div className="links" style={{ display: EMAIL_AUTH_ENABLED ? undefined : "none" }}>
-        {mode === "login" && (
-          <>
-            <button type="button" onClick={() => { setMode("signup"); setError(""); setNotice(""); }}>{x.signup}</button>
-            <button type="button" onClick={() => { setMode("reset"); setError(""); setNotice(""); }}>{x.forgot}</button>
-          </>
-        )}
-        {mode !== "login" && (
-          <button type="button" onClick={() => { setMode("login"); setError(""); setNotice(""); }}>{x.backToLogin}</button>
-        )}
-      </div>
     </AuthCard>
+    </AuthShell>
   );
 }
 
+// 🔴껍데기(AuthShell)를 LoginContent 안으로 옮겼다 — 상자 아래 줄이 `mode`를 알아야 하는데
+//   그 값은 `useSearchParams`에서 나오고, 그건 Suspense 안에서만 읽을 수 있다(위로 못 끌어올린다).
+//   그래서 로딩 표시도 제 껍데기를 하나 두른다(안 그러면 그 순간만 검은 화면이 벗겨진다).
 export default function LoginPage() {
   return (
-    <AuthShell>
-      <Suspense fallback={<p style={{ fontSize: "0.88rem", color: "#888" }}>Loading...</p>}>
-        <LoginContent />
-      </Suspense>
-    </AuthShell>
+    <Suspense fallback={
+      <AuthShell>
+        <AuthCard><p style={{ fontSize: "0.88rem", color: "#888", margin: 0 }}>Loading...</p></AuthCard>
+      </AuthShell>
+    }>
+      <LoginContent />
+    </Suspense>
   );
 }

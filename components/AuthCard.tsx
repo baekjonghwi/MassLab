@@ -154,13 +154,35 @@ const AUTH_CSS = `
   }
   .auth-back:hover { color: var(--acc); }
 
+  /* 상자 아래 줄 — 화면이 스스로 넣는 길(로그인이면 가입·비밀번호 찾기, 그 밖이면 로그인으로).
+     글자 규격은 위 .auth-back 과 같다: 같은 자리를 대신 쓰는 것이라 결이 갈리면 안 된다.
+     ⚠️이 문자열은 템플릿 리터럴이다 — 주석에도 백틱을 쓰지 말 것(그 자리에서 CSS가 끝나 버린다).
+     ⚠️자간을 .14em으로 두면 'FORGOT YOUR PASSWORD?'가 상자 폭을 넘는다 → .1em.
+     ⚠️그래도 좁은 화면에서는 접힐 수 있어 wrap을 허용한다. */
+  .auth-foot {
+    margin-top: 22px; width: 100%; max-width: 392px;
+    display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px 18px;
+  }
+  .auth-foot button {
+    background: none; border: none; padding: 0; cursor: pointer;
+    font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--dim); transition: color .15s;
+  }
+  /* 하나뿐일 때는 가운데로 — 옛 '← 홈으로'가 있던 자리라 그 균형을 지킨다
+     (둘일 때는 space-between이 양쪽 끝으로 벌린다). */
+  .auth-foot button:only-child { margin: 0 auto; }
+  .auth-foot button:hover { color: var(--acc); }
+
   @media (max-width: 560px) {
     .auth-shell { padding: 84px 18px 36px; }
     .auth-box { padding: 26px 20px 22px; }
   }
 `;
 
-export function AuthShell({ children }: { children: ReactNode }) {
+// `footer` = 상자 아래 줄. 안 주면 예전처럼 '홈으로'가 뜬다(/reset-password가 그 경우다).
+//   로그인 화면은 여기에 제 길(가입·비밀번호 찾기·로그인으로 돌아가기)을 넣고 '홈으로'를 대신한다
+//   — 2026-08-29 사용자 지시. 상자 안이 아니라 이 자리인 이유 = 그게 원래 '돌아갈 길'의 자리다.
+export function AuthShell({ children, footer }: { children: ReactNode; footer?: ReactNode }) {
   const { lang, setLang } = useLanguage();
 
   return (
@@ -177,9 +199,11 @@ export function AuthShell({ children }: { children: ReactNode }) {
 
       {children}
 
-      <Link href="/" className="auth-back">
-        {lang === "ko" ? "← 홈으로" : "← Back to home"}
-      </Link>
+      {footer ? <div className="auth-foot">{footer}</div> : (
+        <Link href="/" className="auth-back">
+          {lang === "ko" ? "← 홈으로" : "← Back to home"}
+        </Link>
+      )}
     </main>
   );
 }
