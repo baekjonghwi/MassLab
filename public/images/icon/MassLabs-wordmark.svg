@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 160" width="520" height="160">
+  <!-- MassLabs 워드마크 — 검은 판 위 흰 글자.
+       🔴여기 글자는 **살아있는 텍스트**다(패스가 아니다). 웹에서는 사이트가 이미
+         불러온 Geist 로 그려지고, Geist 가 없는 곳에서는 대체 글꼴로 떨어진다.
+       ⛔인쇄·외주·간판처럼 우리 환경 밖으로 나가는 파일은 이걸 그대로 보내지 말 것 —
+         일러스트레이터에서 [문자 → 윤곽선 만들기] 한 뒤 내보낸다.
+       ⚠️@font-face url 을 여기 넣지 말 것. 외부 폰트를 참조하는 SVG 는 캔버스를
+         오염시켜 PNG/PDF 변환이 통째로 죽는다(masslabs-ui 규칙). -->
+  <rect width="520" height="160" fill="#000000"/>
+  <text x="260" y="112" text-anchor="middle"
+        font-family="Geist, 'Geist Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif"
+        font-size="88" font-weight="700" letter-spacing="-2.6" fill="#FFFFFF">MassLabs</text>
+</svg>

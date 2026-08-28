@@ -9,6 +9,19 @@ const nextConfig: NextConfig = {
   //   ⚠️75 를 빼지 말 것 — 값을 안 적은 모든 <Image> 가 그걸 쓴다.
   images: { qualities: [75, 90] },
 
+  // 🔴맨 주소 /favicon.ico 를 이 폴더로 넘긴다.
+  //   app/favicon.ico(Next 파일 규약)를 지웠기 때문에 필요하다 — 브랜드 그림의
+  //   원본을 public/images/icon/ 한 곳으로 모으면서 그 사본을 걷어냈다.
+  //   ⚠️redirect 가 아니라 rewrite 다. 주소를 바꾸지 않고 내용만 바꿔치기한다 —
+  //     아이콘을 훑는 옛 크롤러 중에는 302 를 안 따라가는 것이 있다.
+  //   ⚠️<head> 의 <link rel="icon"> 은 app/layout.tsx 가 따로 적는다.
+  //     여기는 **링크를 안 읽고 /favicon.ico 부터 찔러 보는 쪽**을 위한 그물이다.
+  async rewrites() {
+    return [
+      { source: "/favicon.ico", destination: "/images/icon/MassLabs-favicon.ico" },
+    ];
+  },
+
   // 🔴/plan 은 /price 로 이름이 바뀌었다(2026-08-19). 그런데 이미 배포된
   //   라이노 플러그인이 https://masslabs-archi.com/plan 을 하드코딩해 물고 있고
   //   (LaserCuttingDrawings/laserfish_rhino/laserfish_rhino.cs), 쓰는 사람이
