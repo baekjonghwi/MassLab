@@ -1,7 +1,7 @@
 import {
   CENTRAL, sbFetch, emailOf, syncPlanCache, planAmount, priceOf, productOf,
   chargeWithBillingKey, getPayment, customerIdOf, monthlyPaymentId, ymOf, addMonth, PLAN_LABEL,
-  hasActiveBundle, cancelIndividualSubs, PAY_FAIL_MESSAGE,
+  hasActiveBundle, cancelIndividualSubs, countryOfPayment, PAY_FAIL_MESSAGE,
   type PlanKey, type Channel, type ChargeResult,
 } from "@/lib/subscription";
 
@@ -176,9 +176,20 @@ export async function POST(request: Request) {
   // --- 권한 캐시 갱신 ----------------------------------------------------
   // 🔴번들을 샀으면 Archi_map 등급도 같이 올라간다 — 그 판정은 DB의 plan_for가 한다.
   const plan = await syncPlanCache(s.user_id);
+
+  // --- 거주 국가 기록 ----------------------------------------------------
+  // 🔴가입 폼이 거주 지역을 묻지 않으므로(2026-08-18 결정) 국가를 알려 주는 건
+  //   결제뿐이다. 여기서 안 남기면 다음 결제 화면도 국가 대신 화면 언어로
+  //   통화를 추측한다 — 해외 사는 한국어 사용자에게 계속 원화 결제창이 뜬다.
+  // ⚠️모르면 안 적는다(countryOfPayment가 null). 아는 값이면 덮어쓴다 —
+  //   나라를 옮긴 사람은 가장 최근 결제가 정답이다.
+  const country = countryOfPayment(charge.raw, channel);
   await sbFetch(`profiles?id=eq.${s.user_id}`, {
     method: "PATCH",
-    body: JSON.stringify({ plan_since: now.toISOString() }),
+    body: JSON.stringify({
+      plan_since: now.toISOString(),
+      ...(country ? { country } : {}),
+    }),
     prefer: "return=minimal",
   });
 

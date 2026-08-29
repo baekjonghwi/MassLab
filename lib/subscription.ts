@@ -300,6 +300,37 @@ export function addMonth(from: Date): Date {
 }
 
 // --------------------------------------------------------------------------
+//  거주 국가 (profiles.country)
+// --------------------------------------------------------------------------
+// 🔴형식은 ISO 3166-1 alpha-2 대문자 하나뿐이다("KR"·"US") — 포트원이 그 형식으로
+//   주기 때문에 그대로 받아 적는다. 적는 곳은 /api/subscribe/confirm, 읽는 곳은
+//   /api/subscribe/session 둘뿐이다. 형식을 바꾸려면 반드시 양쪽을 함께 고칠 것.
+// ⚠️가입 폼은 거주 지역을 묻지 않는다(2026-08-18 결정). 그래서 첫 결제를 마치기
+//   전까지 이 칸은 비어 있고, 그동안 결제 채널은 화면 언어로 고른다.
+export const KOREA = "KR";
+
+// 국가 → 결제 채널. 국내만 갤럭시아고 나머지는 전부 엑심베이다.
+export function channelOf(country: string | null | undefined): Channel {
+  return country === KOREA ? "galaxia" : "eximbay";
+}
+
+// 끝난 결제에서 거주 국가를 캐낸다.
+// 🔴모르면 null을 낸다 — 추측해서 적으면 다음 결제 때 엉뚱한 통화의 결제창이 뜨고,
+//   그 값이 부가세 판정(국내만 VAT) 근거로도 남는다. 비워 두는 편이 낫다.
+export function countryOfPayment(raw: unknown, channel: Channel): string | null {
+  const p = raw as {
+    country?: unknown;
+    customer?: { country?: unknown; address?: { country?: unknown } };
+  } | null;
+  // ⚠️국가가 실려 오는 자리가 PG마다 다르다 — 있는 자리를 순서대로 다 본다.
+  for (const c of [p?.country, p?.customer?.country, p?.customer?.address?.country]) {
+    if (typeof c === "string" && /^[A-Za-z]{2}$/.test(c)) return c.toUpperCase();
+  }
+  // 갤럭시아는 국내 카드만 받는 계약이라, 결제가 됐다는 사실 자체가 국내라는 뜻이다.
+  return channel === "galaxia" ? KOREA : null;
+}
+
+// --------------------------------------------------------------------------
 //  포트원 빌링키 청구
 // --------------------------------------------------------------------------
 export type ChargeArgs = {
