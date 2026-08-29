@@ -1,4 +1,4 @@
-import { createHash, randomBytes } from "crypto";
+import { createHash, createSign, randomBytes } from "crypto";
 import { CENTRAL, minPlanOf, planAllows, sbFetch, type PlanKey } from "./subscription";
 
 // ==========================================================================
@@ -18,8 +18,12 @@ export const DEVICE_TTL_MIN = 10;      // 연결 대기 유효시간
 //   가장 오래 안 쓴 기기를 끊는다 — 거절하지 않는다. 그래서 사용자가 스스로
 //   연결을 해제할 화면이 없어도 컴퓨터를 바꾼 사람이 막히지 않는다.
 export const SEAT_LIMIT = 1;
-export const ENTITLED_TTL_SEC = 86400; // 권한 있음 → 하루 캐시
+export const ENTITLED_TTL_SEC = 86400; // 권한 있음 → 하루 캐시(온라인 재확인 주기)
 export const FREE_TTL_SEC = 60;        // 🔴free는 짧게. 결제 직후 바로 풀려야 한다.
+// 🔴서명 만료 = 오프라인 한계. 인터넷 없이 이 시각까지 마지막 권한을 인정한다
+//   (인터넷 없는 실습실 대응). until(재확인 주기)보다 길고, 위조가 불가능하다 —
+//   플러그인의 옛 lastAllowed(평문 타임스탬프, 위조 가능)를 대체한다.
+export const ENT_SIG_TTL_SEC = 7 * 86400;
 
 // 토큰은 원문을 저장하지 않는다 — DB가 새도 토큰이 그대로 새지는 않게.
 export const hashToken = (t: string) => createHash("sha256").update(t).digest("hex");
@@ -77,6 +81,43 @@ export async function uidFromPluginToken(token: string): Promise<string | null> 
 }
 
 // --------------------------------------------------------------------------
+//  서명된 엔타이틀먼트 — 플러그인이 로컬 캐시를 위조하는 것을 막는다.
+//
+//  🔴플러그인은 %AppData%\LaserFish\account.json 에 plan·until 을 캐시한다.
+//    그 파일을 메모장으로 열어 plan="plus", until=2099 로 고치면 서버를 안 부르고도
+//    구독이 열린다. 그걸 막으려면 캐시가 "서버가 발급한 것"임을 플러그인이 확인할 수
+//    있어야 한다 → 서버가 개인키로 서명하고, 플러그인은 공개키로만 검증한다(개인키가
+//    없으면 아무도 새 서명을 못 만든다). 공개키는 플러그인에 박혀 나가도 안전하다.
+//
+//  🔴대칭키(HMAC)를 쓰지 않는 이유: 플러그인은 디컴파일되므로 공유 비밀이 그대로
+//    새어 위조에 쓰인다. 비대칭이라야 "검증만 가능, 발급 불가"가 성립한다.
+//
+//  형식: base64url(payload JSON) + "." + base64url(RSA-SHA256 서명).
+//    payload = { uid, product, plan, allowed, exp }(exp=Unix초). RSA/PKCS1/SHA256 은
+//    .NET Framework 4.8 과 .NET 7 양쪽에서 표준 API로 검증된다.
+//
+//  🔴키가 없으면(LASERFISH_ENT_PRIVATE_KEY 미설정) ent 를 빼고 내려보낸다 —
+//    서버를 먼저 배포하고 키·플러그인은 나중에 올리는 순서를 허용하기 위해서다.
+//    옛 플러그인은 ent 필드를 무시하므로 이 추가는 하위호환이다.
+// --------------------------------------------------------------------------
+const b64url = (b: Buffer) => b.toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+
+export type SignedEntitlement = { uid: string; product: string; plan: string; allowed: boolean; exp: number };
+
+export function signEntitlement(p: SignedEntitlement): string | null {
+  const pem = process.env.LASERFISH_ENT_PRIVATE_KEY?.trim();
+  if (!pem) return null;
+  try {
+    const payload = Buffer.from(JSON.stringify(p), "utf8");
+    const sig = createSign("SHA256").update(payload).sign(pem);
+    return `${b64url(payload)}.${b64url(sig)}`;
+  } catch (e) {
+    console.error("[entitlement] 서명 실패:", e);
+    return null;
+  }
+}
+
+// --------------------------------------------------------------------------
 //  권한
 // --------------------------------------------------------------------------
 export type Entitlement = {
@@ -85,6 +126,8 @@ export type Entitlement = {
   /** 이 프로그램을 열려면 필요한 최소 등급. 플러그인이 "PRO 이상 필요"를 띄운다. */
   requiredPlan: PlanKey;
   until: string;
+  /** 서명된 엔타이틀먼트(위조 방지). 키 미설정 시 생략 — 옛 플러그인은 무시한다. */
+  ent?: string;
 };
 
 export async function entitlementOf(uid: string, product: string): Promise<Entitlement> {
@@ -96,10 +139,18 @@ export async function entitlementOf(uid: string, product: string): Promise<Entit
   // 🔴"유료냐"가 아니라 "이 프로그램의 문턱을 넘느냐"다. LaserFish는 PLUS로는
   //   못 연다 — 판정 기준은 lib/plans의 MIN_PLAN 한 곳에만 둔다.
   const allowed = planAllows(plan, product);
+  // until = 온라인 재확인 주기. 서명 exp = 오프라인 한계(더 길다). 둘을 나눈 이유는
+  // 🔴온라인일 땐 자주 다시 물어 해지를 빨리 반영하고, 오프라인일 땐 서명 만료까지
+  //   버티게 하기 위해서다. 접근의 최종 한계는 언제나 위조 불가능한 서명 exp다.
+  const untilSec = allowed ? ENTITLED_TTL_SEC : FREE_TTL_SEC;
+  const until = new Date(Date.now() + untilSec * 1000).toISOString();
+  const sigTtlSec = allowed ? ENT_SIG_TTL_SEC : FREE_TTL_SEC;
+  const ent = signEntitlement({ uid, product, plan, allowed, exp: Math.floor(Date.now() / 1000) + sigTtlSec });
   return {
     plan,
     allowed,
     requiredPlan: minPlanOf(product),
-    until: new Date(Date.now() + (allowed ? ENTITLED_TTL_SEC : FREE_TTL_SEC) * 1000).toISOString(),
+    until,
+    ...(ent ? { ent } : {}),
   };
 }
