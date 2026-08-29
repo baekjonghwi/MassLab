@@ -7,7 +7,7 @@ import PlanTable, { PLAN_CSS } from "@/components/PlanTable";
 import { PerPieceNote, PIECE_PRICES, PIECE_MIN_USD, PIECE_MAX_USD, useUsdToKrw } from "@/components/PerPiecePricing";
 import DarkTopBar, { DARK_TOPBAR_CSS, type DarkLink } from "@/components/DarkTopBar";
 import { SUBSCRIPTION_LIVE } from "@/lib/interim";
-import { LASERFISH_DOWNLOAD } from "@/lib/products";
+import { LASERFISH_DOWNLOAD, LASERFISH_GUIDE } from "@/lib/products";
 
 // ==========================================================================
 //  /price — 모든 프로그램이 공유하는 요금제 화면. 상단 메뉴의 "비용"이 여기다.
@@ -36,9 +36,10 @@ import { LASERFISH_DOWNLOAD } from "@/lib/products";
 
 const PRODUCT = "all";
 
-// 🔴[다운로드]는 **밖으로 나간다**(2026-08-28) — 정본이 LaserFish 소개 사이트다.
+// 🔴[사용방법]과 [다운로드]는 **밖으로 나간다** — 정본이 LaserFish 소개 사이트다
+//   (다운로드 2026-08-28, 사용방법 2026-08-29).
 const LINKS: DarkLink[] = [
-  { href: "/howtouse", ko: "사용방법", en: "How to Use" },
+  { href: LASERFISH_GUIDE, ko: "사용방법", en: "How to Use" },
   { href: LASERFISH_DOWNLOAD, ko: "다운로드", en: "Download" },
   { href: "/price", ko: "비용", en: "Pricing" },
   { href: "/contact", ko: "문의하기", en: "Contact" },

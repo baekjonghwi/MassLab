@@ -14,6 +14,11 @@
 
 export const LASERFISH = "https://laserfish.masslabs-archi.com/";
 export const LASERFISH_DOWNLOAD = "https://laserfish.masslabs-archi.com/download";
+// 🔴2026-08-29 — 사용방법도 같은 길을 갔다(사용자 결정). MassLabs 안쪽
+//   /howtouse 화면은 지웠다. 같은 글(탭·파라미터 설명·튜토리얼 영상)이 두 저장소에
+//   살면서 갈라지던 것을 끝냈다 — LaserFish 의 app/guide 가 정본이다.
+//   ⚠️/download 와 마찬가지로 next.config.ts 에 307 리다이렉트만 남아 옛 링크를 넘긴다.
+export const LASERFISH_GUIDE = "https://laserfish.masslabs-archi.com/guide";
 
 export const ARCHIMAP = "https://archimap.masslabs-archi.com/";
 export const COLORGRAM = "https://colorgram.masslabs-archi.com/";

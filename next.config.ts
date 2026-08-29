@@ -43,6 +43,17 @@ const nextConfig: NextConfig = {
         destination: "https://laserfish.masslabs-archi.com/download",
         permanent: false,
       },
+      // 🔴/howtouse 도 2026-08-29 부터 **LaserFish 소개 사이트가 정본**이다(사용자 결정).
+      //   /download 와 똑같은 이유다 — 탭·파라미터 설명·튜토리얼 영상이 두 저장소에
+      //   한 벌씩 살면서 조용히 갈라지고 있었다. MassLabs 안쪽 화면은 지웠다.
+      //   ⚠️307 로 둔다. 308 로 캐시되면 되돌리기로 마음을 바꿔도 브라우저가 기억한
+      //     리다이렉트 때문에 안쪽 /howtouse 를 영영 못 연다.
+      //   주소는 lib/products.ts 의 LASERFISH_GUIDE 와 한 벌이다 — 한쪽만 고치지 말 것.
+      {
+        source: "/howtouse",
+        destination: "https://laserfish.masslabs-archi.com/guide",
+        permanent: false,
+      },
       // 🔴🔴임시(2026-08-21) — 구독을 안 파는 동안 구독 화면 두 곳을 홈으로 돌린다.
       //   화면 파일은 그대로 두고 길만 막는다(lib/interim.ts의 SUBSCRIPTION_LIVE로 복귀).
       //   ⚠️permanent:false(307)여야 한다 — 308로 캐시되면 정기결제를 열어도

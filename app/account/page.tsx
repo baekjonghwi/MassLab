@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lib/i18n";
 import PlanTable, { PLAN_CSS } from "@/components/PlanTable";
 import DarkTopBar, { DARK_TOPBAR_CSS, type DarkLink } from "@/components/DarkTopBar";
-import { LASERFISH_DOWNLOAD } from "@/lib/products";
+import { LASERFISH_DOWNLOAD, LASERFISH_GUIDE } from "@/lib/products";
 
 // ==========================================================================
 //  /account — 내 구독.
@@ -27,11 +27,11 @@ type Sub = {
 };
 
 // 어두운 상단 막대에 걸 링크 — 이 화면에서 갈 만한 곳들.
-// 🔴[다운로드]는 **밖으로 나간다**(2026-08-28) — 설치 안내의 정본이 LaserFish
-//   소개 사이트로 옮겨 갔다. 나머지 둘은 MassLabs 안쪽 그대로다.
+// 🔴[다운로드]와 [사용방법]은 **밖으로 나간다** — 정본이 LaserFish 소개 사이트로
+//   옮겨 갔다(다운로드 2026-08-28, 사용방법 2026-08-29). [비용]만 MassLabs 안쪽이다.
 const ACCOUNT_LINKS: DarkLink[] = [
   { href: LASERFISH_DOWNLOAD, ko: "다운로드", en: "Download" },
-  { href: "/howtouse", ko: "사용방법", en: "How to use" },
+  { href: LASERFISH_GUIDE, ko: "사용방법", en: "How to use" },
   { href: "/price", ko: "비용", en: "Pricing" },
 ];
 

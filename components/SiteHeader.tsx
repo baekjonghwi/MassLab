@@ -2,7 +2,7 @@
 import { useLanguage } from "@/lib/i18n";
 import { SUBSCRIPTION_LIVE } from "@/lib/interim";
 import { useSignedIn } from "@/lib/use-signed-in";
-import { LASERFISH_DOWNLOAD } from "@/lib/products";
+import { LASERFISH_DOWNLOAD, LASERFISH_GUIDE } from "@/lib/products";
 
 // ==========================================================================
 //  모든 화면이 함께 쓰는 상단 막대.
@@ -14,10 +14,11 @@ import { LASERFISH_DOWNLOAD } from "@/lib/products";
 //    일이 생기면 그 화면들도 같이 고쳐야 한다.
 // ==========================================================================
 
-// 🔴[다운로드]는 **밖으로 나간다**(2026-08-28) — 설치 안내의 정본이 LaserFish
-//   소개 사이트다. MassLabs 안쪽 /download 화면은 지웠다.
+// 🔴[사용방법]과 [다운로드]는 **밖으로 나간다** — 정본이 LaserFish 소개 사이트다
+//   (다운로드 2026-08-28, 사용방법 2026-08-29). MassLabs 안쪽 화면 둘은 지웠다.
+//   ⚠️주소는 lib/products.ts 한 곳에서 온다. 여기 직접 적지 말 것.
 const LINKS = [
-  { href: "/howtouse", ko: "사용방법", en: "How to Use" },
+  { href: LASERFISH_GUIDE, ko: "사용방법", en: "How to Use" },
   { href: LASERFISH_DOWNLOAD, ko: "다운로드", en: "Download" },
   { href: "/price", ko: "비용", en: "Pricing" },
   { href: "/contact", ko: "문의하기", en: "Contact" },

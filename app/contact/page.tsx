@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/lib/i18n";
 import { t } from "@/lib/translations";
-import { LASERFISH_DOWNLOAD } from "@/lib/products";
+import { LASERFISH_DOWNLOAD, LASERFISH_GUIDE } from "@/lib/products";
 
 export default function ContactPage() {
   const router = useRouter();
@@ -78,7 +78,8 @@ export default function ContactPage() {
           </button>
 
           <div className="hnav-links" style={{ display: "flex", alignItems: "center", gap: "2px" }}>
-            <a href="/howtouse" className="hnav-link">
+            {/* 🔴밖으로 나간다(2026-08-29) — 사용방법의 정본은 LaserFish 소개 사이트다 */}
+            <a href={LASERFISH_GUIDE} className="hnav-link">
               {lang === "ko" ? "사용방법" : "How to Use"}
             </a>
             {/* 🔴밖으로 나간다(2026-08-28) — 설치 안내의 정본은 LaserFish 소개 사이트다 */}
