@@ -27,10 +27,26 @@ MassLabs는 배포되는 프로젝트라 하위 폴더가 빌드 컨텍스트에
   스위치 두 개가 한 벌이다: `lib/interim.ts`의 `SUBSCRIPTION_LIVE` ·
   archiMap `public/app.js`의 `SOLO_PLUS_FREE`. 한쪽만 뒤집으면 두 사이트 말이 어긋난다.
   구독 코드(`/account`·`/subscribe`·`PlanTable`·`/api/subscribe/*`)는 **하나도 안 지웠다** — 되돌리면 그대로 산다.
-- 🔴**설치 안내(`/download`)는 2026-08-28 부터 LaserFish 소개 사이트가 정본이다**(사용자 결정).
-  같은 글이 두 저장소에 살면서 갈라지던 것을 끝냈다 — MassLabs 안쪽 화면은 지웠고,
+  🔴단, **홈(`/`)의 건당표는 2026-08-29 부터 감춰 뒀다** — 건당결제 안내의 정본은
+  LaserFish 소개 사이트다(`lib/interim.ts`의 `PER_PIECE_ON_HOME`). `/price`는 아직 건당표를 그린다.
+- 🔴**설치 안내(`/download`)와 사용방법(`/howtouse`)은 LaserFish 소개 사이트가 정본이다**
+  (`/download` 2026-08-28, `/howtouse` 2026-08-29 — 둘 다 사용자 결정).
+  같은 글이 두 저장소에 살면서 갈라지던 것을 끝냈다 — MassLabs 안쪽 화면 둘은 지웠고,
   `next.config.ts`의 리다이렉트만 남아 옛 링크를 넘긴다(307, 되돌릴 여지를 남겼다).
-  ⛔MassLabs에 `/download` 화면을 다시 만들지 말 것. 나가는 주소는 `lib/products.ts` 한 곳이다.
+  `/howtouse` 는 LaserFish 의 **`/guide`** 로 간다(이름이 다르다).
+  ⛔MassLabs에 그 화면들을 다시 만들지 말 것. 나가는 주소는 `lib/products.ts` 한 곳이다.
+
+- 🔴**검색 문구(제목·설명)의 원본은 각 저장소의 `lib/seo.ts` 한 곳이다**(2026-08-29).
+  화면 파일에 적지 말 것 — 눈에 안 보이는 글이라 흩어지면 갈라진 줄도 모른다.
+  MassLabs·LaserFish 가 같은 짜임을 쓴다: `lib/seo.ts` + `app/robots.ts` + `app/sitemap.ts`
+  + `app/opengraph-image.tsx`, 화면별 제목은 그 구역의 `layout.tsx`.
+  archiMap 은 정적 사이트라 `public/index.html` 의 `<head>` 와 `public/robots.txt`·`sitemap.xml` 이다.
+  ⚠️화면을 새로 만들면 **`sitemap.ts` 에 한 줄 더할 것.** 잊으면 검색에 영영 안 뜬다.
+  🔴**문구는 영어로 쓴다**(2026-08-29 사용자 결정 — 국제시장). 한/영 전환이 브라우저에서
+  도는 탓에 검색 로봇은 세 사이트 모두 **영어 화면**을 본다(archiMap 도 `pickInitialLang()`
+  최종 폴백이 `en` 이다). 제목·설명만 한국어면 구글이 그걸 버리고 영어 본문에서 새로 짓는다.
+  ⚠️그 대가로 **네이버·국내 한국어 검색어에는 안 걸린다.** 되찾으려면 번역이 아니라
+  `/ko`·`/en` 로 **주소를 나눠야** 한다(그래야 로봇이 한국어 화면을 본다). 그날은 세 사이트를 함께 볼 것.
 - 제품 저장소는 **기능만** 갖는다. 권한 판정이 필요하면 MassLabs의 `/api/entitlement`에 묻는다.
 - 세션은 `.masslabs-archi.com` 쿠키(앞에 점) 한 벌을 전 제품이 공유한다.
   🔴쿠키 형식은 archiMap의 `ckStore`(`public/app.js`)와 **한 벌로 움직이는 규약**이다 —

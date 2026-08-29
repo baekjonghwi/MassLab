@@ -3,6 +3,7 @@ import Script from "next/script";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { LanguageProvider } from "@/lib/i18n";
+import { SITE_URL, SITE_NAME, HOME_TITLE, HOME_DESC, OG_SHARED } from "@/lib/seo";
 import LanguageBar from "@/components/LanguageBar";
 import LayoutFooter from "@/components/LayoutFooter";
 
@@ -28,8 +29,28 @@ const geistMono = Geist_Mono({
 //   ⚠️.ico 를 먼저, .svg 를 나중에 적는다 — 둘 다 읽는 브라우저가 뒤엣것(선명한
 //     벡터)을 고르고, .ico 밖에 모르는 옛 브라우저도 앞엣것을 집어 간다.
 export const metadata: Metadata = {
-  title: "MassLabs",
-  description: "Rhino plug-in for architectural laser cutting drawings",
+  // 🔴모든 상대주소의 뿌리. 이게 있어야 아래 openGraph.url 이나 각 화면의
+  //   canonical 을 "/price" 처럼 짧게 적을 수 있다 — 없으면 빌드가 깨진다.
+  metadataBase: new URL(SITE_URL),
+
+  // 🔴default 와 template 이 한 벌이다. 홈은 default 를 그대로 쓰고(이미 이름이
+  //   들어 있어 뒤에 또 붙이면 "MassLabs … | MassLabs" 가 된다), 아래 화면들은
+  //   제 layout.tsx 에서 짧은 이름만 적으면 template 이 " | MassLabs" 를 붙여 준다.
+  //   ⚠️template 은 **자식 구역에만** 걸린다. 같은 파일의 default 에는 안 붙는다.
+  title: { default: HOME_TITLE, template: `%s | ${SITE_NAME}` },
+  description: HOME_DESC,
+  applicationName: SITE_NAME,
+
+  // 🔴홈의 정본 주소. 화면마다 제 것을 lib/seo.ts 의 pageMeta 가 덮어쓴다.
+  alternates: { canonical: "/" },
+
+  // 🔴카톡·슬랙·트위터에 링크를 붙였을 때 뜨는 미리보기.
+  //   🔴공통 값(그림·종류·서비스명)은 lib/seo.ts 의 OG_SHARED 에서 펴 온다.
+  //     화면마다 pageMeta 가 같은 것을 펴 쓴다 — Next 가 openGraph 를 **통째로**
+  //     갈아 끼우기 때문에, 한 곳에 모아 두지 않으면 하위 화면에서 그림이 사라진다.
+  openGraph: { ...OG_SHARED, url: "/", title: HOME_TITLE, description: HOME_DESC },
+  twitter: { card: "summary_large_image", title: HOME_TITLE, description: HOME_DESC },
+
   icons: {
     icon: [
       { url: "/images/icon/MassLabs-favicon.ico", sizes: "any" },
