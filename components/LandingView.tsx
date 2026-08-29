@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useLanguage, type Lang } from "@/lib/i18n";
 import { t } from "@/lib/translations";
 import { useSignedIn } from "@/lib/use-signed-in";
-import { SUBSCRIPTION_LIVE } from "@/lib/interim";
+import { SUBSCRIPTION_LIVE, PER_PIECE_ON_HOME } from "@/lib/interim";
 import { TIER_KEYS } from "@/lib/plans";
 import { ARCHIMAP, COLORGRAM, LASERFISH } from "@/lib/products";
 import { TIERS, PROGRAMS } from "@/components/PlanTable";
@@ -26,6 +26,9 @@ import { PIECE_PRICES, PIECE_MIN_USD, PIECE_MAX_USD } from "@/components/PerPiec
 //    ⚠️그래서 이 화면의 왼쪽 표에는 LaserFish 가 안 나온다(PROGRAMS 에서
 //      archiMap 만 골라 쓴다). "구독은 archiMap 계열, LaserFish 는 건당"이라는
 //      2026-08-27 사용자 결정이 화면에 그렇게 나타난 것이다.
+//    🔴2026-08-29 부터 **오른쪽 건당표도 안 나온다** — 건당결제 안내의 정본은
+//      LaserFish 소개 사이트다. 그림과 값은 아래에 그대로 있고 lib/interim.ts 의
+//      PER_PIECE_ON_HOME 뒤에 숨어 있을 뿐이다.
 //      🔴권한 판정(lib/plans.ts 의 MIN_PLAN)은 **아직 안 바꿨다** — 배포된 라이노
 //        플러그인이 그걸 보고 있어서, 화면과 함께 뒤집으면 기존 구독자가 막힌다.
 //
@@ -35,7 +38,7 @@ import { PIECE_PRICES, PIECE_MIN_USD, PIECE_MAX_USD } from "@/components/PerPiec
 
 const YOUTUBE = "https://www.youtube.com/@MassLab-d8c";
 // 🔴제품 사이트 주소는 lib/products.ts 한 곳에 모아 두었다(2026-08-28) —
-//   /account · /contact · /howtouse 도 같은 것을 본다. 여기 직접 적지 말 것.
+//   /account · /contact · /price 도 같은 것을 본다. 여기 직접 적지 말 것.
 //   LaserFish 는 전에 "/download"(MassLabs 안쪽)를 가리켰다.
 
 // 2구역 제품 칸에 쓰는 사진들 — public/images/PRODUCTS 한 폴더에 모아 뒀다
@@ -513,6 +516,10 @@ const LANDING_CSS = `
 
   /* ── 5구역 · 가격 ── */
   .lp-prices { display: grid; grid-template-columns: minmax(0,1.35fr) minmax(0,1fr); gap: 14px; margin-top: 52px; align-items: start; }
+  /* 건당 칸을 감췄을 때(PER_PIECE_ON_HOME=false) — 구독표 한 칸만 남는다.
+     🔴폭을 묶어 둔다. 1240px 를 혼자 채우면 등급 칸이 손바닥만큼 벌어져
+       표가 아니라 빈 판으로 읽힌다. 왼쪽 정렬은 위 머리말과 같은 줄이다. */
+  .lp-prices.one { grid-template-columns: minmax(0,1fr); max-width: 760px; }
   .lp-price-box { border: 1px solid var(--line); border-radius: var(--r); background: var(--card); padding: 26px; }
   .lp-price-top {
     display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
@@ -1106,16 +1113,28 @@ export default function LandingView() {
       <section className="lp-sec" id="pricing" data-sec>
         <div className="lp-wrap">
           <div className="lp-eyebrow reveal" {...rv(0)}>{lang === "ko" ? "가격" : "Pricing"}</div>
+          {/* 🔴머리말도 건당 칸을 따라간다 — 칸을 감춘 채로 "그리고 건당 결제"라고
+                말하면 없는 것을 가리키는 문장이 된다. */}
           <h2 className="lp-h2 reveal" {...rv(1)}>
-            {lang === "ko" ? (<>구독 하나, <em>그리고 건당 결제.</em></>) : (<>One subscription, <em>plus pay-per-piece.</em></>)}
+            {PER_PIECE_ON_HOME
+              ? (lang === "ko" ? (<>구독 하나, <em>그리고 건당 결제.</em></>) : (<>One subscription, <em>plus pay-per-piece.</em></>))
+              : (lang === "ko" ? (<>구독 하나로 <em>전부.</em></>) : (<>One subscription, <em>everything.</em></>))}
           </h2>
           <p className="lp-lede lp-read reveal" {...rv(2)}>
-            {lang === "ko"
-              ? "archiMap 과 LaserFish 는 당분간 분리해서 운영됩니다."
-              : "For now, archiMap and LaserFish are run separately."}
+            {PER_PIECE_ON_HOME
+              ? (lang === "ko"
+                  ? "archiMap 과 LaserFish 는 당분간 분리해서 운영됩니다."
+                  : "For now, archiMap and LaserFish are run separately.")
+              : SUBSCRIPTION_LIVE
+                ? (lang === "ko"
+                    ? "구독 하나로 MassLabs 의 모든 프로그램을 사용합니다."
+                    : "One subscription covers every MassLabs program.")
+                : (lang === "ko"
+                    ? "지금은 로그인만 하면 archiMap PLUS 를 무료로 사용합니다."
+                    : "For now, just sign in — archiMap PLUS is free.")}
           </p>
 
-          <div className="lp-prices">
+          <div className={PER_PIECE_ON_HOME ? "lp-prices" : "lp-prices one"}>
             {/* ── 왼쪽 · archiMap 구독 ── */}
             <div className="lp-price-box reveal" {...rv(3)}>
               <div className="lp-price-top">
@@ -1167,7 +1186,11 @@ export default function LandingView() {
               </div>
             </div>
 
-            {/* ── 오른쪽 · LaserFish 건당 ── */}
+            {/* ── 오른쪽 · LaserFish 건당 ──
+                 🔴2026-08-29 부터 감춰져 있다(lib/interim.ts 의 PER_PIECE_ON_HOME).
+                   건당결제 안내의 정본은 LaserFish 소개 사이트다. 지우지 않았다 —
+                   그 값을 true 로 되돌리면 이 칸이 그대로 다시 선다. */}
+            {PER_PIECE_ON_HOME && (
             <div className="lp-price-box reveal" {...rv(4)}>
               <div className="lp-price-top">
                 <b>LaserFish</b>
@@ -1195,6 +1218,7 @@ export default function LandingView() {
                 {lang === "ko" ? "플러그인 받기" : "Get the plug-in"}
               </a>
             </div>
+            )}
           </div>
         </div>
       </section>
