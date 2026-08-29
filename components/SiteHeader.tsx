@@ -1,6 +1,6 @@
 "use client";
 import { useLanguage } from "@/lib/i18n";
-import { SUBSCRIPTION_LIVE } from "@/lib/interim";
+import { SUBSCRIPTION_LIVE, PRICING_HREF } from "@/lib/interim";
 import { useSignedIn } from "@/lib/use-signed-in";
 import { LASERFISH_DOWNLOAD, LASERFISH_GUIDE } from "@/lib/products";
 
@@ -20,7 +20,9 @@ import { LASERFISH_DOWNLOAD, LASERFISH_GUIDE } from "@/lib/products";
 const LINKS = [
   { href: LASERFISH_GUIDE, ko: "사용방법", en: "How to Use" },
   { href: LASERFISH_DOWNLOAD, ko: "다운로드", en: "Download" },
-  { href: "/price", ko: "비용", en: "Pricing" },
+  // 🔴주소는 lib/interim.ts 의 PRICING_HREF 다 — 구독을 안 파는 동안에는
+  //   /price 가 아니라 홈의 가격 구역(/#pricing)이 값을 말한다(2026-08-29).
+  { href: PRICING_HREF, ko: "비용", en: "Pricing" },
   { href: "/contact", ko: "문의하기", en: "Contact" },
 ];
 

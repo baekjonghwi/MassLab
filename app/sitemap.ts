@@ -15,6 +15,7 @@
 
 import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/seo";
+import { SUBSCRIPTION_LIVE } from "@/lib/interim";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   // 🔴빌드한 날로 잡는다. 화면마다 진짜 고친 날을 들고 있지 않아서다 —
@@ -24,7 +25,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   return [
     { url: `${SITE_URL}/`,                          lastModified: built, changeFrequency: "weekly",  priority: 1.0 },
-    { url: `${SITE_URL}/price`,                     lastModified: built, changeFrequency: "monthly", priority: 0.9 },
+    // 🔴/price 는 구독을 파는 동안에만 목록에 넣는다. 안 파는 동안에는 next.config.ts
+    //   가 홈 가격 구역으로 넘기므로(307), 적어 두면 "목록엔 있는데 열면 딴 데로 가는
+    //   주소"가 되어 서치콘솔이 경고한다(2026-08-29).
+    ...(SUBSCRIPTION_LIVE
+      ? [{ url: `${SITE_URL}/price`, lastModified: built, changeFrequency: "monthly" as const, priority: 0.9 }]
+      : []),
     { url: `${SITE_URL}/review`,                    lastModified: built, changeFrequency: "weekly",  priority: 0.6 },
     { url: `${SITE_URL}/contact`,                   lastModified: built, changeFrequency: "yearly",  priority: 0.5 },
     { url: `${SITE_URL}/policy/terms-and-policy`,   lastModified: built, changeFrequency: "yearly",  priority: 0.2 },

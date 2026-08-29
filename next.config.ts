@@ -22,12 +22,14 @@ const nextConfig: NextConfig = {
     ];
   },
 
-  // 🔴/plan 은 /price 로 이름이 바뀌었다(2026-08-19). 그런데 이미 배포된
-  //   라이노 플러그인이 https://masslabs-archi.com/plan 을 하드코딩해 물고 있고
-  //   (LaserCuttingDrawings/laserfish_rhino/laserfish_rhino.cs), 쓰는 사람이
-  //   플러그인을 새로 받기 전까지는 그 주소가 유일한 통로다.
-  //   ⛔이 리다이렉트를 지우지 말 것 — 지우면 옛 플러그인 사용자는 요금제 화면을
-  //     영영 못 연다. 물음표 뒤 값(?next=…)은 Next가 알아서 넘겨 준다.
+  // 🔴/plan 은 /price 로 이름이 바뀌었다(2026-08-19). 옛 이름을 받아 넘긴다.
+  //   ⚠️2026-08-29 확인 — **배포된 라이노 플러그인은 /plan 을 안 쓴다.** 그 주소를
+  //     문 PLAN_URL·Gate 는 LaserCuttingDrawings 의 **커밋 안 된 작업본**에만 있다
+  //     (릴리스된 2.2.3 은 /payment · /api/verify-payment 뿐인 건당결제다).
+  //     그러니 "옛 플러그인이 이 길로 들어온다"는 말은 사실이 아니다.
+  //   ⛔그래도 지우지 말 것 — 그 작업본을 배포하는 날 이 길이 필요하고, LaserFish
+  //     소개 사이트(lib/site.ts)도 /plan 을 옛 이름으로 적어 두고 있다.
+  //     물음표 뒤 값(?next=…)은 Next가 알아서 넘겨 준다.
   async redirects() {
     return [
       { source: "/plan", destination: "/price", permanent: true },
@@ -66,6 +68,14 @@ const nextConfig: NextConfig = {
       //       /subscribe 는 **실제 결제 화면**이라 계속 막아 둔다.
       ...(SUBSCRIPTION_LIVE ? [] : [
         { source: "/subscribe", destination: "/", permanent: false },
+        // 🔴/price 도 접는다(2026-08-29 사용자 결정) — 구독을 안 파는 동안 그 화면이
+        //   그리는 것은 건당표인데, 건당결제 안내의 정본은 LaserFish 소개 사이트로
+        //   갔고 구독표는 홈 가격 구역 한 벌뿐이다. 값 이야기를 한 곳으로 모은다.
+        //   ⚠️307 이다. 308 로 캐시되면 구독을 다시 여는 날 /price 를 영영 못 연다.
+        //   ⚠️화면 파일(app/price/page.tsx)은 그대로 있다 — 스위치를 켜면 산다.
+        //   ⚠️/plan → /price → /#pricing 으로 두 번 튄다(옛 이름은 그대로 살아 있다).
+        //   메뉴·단추가 보는 주소는 lib/interim.ts 의 PRICING_HREF 한 곳이다.
+        { source: "/price", destination: "/#pricing", permanent: false },
       ]),
     ];
   },

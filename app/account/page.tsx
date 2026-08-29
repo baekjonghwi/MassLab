@@ -6,6 +6,7 @@ import { useLanguage } from "@/lib/i18n";
 import PlanTable, { PLAN_CSS } from "@/components/PlanTable";
 import DarkTopBar, { DARK_TOPBAR_CSS, type DarkLink } from "@/components/DarkTopBar";
 import { LASERFISH_DOWNLOAD, LASERFISH_GUIDE } from "@/lib/products";
+import { PRICING_HREF } from "@/lib/interim";
 
 // ==========================================================================
 //  /account — 내 구독.
@@ -32,7 +33,7 @@ type Sub = {
 const ACCOUNT_LINKS: DarkLink[] = [
   { href: LASERFISH_DOWNLOAD, ko: "다운로드", en: "Download" },
   { href: LASERFISH_GUIDE, ko: "사용방법", en: "How to use" },
-  { href: "/price", ko: "비용", en: "Pricing" },
+  { href: PRICING_HREF, ko: "비용", en: "Pricing" },
 ];
 
 // 🔴구독 상품은 하나뿐이다. 등급(plus/pro/max)이 모든 프로그램에 함께 적용된다.
@@ -163,7 +164,10 @@ export default function AccountPage() {
 
   // [구독하기]가 갈 곳. 🔴2026-08-28 이전에는 ?preview=1 로 들어온 사람을 /main
   //   (구독을 팔던 시절의 홈, PG 심사용)으로 돌려보냈다. /main 을 지우면서 없앴다.
-  const toPrice = () => { window.location.href = "/price"; };
+  // 🔴2026-08-29 — 주소를 lib/interim.ts 의 PRICING_HREF 에 맡겼다. 구독을 안 파는
+  //   동안 /price 는 건당표라, 여기서 [Subscribe]를 누른 사람이 구독표가 아니라
+  //   조각당 단가표 앞에 서 있었다. 지금은 홈의 가격 구역(구독표)으로 간다.
+  const toPrice = () => { window.location.href = PRICING_HREF; };
 
   const load = useCallback(async () => {
     const sb = supabase();

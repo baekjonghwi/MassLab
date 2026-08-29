@@ -24,6 +24,15 @@ import { LASERFISH_DOWNLOAD, LASERFISH_GUIDE } from "@/lib/products";
 //    안내**로 되돌아가 있다(PriceContent 대신 PerPieceContent). 구독 코드는 아래에
 //    그대로 살아 있고, lib/interim.ts 의 SUBSCRIPTION_LIVE 하나로 돌아온다.
 //
+//  🔴🔴🔴2026-08-29 — **지금 이 주소는 아무도 못 연다.** SUBSCRIPTION_LIVE 가
+//    false 인 동안 next.config.ts 가 /price 를 홈의 가격 구역(`/#pricing`)으로
+//    넘긴다(307). 구독표가 홈에 한 벌뿐인데 여기는 건당표를 그려서, [구독하기]를
+//    누른 사람이 조각당 단가표 앞에 서는 일이 벌어졌다(사용자 확인).
+//    ⛔이 파일을 지우지 말 것 — 스위치를 켜는 순간 리다이렉트가 사라지고 위쪽
+//      PriceContent(구독표)가 이 자리에 선다. 그날 함께 볼 것:
+//        · lib/interim.ts 의 PRICING_HREF (메뉴·단추가 보는 주소)
+//        · app/sitemap.ts 의 /price 줄 · 아래 밝은 PlanTable 의 어두운 변형
+//
 //  🔴2026-08-28 어두운 화면으로 갈아입혔다 — 홈(components/LandingView) · /account ·
 //    /policy 와 같은 결이다. 값과 흐름은 하나도 안 바꿨다.
 //    ⚠️어두운 화면이므로 lib/dark-pages.ts 의 DARK_PAGES 에 "/price" 가 들어 있어야

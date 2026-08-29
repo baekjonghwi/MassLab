@@ -27,8 +27,12 @@ MassLabs는 배포되는 프로젝트라 하위 폴더가 빌드 컨텍스트에
   스위치 두 개가 한 벌이다: `lib/interim.ts`의 `SUBSCRIPTION_LIVE` ·
   archiMap `public/app.js`의 `SOLO_PLUS_FREE`. 한쪽만 뒤집으면 두 사이트 말이 어긋난다.
   구독 코드(`/account`·`/subscribe`·`PlanTable`·`/api/subscribe/*`)는 **하나도 안 지웠다** — 되돌리면 그대로 산다.
-  🔴단, **홈(`/`)의 건당표는 2026-08-29 부터 감춰 뒀다** — 건당결제 안내의 정본은
-  LaserFish 소개 사이트다(`lib/interim.ts`의 `PER_PIECE_ON_HOME`). `/price`는 아직 건당표를 그린다.
+  🔴**2026-08-29 — 값 이야기를 홈 한 곳으로 모았다**(사용자 결정).
+  홈의 건당표는 감췄고(`PER_PIECE_ON_HOME`), 건당결제 안내의 정본은 LaserFish 소개 사이트다.
+  `/price`는 구독을 안 파는 동안 홈 가격 구역(`/#pricing`)으로 넘어간다(307, 화면 파일은 살아 있다).
+  ⛔`/price`를 화면에 직접 적지 말 것 — 메뉴·단추가 보는 주소는 `lib/interim.ts`의 `PRICING_HREF` 한 곳이다.
+  archiMap의 [구독 해지]는 `/account`로, LaserFish의 [자세히 보기]는 껐다(그쪽 `BUY_LIVE`).
+  🔴**해지는 `/account` 한 곳에서만 한다** — 다른 화면에 해지 단추를 만들지 말 것.
 - 🔴**설치 안내(`/download`)와 사용방법(`/howtouse`)은 LaserFish 소개 사이트가 정본이다**
   (`/download` 2026-08-28, `/howtouse` 2026-08-29 — 둘 다 사용자 결정).
   같은 글이 두 저장소에 살면서 갈라지던 것을 끝냈다 — MassLabs 안쪽 화면 둘은 지웠고,

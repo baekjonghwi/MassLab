@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import { useLanguage } from "@/lib/i18n";
 import { t } from "@/lib/translations";
 import { LASERFISH_DOWNLOAD, LASERFISH_GUIDE } from "@/lib/products";
+import { PRICING_HREF } from "@/lib/interim";
 
 export default function ContactPage() {
   const router = useRouter();
@@ -86,7 +87,8 @@ export default function ContactPage() {
             <a href={LASERFISH_DOWNLOAD} className="hnav-link">
               {lang === "ko" ? "다운로드" : "Download"}
             </a>
-            <a href="/price" className="hnav-link">
+            {/* 🔴구독을 안 파는 동안에는 홈의 가격 구역으로 간다(lib/interim.ts) */}
+            <a href={PRICING_HREF} className="hnav-link">
               {lang === "ko" ? "비용" : "Pricing"}
             </a>
             <a href="/contact" className="hnav-link" style={{ color: "#111", fontWeight: 700 }}>

@@ -517,9 +517,8 @@ const LANDING_CSS = `
   /* ── 5구역 · 가격 ── */
   .lp-prices { display: grid; grid-template-columns: minmax(0,1.35fr) minmax(0,1fr); gap: 14px; margin-top: 52px; align-items: start; }
   /* 건당 칸을 감췄을 때(PER_PIECE_ON_HOME=false) — 구독표 한 칸만 남는다.
-     🔴폭을 묶어 둔다. 1240px 를 혼자 채우면 등급 칸이 손바닥만큼 벌어져
-       표가 아니라 빈 판으로 읽힌다. 왼쪽 정렬은 위 머리말과 같은 줄이다. */
-  .lp-prices.one { grid-template-columns: minmax(0,1fr); max-width: 760px; }
+     자리를 통째로 물려받아 1240px 를 다 쓴다(2026-08-29 지시). */
+  .lp-prices.one { grid-template-columns: minmax(0,1fr); }
   .lp-price-box { border: 1px solid var(--line); border-radius: var(--r); background: var(--card); padding: 26px; }
   .lp-price-top {
     display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
@@ -571,6 +570,26 @@ const LANDING_CSS = `
     transition: filter .15s;
   }
   .lp-buy:hover { filter: brightness(1.08); }
+
+  /* 홀로 남은 구독표를 키운다 — 넓은 화면에서만.
+     🔴min-width 로 감싼 이유: 좁은 화면에서 같이 커지면 등급 칸(min 108px)이
+       늘어나 표가 가로로 넘치고, .lp-tier-scroll 이 손가락으로 미는 표가 된다.
+       ⇒ 1081px 아래에서는 위의 기본 크기가 그대로 산다.
+     ⚠️두 칸(PER_PIECE_ON_HOME=true)으로 돌아가면 .one 이 안 붙어 저절로 꺼진다. */
+  @media (min-width: 1081px) {
+    .lp-prices.one .lp-price-box { padding: 34px 38px; }
+    .lp-prices.one .lp-price-top { padding-bottom: 18px; margin-bottom: 28px; }
+    .lp-prices.one .lp-price-top b { font-size: 1.34rem; }
+    .lp-prices.one .lp-price-kind { font-size: 0.66rem; }
+    .lp-prices.one .lp-tier-grid { grid-template-columns: 190px repeat(3, minmax(150px,1fr)); gap: 8px; }
+    .lp-prices.one .lp-tier-head { padding: 17px 12px; gap: 6px; }
+    .lp-prices.one .lp-tier-head b { font-size: 0.78rem; }
+    .lp-prices.one .lp-tier-head span { font-size: 1.32rem; }
+    .lp-prices.one .lp-tier-lab { font-size: 0.83rem; }
+    .lp-prices.one .lp-tier-cell { font-size: 0.83rem; padding: 14px 12px; min-height: 56px; }
+    .lp-prices.one .lp-tier-cta a,
+    .lp-prices.one .lp-tier-cta span { font-size: 0.83rem; padding: 15px 10px; }
+  }
 
   /* ── 6구역 · 바닥글 ── */
   .lp-foot { border-top: 1px solid var(--line); background: var(--bg2); padding: 76px 0 44px; }
