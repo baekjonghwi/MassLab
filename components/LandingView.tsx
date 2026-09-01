@@ -126,7 +126,7 @@ const PRODUCTS: { name: string; img: string | null; head: Txt; body: Txt }[] = [
 //    🔴여덟 칸 전부 사진이 찼다(녹지·3D 대지 모델링 2026-08-28 도착).
 //      자리표시자는 img: null 일 때만 선다 — 새 표본을 사진 없이 끼워 넣어도 줄은 안 깨진다.
 const SAMPLES: { title: Txt; by: string; img: string | null }[] = [
-  { title: { en: "Wind Rose", ko: "바람 장미" }, by: "archiMap", img: "/images/CAPABILITIES/wind-rose.png" },
+  { title: { en: "Wind Path", ko: "바람길" }, by: "archiMap", img: "/images/CAPABILITIES/wind-path.png" },
   { title: { en: "Cadastral Map", ko: "지적도" }, by: "archiMap", img: "/images/CAPABILITIES/cadastral-map.png" },
   { title: { en: "LaserCutting Model", ko: "레이저커팅 모델" }, by: "LaserFish", img: "/images/CAPABILITIES/lasercutting-model.png" },
   { title: { en: "Building Use", ko: "건물 용도" }, by: "archiMap", img: "/images/CAPABILITIES/building-use.png" },
