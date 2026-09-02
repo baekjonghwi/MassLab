@@ -555,6 +555,10 @@ export const t = {
       ],
     },
   },
-} as const;
+};
 
-export type Lang = keyof typeof t;
+// 🔴화면 언어 타입은 여기 없다 — lib/i18n 의 Lang 한 곳이다(2026-09-03).
+//   이 파일은 한국어·영어 원문만 들고 있고, 나머지 여섯 언어는 lib/i18n-dict 가
+//   **영어 문장을 열쇠로** 옮긴다(trPick).
+//   ⚠️약관·개인정보처리방침(terms·privacy)은 옮기지 않는다 — PG 심사에 낸
+//     문서라 번역본이 원문 행세를 하면 안 된다. 그 두 글은 늘 한국어·영어다.

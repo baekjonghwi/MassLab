@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useLanguage } from "@/lib/i18n";
+import { useLanguage, useT, trPick } from "@/lib/i18n";
 import { t } from "@/lib/translations";
 import { LASERFISH_DOWNLOAD, LASERFISH_GUIDE } from "@/lib/products";
 import { PRICING_HREF } from "@/lib/interim";
@@ -8,7 +8,8 @@ import { PRICING_HREF } from "@/lib/interim";
 export default function ContactPage() {
   const router = useRouter();
   const { lang } = useLanguage();
-  const tr = t[lang].contact;
+  const T = useT();
+  const tr = trPick(lang, t).contact;
 
   return (
     <main style={{ fontFamily: "-apple-system, 'Helvetica Neue', sans-serif", background: "#fff", color: "#111", minHeight: "100vh" }}>
@@ -81,18 +82,18 @@ export default function ContactPage() {
           <div className="hnav-links" style={{ display: "flex", alignItems: "center", gap: "2px" }}>
             {/* 🔴밖으로 나간다(2026-08-29) — 사용방법의 정본은 LaserFish 소개 사이트다 */}
             <a href={LASERFISH_GUIDE} className="hnav-link">
-              {lang === "ko" ? "사용방법" : "How to Use"}
+              {T("사용방법", "How to Use")}
             </a>
             {/* 🔴밖으로 나간다(2026-08-28) — 설치 안내의 정본은 LaserFish 소개 사이트다 */}
             <a href={LASERFISH_DOWNLOAD} className="hnav-link">
-              {lang === "ko" ? "다운로드" : "Download"}
+              {T("다운로드", "Download")}
             </a>
             {/* 🔴구독을 안 파는 동안에는 홈의 가격 구역으로 간다(lib/interim.ts) */}
             <a href={PRICING_HREF} className="hnav-link">
-              {lang === "ko" ? "비용" : "Pricing"}
+              {T("비용", "Pricing")}
             </a>
             <a href="/contact" className="hnav-link" style={{ color: "#111", fontWeight: 700 }}>
-              {lang === "ko" ? "문의하기" : "Contact"}
+              {T("문의하기", "Contact")}
             </a>
           </div>
         </div>

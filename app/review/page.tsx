@@ -1,13 +1,14 @@
 "use client";
 import { useState, useRef, useEffect, Suspense } from "react";
 import { useRouter } from "next/navigation";
-import { useLanguage } from "@/lib/i18n";
+import { useLanguage, useT, trPick } from "@/lib/i18n";
 import { t } from "@/lib/translations";
 
 function ReviewContent() {
   const router = useRouter();
   const { lang } = useLanguage();
-  const tr = t[lang].review;
+  const T = useT();
+  const tr = trPick(lang, t).review;
 
   const [paymentId, setPaymentId] = useState<string | null>(null);
 
@@ -83,7 +84,7 @@ function ReviewContent() {
           onClick={() => router.push("/")}
           style={btnStyle}
         >
-          {lang === "ko" ? "홈으로" : "Go Home"}
+          {T("홈으로", "Go Home")}
         </button>
       </div>
     );
@@ -205,7 +206,7 @@ const btnStyle: React.CSSProperties = {
 
 export default function ReviewPage() {
   const { lang } = useLanguage();
-  const tr = t[lang].review;
+  const tr = trPick(lang, t).review;
 
   return (
     <main style={{

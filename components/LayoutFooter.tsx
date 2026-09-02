@@ -1,13 +1,13 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useLanguage } from "@/lib/i18n";
+import { useLanguage, trPick } from "@/lib/i18n";
 import { t } from "@/lib/translations";
 import { DARK_PAGES } from "@/lib/dark-pages";
 
 export default function LayoutFooter() {
   const { lang } = useLanguage();
-  const tr = t[lang].footer;
+  const tr = trPick(lang, t).footer;
   const pathname = usePathname();
 
   // 🔴어두운 화면들에는 이 밝은 바닥글을 붙이지 않는다(LanguageBar 와 같은 목록).

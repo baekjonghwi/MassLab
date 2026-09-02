@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { supabase, safeNext } from "@/lib/supabase";
-import { useLanguage } from "@/lib/i18n";
+import { useLanguage, useT, TRich, fmt } from "@/lib/i18n";
 import PlanTable, { PLAN_CSS } from "@/components/PlanTable";
 import { PerPieceNote, PIECE_PRICES, PIECE_MIN_USD, PIECE_MAX_USD, useUsdToKrw } from "@/components/PerPiecePricing";
 import DarkTopBar, { DARK_TOPBAR_CSS, type DarkLink } from "@/components/DarkTopBar";
@@ -57,6 +57,7 @@ const LINKS: DarkLink[] = [
 function PriceContent() {
   const sp = useSearchParams();
   const { lang } = useLanguage();
+  const T = useT();
   const next = safeNext(sp.get("next"));
 
   const [plan, setPlan] = useState("free");
@@ -95,8 +96,8 @@ function PriceContent() {
     setBusy("");
     if (!r.ok) {
       setError(d.error === "bundle_active"
-        ? (lang === "ko" ? "이미 구독 중입니다." : "You already have an active subscription.")
-        : (lang === "ko" ? "결제 창을 열지 못했습니다." : "Couldn't open the checkout window."));
+        ? (T("이미 구독 중입니다.", "You already have an active subscription."))
+        : (T("결제 창을 열지 못했습니다.", "Couldn't open the checkout window.")));
       return;
     }
     window.location.href = d.url;
@@ -105,14 +106,12 @@ function PriceContent() {
   return (
     <>
       <style>{PLAN_CSS}</style>
-      <div className="prc-eyebrow">{lang === "ko" ? "요금제" : "Plans"}</div>
+      <div className="prc-eyebrow">{T("요금제", "Plans")}</div>
       <h1 className="prc-title">
-        {lang === "ko" ? <>구독 하나로 <em>전부.</em></> : <>One subscription, <em>everything.</em></>}
+        <TRich ko={"구독 하나로 *전부.*"} en={"One subscription, *everything.*"} />
       </h1>
       <p className="prc-lede">
-        {lang === "ko"
-          ? "구독 하나로 MassLabs의 모든 프로그램을 사용합니다."
-          : "One subscription covers every MassLabs program."}
+        {T("구독 하나로 MassLabs의 모든 프로그램을 사용합니다.", "One subscription covers every MassLabs program.")}
       </p>
 
       {error && <div className="prc-err">{error}</div>}
@@ -124,11 +123,11 @@ function PriceContent() {
         busy={busy}
       />
 
-      <div className="plan-fine">{lang === "ko" ? "부가세 별도" : "VAT not included"}</div>
+      <div className="plan-fine">{T("부가세 별도", "VAT not included")}</div>
 
       <div className="prc-foot">
-        {next !== "/" && <a href={next}>{lang === "ko" ? "← 돌아가기" : "← Back"}</a>}
-        <a href="/account">{lang === "ko" ? "내 구독 관리" : "Manage subscription"}</a>
+        {next !== "/" && <a href={next}>{T("← 돌아가기", "← Back")}</a>}
+        <a href="/account">{T("내 구독 관리", "Manage subscription")}</a>
       </div>
     </>
   );
@@ -146,15 +145,15 @@ function PriceContent() {
 function PerPieceContent() {
   const sp = useSearchParams();
   const { lang } = useLanguage();
+  const T = useT();
   const next = safeNext(sp.get("next"));
   const usdToKrw = useUsdToKrw();
-  const ko = lang === "ko";
 
   return (
     <>
-      <div className="prc-eyebrow">{ko ? "비용" : "Pricing"}</div>
+      <div className="prc-eyebrow">{T("비용", "Pricing")}</div>
       <h1 className="prc-title">
-        {ko ? <>저렴한 <em>금액대</em></> : <>Affordable <em>pricing</em></>}
+        <TRich ko={"저렴한 *금액대*"} en={"Affordable *pricing*"} />
       </h1>
       <p className="prc-lede"><PerPieceNote lang={lang} /></p>
 
@@ -164,19 +163,19 @@ function PerPieceContent() {
             <div className="prc-kind">{p.kind}</div>
             <div className="prc-amount">${p.usd}</div>
             <div className="prc-unit">
-              {ko ? "조각당" : "per piece"} (₩{Math.round(p.usd * usdToKrw).toLocaleString()})
+              {T("조각당", "per piece")} (₩{Math.round(p.usd * usdToKrw).toLocaleString()})
             </div>
             <div className="prc-detail">
-              <div>{ko ? `최소 주문 금액 $${PIECE_MIN_USD}` : `Minimum order $${PIECE_MIN_USD}`}</div>
-              <div>{ko ? `최대 주문 금액 $${PIECE_MAX_USD}` : `Maximum order $${PIECE_MAX_USD}`}</div>
+              <div>{fmt(T("최소 주문 금액 ${min}", "Minimum order ${min}"), { min: PIECE_MIN_USD })}</div>
+              <div>{fmt(T("최대 주문 금액 ${max}", "Maximum order ${max}"), { max: PIECE_MAX_USD })}</div>
             </div>
           </div>
         ))}
       </div>
 
       <div className="prc-foot">
-        {next !== "/" && <a href={next}>{ko ? "← 돌아가기" : "← Back"}</a>}
-        <a href={LASERFISH_DOWNLOAD}>{ko ? "다운로드" : "Download"}</a>
+        {next !== "/" && <a href={next}>{T("← 돌아가기", "← Back")}</a>}
+        <a href={LASERFISH_DOWNLOAD}>{T("다운로드", "Download")}</a>
       </div>
     </>
   );

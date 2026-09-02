@@ -1,5 +1,5 @@
 "use client";
-import { useLanguage } from "@/lib/i18n";
+import { useLanguage, trPick } from "@/lib/i18n";
 import { SUBSCRIPTION_LIVE, PRICING_HREF } from "@/lib/interim";
 import { useSignedIn } from "@/lib/use-signed-in";
 import { LASERFISH_DOWNLOAD, LASERFISH_GUIDE } from "@/lib/products";
@@ -77,7 +77,7 @@ export default function SiteHeader({ active }: { active?: string }) {
                 className="hnav-link"
                 style={l.href === active ? { color: "#111", fontWeight: 700 } : undefined}
               >
-                {lang === "ko" ? l.ko : l.en}
+                {trPick(lang, l)}
               </a>
             ))}
           </div>

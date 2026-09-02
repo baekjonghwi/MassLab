@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useLanguage } from "@/lib/i18n";
+import { useLanguage, trPick } from "@/lib/i18n";
 import DarkTopBar, { DARK_TOPBAR_CSS, type DarkLink } from "@/components/DarkTopBar";
 
 // ==========================================================================
@@ -13,7 +13,7 @@ import DarkTopBar, { DARK_TOPBAR_CSS, type DarkLink } from "@/components/DarkTop
 //    ⚠️어두운 화면이므로 lib/dark-pages.ts 의 DARK_PAGES 에 두 주소가 들어 있어야
 //      한다 — 빠지면 위에 흰 띠(LanguageBar)와 밝은 바닥글이 덧붙는다.
 //
-//  🔴글은 하나도 여기 적지 않는다. lib/translations 의 t[lang].terms / .privacy 가
+//  🔴글은 하나도 여기 적지 않는다. lib/translations 의 terms / privacy 가
 //    유일한 출처다 — PG 가맹점 심사에 낸 문서라 두 벌이 되면 안 된다.
 //
 //  🔴두 문서가 서로를 가리킨다(위 막대의 링크 둘). 약관을 읽던 사람이 방침으로
@@ -131,7 +131,7 @@ export default function PolicyView({
       <DarkTopBar links={POLICY_LINKS} />
 
       <div className="pol-wrap">
-        <div className="pol-eyebrow">{lang === "ko" ? eyebrow.ko : eyebrow.en}</div>
+        <div className="pol-eyebrow">{trPick(lang, eyebrow)}</div>
         <h1 className="pol-title">{doc.title}</h1>
         <p className="pol-date">{doc.effectiveDate}</p>
 

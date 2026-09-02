@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { Rich, trs, type Lang } from "@/lib/i18n";
 
 // ==========================================================================
 //  LaserFish 건당결제의 **값과 규칙**이 사는 곳 — 홈(components/LandingView)과
@@ -49,18 +50,16 @@ export function useUsdToKrw() {
 }
 
 // 카드 위에 붙는 설명 두 줄 — 홈과 /price가 같은 말을 해야 한다.
-export function PerPieceNote({ lang }: { lang: string }) {
-  return lang === "ko" ? (
-    <>
-      생성된 조각에 대해서만 결제됩니다. 오류가 발생한 부분은 청구되지 않습니다.
-      <br />
-      아래 컴포넌트를 제외한 다른 컴포넌트는 무료입니다.
-    </>
-  ) : (
-    <>
-      You only pay for successfully generated pieces. Failed pieces are never charged.
-      <br />
-      All components other than the ones listed below are free.
-    </>
+//   🔴줄바꿈은 문장 안의 \n 이 맡는다(lib/i18n 의 Rich). 언어가 여덟이라
+//     JSX 를 언어마다 적을 수는 없다.
+export function PerPieceNote({ lang }: { lang: Lang }) {
+  return (
+    <Rich
+      text={trs(
+        lang,
+        "생성된 조각에 대해서만 결제됩니다. 오류가 발생한 부분은 청구되지 않습니다.\n아래 컴포넌트를 제외한 다른 컴포넌트는 무료입니다.",
+        "You only pay for successfully generated pieces. Failed pieces are never charged.\nAll components other than the ones listed below are free.",
+      )}
+    />
   );
 }

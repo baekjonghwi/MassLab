@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { useLanguage } from "@/lib/i18n";
+import { useTx } from "@/lib/i18n";
 
 // ==========================================================================
 //  /link — 라이노를 내 계정에 붙이는 화면.
@@ -55,11 +55,10 @@ const TX = {
     unauthorized: "Your session expired. Please refresh and try again.",
     failed: "Couldn't connect this device.",
   },
-} as const;
+};
 
 export default function LinkPage() {
-  const { lang } = useLanguage();
-  const x = lang === "ko" ? TX.ko : TX.en;
+  const x = useTx(TX);
   const [ready, setReady] = useState(false);
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");

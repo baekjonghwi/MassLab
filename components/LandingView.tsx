@@ -3,7 +3,8 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import Image from "next/image";
-import { useLanguage, type Lang } from "@/lib/i18n";
+import { useLanguage, useT, trPick, TRich, fmt, type Lang } from "@/lib/i18n";
+import LanguageMenu from "@/components/LanguageMenu";
 import { t } from "@/lib/translations";
 import { useSignedIn } from "@/lib/use-signed-in";
 import { SUBSCRIPTION_LIVE, PER_PIECE_ON_HOME } from "@/lib/interim";
@@ -324,13 +325,8 @@ const LANDING_CSS = `
     color: var(--mut); padding: 8px 11px; transition: color .15s;
   }
   .lp-nav-links a:hover { color: var(--tx); }
-  .lp-lang { display: flex; margin-left: 10px; border: 1px solid var(--line); border-radius: var(--r); }
-  .lp-lang button {
-    background: none; border: none; cursor: pointer; font-family: var(--mono);
-    font-size: 0.66rem; letter-spacing: 0.08em; color: var(--mut);
-    padding: 7px 11px; transition: background .15s, color .15s;
-  }
-  .lp-lang button.on { background: var(--tx); color: var(--bg); }
+  /* 언어 단추는 components/LanguageMenu 가 제 모양을 갖고 온다 — 여기서는 자리만 띄운다 */
+  .lp-nav-links .mlang { margin-left: 10px; }
 
   /* ── 1구역 · 첫 화면 ── */
   .lp-hero { min-height: calc(100vh - 61px); display: flex; align-items: center; padding: 84px 0; }
@@ -785,7 +781,7 @@ function HeroArt({ now, upto }: { now: number; upto: number }) {
 
 // PlanTable 의 칸 값 — 글자 하나이거나 {ko,en} 이거나 없음(×).
 type Cell = string | { ko: string; en: string } | null;
-const cellText = (c: Cell, lang: Lang) => (c == null ? null : typeof c === "string" ? c : c[lang]);
+const cellText = (c: Cell, lang: Lang) => (c == null ? null : typeof c === "string" ? c : trPick(lang, c));
 
 // 🔴칸 안에서 번지는 빛의 자리를 그 칸에만 적어 준다(--mx/--my).
 //   CSS 는 "이 칸 안에서 커서가 어디인가"를 스스로 알 수 없어서, 지나가는
@@ -809,8 +805,9 @@ const MailIcon = ({ size = 18 }: { size?: number }) => (
 const rv = (i: number) => ({ style: { "--i": i } as React.CSSProperties });
 
 export default function LandingView() {
-  const { lang, setLang } = useLanguage();
-  const L = (o: Txt) => o[lang] ?? o.en;
+  const { lang } = useLanguage();
+  const T = useT();
+  const L = (o: Txt) => trPick(lang, o);
   // null(아직 모른다) 이면 글자를 바꾸지 않는다 — 먼저 띄웠다 바꾸면 깜빡인다.
   const signedIn = useSignedIn();
   const [active, setActive] = useState(0);
@@ -903,7 +900,7 @@ export default function LandingView() {
   }, []);
 
   const prod = PRODUCTS[active];
-  const foot = t[lang].footer;
+  const foot = trPick(lang, t).footer;
 
   // 왼쪽 가격표 = archiMap 한 줄만. LaserFish 는 오른쪽 건당표가 맡는다.
   const archimap = PROGRAMS.find((p) => p.name === "archiMap");
@@ -915,7 +912,7 @@ export default function LandingView() {
       <div className="lp-spot" aria-hidden />
 
       {/* ── 오른쪽 점 표시 ─────────────────────────────────────────── */}
-      <nav className="lp-dots" aria-label={lang === "ko" ? "구역 이동" : "Sections"}>
+      <nav className="lp-dots" aria-label={T("구역 이동", "Sections")}>
         {SECTIONS.map((s, i) => (
           <button
             key={s.id}
@@ -941,13 +938,11 @@ export default function LandingView() {
                    (next.config.ts) — /account 는 보여 주기만 하는 화면이라 안전하다. */}
             <a href={signedIn ? "/account" : "/login"}>
               {signedIn
-                ? (lang === "ko" ? "내 계정" : "My account")
-                : (lang === "ko" ? "로그인" : "Login")}
+                ? (T("내 계정", "My account"))
+                : (T("로그인", "Login"))}
             </a>
-            <div className="lp-lang">
-              <button className={lang === "en" ? "on" : ""} onClick={() => setLang("en")}>EN</button>
-              <button className={lang === "ko" ? "on" : ""} onClick={() => setLang("ko")}>한국어</button>
-            </div>
+            {/* 🔴[내 계정] 바로 옆이다(2026-09-03 사용자 지시) — 여덟 언어라 토글이 아니라 목록이다 */}
+            <LanguageMenu />
           </div>
         </div>
       </nav>
@@ -961,17 +956,14 @@ export default function LandingView() {
         <div className="lp-bleed lp-hero-in">
           <div className="lp-hero-col">
             <h1 className="lp-h1 reveal" {...rv(0)}>
-              {lang === "ko" ? (
-                <>건축 프로젝트를<br /><em>한 곳에서.</em></>
-              ) : (
-                <>Every architecture project,<br /><em>in one place.</em></>
-              )}
+              <TRich
+                ko={"건축 프로젝트를\n*한 곳에서.*"}
+                en={"Every architecture project,\n*in one place.*"}
+              />
             </h1>
 
             <p className="lp-hero-sub reveal" {...rv(1)}>
-              {lang === "ko"
-                ? "대지 분석, 모델 제작, 색 조합 — 건축가를 위한 도구를 한 계정에 모았습니다."
-                : "Site analysis, model making, color palettes — a suite for architects, under one account."}
+              {T("대지 분석, 모델 제작, 색 조합 — 건축가를 위한 도구를 한 계정에 모았습니다.", "Site analysis, model making, color palettes — a suite for architects, under one account.")}
             </p>
 
             {/* 🔴글자는 이름뿐이다(2026-08-27 지시). 무엇을 하는 단추인지는
@@ -979,7 +971,7 @@ export default function LandingView() {
             <div className="lp-hero-cta reveal" {...rv(2)}>
               {/* 누르면 4구역(도구 다섯)으로 내려간다 */}
               <a className="lp-btn pri glow" href="#tools" onMouseMove={onGlow}>
-                <span>{lang === "ko" ? "프로젝트 시작하기" : "Start project"}</span>
+                <span>{T("프로젝트 시작하기", "Start project")}</span>
                 <i>&rarr;</i>
               </a>
               <a
@@ -989,14 +981,14 @@ export default function LandingView() {
                 rel="noreferrer"
                 onMouseMove={onGlow}
               >
-                <span>{lang === "ko" ? "영상 보기" : "Watch video"}</span>
+                <span>{T("영상 보기", "Watch video")}</span>
                 <i>&#9654;</i>
               </a>
             </div>
 
             <div className="lp-tags reveal" {...rv(3)}>
-              <i>{lang === "ko" ? "라이노 플러그인" : "rhino plug-in"}</i>
-              <i>{lang === "ko" ? "브라우저에서 바로" : "browser based"}</i>
+              <i>{T("라이노 플러그인", "rhino plug-in")}</i>
+              <i>{T("브라우저에서 바로", "browser based")}</i>
               <i>png &middot; svg &middot; dxf &middot; 3dm</i>
             </div>
           </div>
@@ -1007,7 +999,7 @@ export default function LandingView() {
       <section className="lp-sec" id="products" data-sec>
         <div className="lp-wrap lp-prod">
           <div>
-            <div className="lp-eyebrow reveal" {...rv(0)}>{lang === "ko" ? "제품" : "Products"}</div>
+            <div className="lp-eyebrow reveal" {...rv(0)}>{T("제품", "Products")}</div>
             {/* 🔴오른쪽 칸에 커서를 올리면 이 두 덩이가 그 제품 것으로 바뀐다 */}
             <h2 className="lp-prod-head reveal" {...rv(1)}>{L(prod.head)}</h2>
             <p className="lp-prod-body reveal" {...rv(2)}>{L(prod.body)}</p>
@@ -1037,16 +1029,15 @@ export default function LandingView() {
       {/* ── 3구역 · 결과물 표본 (스스로 흐른다) ────────────────────── */}
       <section className="lp-sec" id="samples" data-sec style={{ paddingBottom: "62px" }}>
         <div className="lp-wrap" style={{ marginBottom: "16px" }}>
-          <div className="lp-eyebrow reveal" {...rv(0)}>{lang === "ko" ? "기능" : "Capabilities"}</div>
+          <div className="lp-eyebrow reveal" {...rv(0)}>{T("기능", "Capabilities")}</div>
           <h2 className="lp-h2 reveal" {...rv(1)}>
-            {lang === "ko"
-              ? (<>짧은 시간 안에 <em>완성도 높은 결과물.</em></>)
-              : (<>Finished quality, <em>in a fraction of the time.</em></>)}
+            <TRich
+              ko={"짧은 시간 안에 *완성도 높은 결과물.*"}
+              en={"Finished quality, *in a fraction of the time.*"}
+            />
           </h2>
           <p className="lp-lede lp-read reveal" {...rv(2)}>
-            {lang === "ko"
-              ? "MassLabs 는 건축가들이 불필요하게 낭비되는 시간을 없애 줍니다. 당신의 시간을 효율적으로 쓰세요."
-              : "MassLabs takes the wasted hours out of an architect's day. Spend your time where it counts."}
+            {T("MassLabs 는 건축가들이 불필요하게 낭비되는 시간을 없애 줍니다. 당신의 시간을 효율적으로 쓰세요.", "MassLabs takes the wasted hours out of an architect's day. Spend your time where it counts.")}
           </p>
         </div>
 
@@ -1083,14 +1074,12 @@ export default function LandingView() {
         style={{ background: "var(--bg2)", borderTop: "1px solid var(--line)", borderBottom: "1px solid var(--line)" }}
       >
         <div className="lp-wrap">
-          <div className="lp-eyebrow reveal" {...rv(0)}>{lang === "ko" ? "도구" : "Tools"}</div>
+          <div className="lp-eyebrow reveal" {...rv(0)}>{T("도구", "Tools")}</div>
           <h2 className="lp-h2 reveal" {...rv(1)}>
-            {lang === "ko" ? (<>대지 분석부터, <em>레이저 커팅까지.</em></>) : (<>From site analysis <em>to laser cutting.</em></>)}
+            <TRich ko={"대지 분석부터, *레이저 커팅까지.*"} en={"From site analysis *to laser cutting.*"} />
           </h2>
           <p className="lp-lede lp-read reveal" {...rv(2)}>
-            {lang === "ko"
-              ? "필요한 도구를 고르면 그 자리에서 바로 시작됩니다. 계정도 요금제도 하나입니다."
-              : "Pick a tool and start right there. One account, one plan."}
+            {T("필요한 도구를 고르면 그 자리에서 바로 시작됩니다. 계정도 요금제도 하나입니다.", "Pick a tool and start right there. One account, one plan.")}
           </p>
 
           <div className="lp-tools">
@@ -1099,7 +1088,7 @@ export default function LandingView() {
                 <>
                   <div className="lp-tool-top">
                     <span>{String(i + 1).padStart(2, "0")}</span>
-                    <span>{tool.href ? tool.by : (lang === "ko" ? "준비 중" : "soon")}</span>
+                    <span>{tool.href ? tool.by : (T("준비 중", "soon"))}</span>
                   </div>
                   <h3>{L(tool.title)}</h3>
                   <p>{L(tool.body)}</p>
@@ -1131,26 +1120,20 @@ export default function LandingView() {
       {/* ── 5구역 · 가격 ───────────────────────────────────────────── */}
       <section className="lp-sec" id="pricing" data-sec>
         <div className="lp-wrap">
-          <div className="lp-eyebrow reveal" {...rv(0)}>{lang === "ko" ? "가격" : "Pricing"}</div>
+          <div className="lp-eyebrow reveal" {...rv(0)}>{T("가격", "Pricing")}</div>
           {/* 🔴머리말도 건당 칸을 따라간다 — 칸을 감춘 채로 "그리고 건당 결제"라고
                 말하면 없는 것을 가리키는 문장이 된다. */}
           <h2 className="lp-h2 reveal" {...rv(1)}>
             {PER_PIECE_ON_HOME
-              ? (lang === "ko" ? (<>구독 하나, <em>그리고 건당 결제.</em></>) : (<>One subscription, <em>plus pay-per-piece.</em></>))
-              : (lang === "ko" ? (<>구독 하나로 <em>전부.</em></>) : (<>One subscription, <em>everything.</em></>))}
+              ? <TRich ko={"구독 하나, *그리고 건당 결제.*"} en={"One subscription, *plus pay-per-piece.*"} />
+              : <TRich ko={"구독 하나로 *전부.*"} en={"One subscription, *everything.*"} />}
           </h2>
           <p className="lp-lede lp-read reveal" {...rv(2)}>
             {PER_PIECE_ON_HOME
-              ? (lang === "ko"
-                  ? "archiMap 과 LaserFish 는 당분간 분리해서 운영됩니다."
-                  : "For now, archiMap and LaserFish are run separately.")
+              ? (T("archiMap 과 LaserFish 는 당분간 분리해서 운영됩니다.", "For now, archiMap and LaserFish are run separately."))
               : SUBSCRIPTION_LIVE
-                ? (lang === "ko"
-                    ? "구독 하나로 MassLabs 의 모든 프로그램을 사용합니다."
-                    : "One subscription covers every MassLabs program.")
-                : (lang === "ko"
-                    ? "지금은 로그인만 하면 archiMap PLUS 를 무료로 사용합니다."
-                    : "For now, just sign in — archiMap PLUS is free.")}
+                ? (T("구독 하나로 MassLabs 의 모든 프로그램을 사용합니다.", "One subscription covers every MassLabs program."))
+                : (T("지금은 로그인만 하면 archiMap PLUS 를 무료로 사용합니다.", "For now, just sign in — archiMap PLUS is free."))}
           </p>
 
           <div className={PER_PIECE_ON_HOME ? "lp-prices" : "lp-prices one"}>
@@ -1158,7 +1141,7 @@ export default function LandingView() {
             <div className="lp-price-box reveal" {...rv(3)}>
               <div className="lp-price-top">
                 <b>archiMap</b>
-                <span className="lp-price-kind">{lang === "ko" ? "구독 · 월" : "subscription · monthly"}</span>
+                <span className="lp-price-kind">{T("구독 · 월", "subscription · monthly")}</span>
               </div>
               <div className="lp-tier-scroll">
                 <div className="lp-tier-grid">
@@ -1172,7 +1155,7 @@ export default function LandingView() {
 
                   {archimap?.features.map((f) => (
                     <div style={{ display: "contents" }} key={f.label.en}>
-                      <div className="lp-tier-lab">{f.label[lang] ?? f.label.en}</div>
+                      <div className="lp-tier-lab">{trPick(lang, f.label)}</div>
                       {tiers.map((tier) => {
                         const txt = cellText(f.cells[TIER_KEYS.indexOf(tier.key)], lang);
                         return (
@@ -1191,13 +1174,13 @@ export default function LandingView() {
                             진짜 구독 버튼이 된다. 그 전까지는 PLUS 만 "지금은 무료"다 —
                             archiMap 이 로그인만 하면 PLUS 로 열려 있기 때문(lib/interim.ts). */}
                       {SUBSCRIPTION_LIVE ? (
-                        <a href="/price">{lang === "ko" ? "구독하기" : "Subscribe"}</a>
+                        <a href="/price">{T("구독하기", "Subscribe")}</a>
                       ) : tier.key === "plus" ? (
                         <a href={signedIn ? ARCHIMAP : "/login"}>
-                          {lang === "ko" ? "지금은 무료" : "Free for now"}
+                          {T("지금은 무료", "Free for now")}
                         </a>
                       ) : (
-                        <span>{lang === "ko" ? "준비 중" : "Coming soon"}</span>
+                        <span>{T("준비 중", "Coming soon")}</span>
                       )}
                     </div>
                   ))}
@@ -1213,7 +1196,7 @@ export default function LandingView() {
             <div className="lp-price-box reveal" {...rv(4)}>
               <div className="lp-price-top">
                 <b>LaserFish</b>
-                <span className="lp-price-kind">{lang === "ko" ? "건당 결제" : "pay per piece"}</span>
+                <span className="lp-price-kind">{T("건당 결제", "pay per piece")}</span>
               </div>
               <div className="lp-piece">
                 {PIECE_PRICES.map((p) => (
@@ -1221,20 +1204,19 @@ export default function LandingView() {
                     <b>{p.kind}</b>
                     <span>
                       ${p.usd}
-                      <i>{lang === "ko" ? "/ 조각" : "/ piece"}</i>
+                      <i>{T("/ 조각", "/ piece")}</i>
                     </span>
                   </div>
                 ))}
               </div>
 
               <p className="lp-fine">
-                {lang === "ko"
-                  ? `최소 주문 $${PIECE_MIN_USD} · 최대 주문 $${PIECE_MAX_USD}`
-                  : `Minimum order $${PIECE_MIN_USD} · Maximum order $${PIECE_MAX_USD}`}
+                {fmt(T("최소 주문 ${min} · 최대 주문 ${max}", "Minimum order ${min} · Maximum order ${max}"),
+                  { min: PIECE_MIN_USD, max: PIECE_MAX_USD })}
               </p>
 
               <a className="lp-buy" href={LASERFISH}>
-                {lang === "ko" ? "플러그인 받기" : "Get the plug-in"}
+                {T("플러그인 받기", "Get the plug-in")}
               </a>
             </div>
             )}
@@ -1250,25 +1232,25 @@ export default function LandingView() {
               <b>MassLabs</b>
               {/* ⚠️메일 주소를 여기 다시 적지 않는다 — 오른쪽 CONTACT 열의
                    [Email]이 그 자리다. 두 군데에 적으면 한쪽만 고쳐져 갈린다. */}
-              <p>{lang === "ko" ? "건축가를 위한 도구." : "Tools for architects."}</p>
+              <p>{T("건축가를 위한 도구.", "Tools for architects.")}</p>
             </div>
 
             <div className="lp-foot-cols">
               <div className="lp-foot-col reveal" {...rv(1)}>
-                <h4>{lang === "ko" ? "제품" : "Products"}</h4>
+                <h4>{T("제품", "Products")}</h4>
                 <a href={ARCHIMAP} target="_blank" rel="noreferrer">archiMap</a>
                 <a href={COLORGRAM} target="_blank" rel="noreferrer">Colorgram</a>
                 <a href={LASERFISH} target="_blank" rel="noreferrer">LaserFish</a>
               </div>
               <div className="lp-foot-col reveal" {...rv(2)}>
-                <h4>{lang === "ko" ? "약관" : "Legal"}</h4>
+                <h4>{T("약관", "Legal")}</h4>
                 <a href="/policy/terms-and-policy">{foot.termsAndPolicy}</a>
                 <a href="/policy/privacy">{foot.privacy}</a>
               </div>
               {/* 🔴Email 은 여기 없다 — 메일로 연락하는 길은 [Contact] 창 하나로
                    모았다. 두 군데에 두면 한쪽만 고쳐져 주소가 갈린다. */}
               <div className="lp-foot-col reveal" {...rv(3)}>
-                <h4>{lang === "ko" ? "채널" : "Follow"}</h4>
+                <h4>{T("채널", "Follow")}</h4>
                 <a href={YOUTUBE} target="_blank" rel="noreferrer">YouTube</a>
                 <a href="https://www.instagram.com/masslabs_archi/" target="_blank" rel="noreferrer">Instagram</a>
               </div>
@@ -1276,9 +1258,9 @@ export default function LandingView() {
                    살아 있고 라이노 플러그인 등이 그 주소를 쓰지만, 이 화면에서는
                    보던 자리를 잃지 않도록 겹쳐 띄운다. */}
               <div className="lp-foot-col reveal" {...rv(4)}>
-                <h4>{lang === "ko" ? "문의" : "Contact"}</h4>
+                <h4>{T("문의", "Contact")}</h4>
                 <button type="button" onClick={() => setContact(true)}>
-                  {lang === "ko" ? "이메일" : "Email"}
+                  {T("이메일", "Email")}
                 </button>
               </div>
             </div>
@@ -1300,7 +1282,7 @@ export default function LandingView() {
           className="lp-modal"
           role="dialog"
           aria-modal="true"
-          aria-label={lang === "ko" ? "문의하기" : "Contact Us"}
+          aria-label={T("문의하기", "Contact Us")}
           onClick={() => setContact(false)}
         >
           {/* 안쪽을 눌렀을 때는 닫히지 않는다 — 메일 주소를 긁어 가는 사람이 있다 */}
@@ -1308,11 +1290,11 @@ export default function LandingView() {
             <button
               className="lp-modal-x"
               onClick={() => setContact(false)}
-              aria-label={lang === "ko" ? "닫기" : "Close"}
+              aria-label={T("닫기", "Close")}
             >
               &times;
             </button>
-            <h3>{lang === "ko" ? "문의하기" : "Contact Us"}</h3>
+            <h3>{T("문의하기", "Contact Us")}</h3>
             <a
               className="lp-modal-mail"
               href="https://mail.google.com/mail/?view=cm&to=masslabs.archi@gmail.com"
@@ -1321,7 +1303,7 @@ export default function LandingView() {
             >
               <span className="m-ico"><MailIcon size={18} /></span>
               <span className="m-txt">
-                <span className="m-lab">{lang === "ko" ? "이메일" : "Email"}</span>
+                <span className="m-lab">{T("이메일", "Email")}</span>
                 <b>masslabs.archi@gmail.com</b>
               </span>
               <span className="m-go">&rarr;</span>

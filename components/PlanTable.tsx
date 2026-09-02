@@ -2,6 +2,7 @@
 
 import { Fragment } from "react";
 import { TIER_KEYS, planAllows } from "@/lib/plans";
+import { trs, trPick, type Lang } from "@/lib/i18n";
 
 // ==========================================================================
 //  요금제 표 — MassLabs가 유일한 출처다.
@@ -22,8 +23,8 @@ import { TIER_KEYS, planAllows } from "@/lib/plans";
 //      빼는 것이므로 자리를 손으로 세지 말고 TIER_KEYS.indexOf로 찾을 것.
 // ==========================================================================
 
-export type Lang = "ko" | "en";
-
+// 🔴화면 언어는 lib/i18n 한 곳에서 온다(2026-09-03, 여덟 언어). 전에는 여기
+//   "ko"|"en" 을 따로 적었는데, 언어가 늘자 이 표만 두 값에 갇혔다.
 // 표 스타일. 세 화면이 같은 것을 써야 하므로 컴포넌트와 함께 둔다.
 export const PLAN_CSS = `
   /* 🔴좁은 화면에서는 가로로 민다. 등급을 세로로 쌓으면 나란히 비교가 안 되는데,
@@ -189,9 +190,9 @@ type Props = {
 };
 
 export default function PlanTable({ lang, currentPlan, onSubscribe, busy, variant = "sell" }: Props) {
-  const L = (t: { ko: string; en: string }) => t[lang] ?? t.ko;
+  const L = (t: { ko: string; en: string }) => trPick(lang, t);
   const live = !!onSubscribe;
-  const isKo = lang === "ko";
+  const T = (ko: string, en: string) => trs(lang, ko, en);
 
   // 🔴파는 등급만 싣는다. cells 배열은 free를 포함한 순서라 자리를 따로 찾는다.
   const tiers = TIERS.filter((t) => t.key !== "free");
@@ -218,7 +219,7 @@ export default function PlanTable({ lang, currentPlan, onSubscribe, busy, varian
         {tiers.map((t) => (
           <div className={`pg-tier${faded(t.key)}`} key={t.key}>
             <b>{t.label}</b>
-            {currentPlan === t.key && <span className="cur">{isKo ? "이용 중" : "Current"}</span>}
+            {currentPlan === t.key && <span className="cur">{T("이용 중", "Current")}</span>}
           </div>
         ))}
 
@@ -251,7 +252,7 @@ export default function PlanTable({ lang, currentPlan, onSubscribe, busy, varian
                       <div className="pg-line" key={i}>
                         {l.label && <span>{l.label}</span>}
                         <b className={v === "○" ? "mark" : undefined}>
-                          {v === "○" ? (isKo ? "사용가능" : "Available") : v}
+                          {v === "○" ? T("사용가능", "Available") : v}
                         </b>
                       </div>
                     );
@@ -282,13 +283,13 @@ export default function PlanTable({ lang, currentPlan, onSubscribe, busy, varian
             {tiers.map((t) => (
               <div className="pg-cta" key={t.key}>
                 {currentPlan === t.key ? (
-                  <span className="using">{isKo ? "이용 중" : "Current"}</span>
+                  <span className="using">{T("이용 중", "Current")}</span>
                 ) : live ? (
                   <button disabled={busy === t.key} onClick={() => onSubscribe!(t.key)}>
-                    {busy === t.key ? "…" : isKo ? "구독하기" : "Subscribe"}
+                    {busy === t.key ? "…" : T("구독하기", "Subscribe")}
                   </button>
                 ) : (
-                  <a href="/price">{isKo ? "구독하기" : "Subscribe"}</a>
+                  <a href="/price">{T("구독하기", "Subscribe")}</a>
                 )}
               </div>
             ))}

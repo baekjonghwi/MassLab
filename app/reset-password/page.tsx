@@ -2,7 +2,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { supabase, safeNext } from "@/lib/supabase";
-import { useLanguage } from "@/lib/i18n";
+import { useTx } from "@/lib/i18n";
 import { passwordErrorKind } from "@/lib/auth-errors";
 import { AuthCard, AuthShell, PasswordField } from "@/components/AuthCard";
 
@@ -61,7 +61,7 @@ const TX = {
     failed: "Something went wrong.",
     checking: "Checking…",
   },
-} as const;
+};
 
 function ResetContent() {
   const sp = useSearchParams();
@@ -69,8 +69,7 @@ function ResetContent() {
   const next = safeNext(sp.get("next"));
   // /auth/callback 이 실패했을 때 달아 보내는 이유(otp_expired · other_device · missing_code …).
   const failure = sp.get("error");
-  const { lang } = useLanguage();
-  const x = lang === "ko" ? TX.ko : TX.en;
+  const x = useTx(TX);
 
   const [ready, setReady] = useState<"checking" | "ok" | "nosession">("checking");
   const [password, setPassword] = useState("");

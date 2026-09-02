@@ -37,7 +37,9 @@ const cache = new Map<string, CountryOption[]>();
 // 🔴정렬은 **번역된 이름**으로, 그 언어의 규칙으로 한다(localeCompare).
 //   코드순으로 두면 한국어 화면에서 '대한민국'이 K 자리에 박혀 아무도 못 찾는다.
 export function countryOptions(lang: string): CountryOption[] {
-  const key = lang === "ko" ? "ko" : "en";
+  // 🔴언어 코드를 그대로 넘긴다(2026-09-03, 여덟 언어). 전에는 ko/en 둘로
+  //   접었는데, 그러면 일본어 화면에서 나라 이름만 영어로 남는다.
+  const key = lang || "en";
   const hit = cache.get(key);
   if (hit) return hit;
 

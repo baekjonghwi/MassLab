@@ -2,7 +2,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import * as PortOne from "@portone/browser-sdk/v2";
-import { useLanguage } from "@/lib/i18n";
+import { useLanguage, useT, trPick } from "@/lib/i18n";
 import { t } from "@/lib/translations";
 
 declare global {
@@ -48,7 +48,10 @@ function PaymentContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { lang } = useLanguage();
-  const tr = t[lang].payment;
+  const tr = trPick(lang, t).payment;
+  const T = useT();
+  // 🔴이 값은 **결제 통화**를 가른다(원화 ↔ 달러). 화면 언어가 여덟이 되어도
+  //   원화로 물리는 건 한국어 화면뿐이다 — 문구 번역과 섞지 말 것.
   const isKo = lang === "ko";
 
   useEffect(() => {
@@ -172,7 +175,7 @@ function PaymentContent() {
 
   const formatKRW = (n: number | null) => n != null ? `${n.toLocaleString()}원` : "...";
 
-  const termsModal = t[lang].terms;
+  const termsModal = trPick(lang, t).terms;
 
   if (totalCount === 0) {
     return (
@@ -194,10 +197,10 @@ function PaymentContent() {
           </svg>
         </div>
         <p style={{ fontSize: "1rem", fontWeight: 600, color: "#1a1a1a", marginBottom: "8px" }}>
-          {isKo ? "아무것도 만들어지지 않았습니다" : "Nothing was generated."}
+          {T("아무것도 만들어지지 않았습니다", "Nothing was generated.")}
         </p>
         <p style={{ fontSize: "0.82rem", color: "#888", lineHeight: 1.6 }}>
-          {isKo ? "생성된 조각이 없어 결제할 항목이 없습니다." : "There are no pieces to pay for."}
+          {T("생성된 조각이 없어 결제할 항목이 없습니다.", "There are no pieces to pay for.")}
         </p>
       </div>
     );
@@ -360,7 +363,7 @@ function PaymentContent() {
               }}
               onClick={() => setShowTerms(false)}
             >
-              {isKo ? "닫기" : "Close"}
+              {T("닫기", "Close")}
             </button>
           </div>
         </div>
@@ -381,7 +384,7 @@ function PaymentContent() {
             .map(([key, c]) => (
               <div key={key} style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
                 <span style={{ fontSize: "0.78rem", color: "#666" }}>
-                  {isKo ? CATEGORY_LABELS[key].ko : CATEGORY_LABELS[key].en}
+                  {trPick(lang, CATEGORY_LABELS[key])}
                 </span>
                 <span style={{ fontSize: "0.78rem", color: "#1a1a1a" }}>{c}</span>
               </div>

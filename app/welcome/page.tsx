@@ -4,7 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { supabase, safeNext } from "@/lib/supabase";
 import { AuthCard, AuthShell, CountryField } from "@/components/AuthCard";
 import { isCountryCode } from "@/lib/countries";
-import { useLanguage } from "@/lib/i18n";
+import { useTx } from "@/lib/i18n";
 
 // ==========================================================================
 //  /welcome — 가입 직후 딱 한 번, 거주 국가만 묻는다(2026-09-02).
@@ -46,13 +46,12 @@ const TX = {
     later: "Skip for now",
     failed: "Couldn't save that. Please try again in a moment.",
   },
-} as const;
+};
 
 function WelcomeContent() {
   const sp = useSearchParams();
   const next = safeNext(sp.get("next") ?? "/");
-  const { lang } = useLanguage();
-  const x = lang === "ko" ? TX.ko : TX.en;
+  const x = useTx(TX);
 
   const [country, setCountry] = useState("");
   const [busy, setBusy] = useState(false);

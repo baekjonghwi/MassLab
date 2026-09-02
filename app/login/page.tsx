@@ -4,7 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { supabase, safeNext } from "@/lib/supabase";
 import { AuthCard, AuthShell, PasswordField, CountryField } from "@/components/AuthCard";
 import { isCountryCode } from "@/lib/countries";
-import { useLanguage } from "@/lib/i18n";
+import { useTx } from "@/lib/i18n";
 
 // ==========================================================================
 //  MassLabs 통합 로그인 — 모든 프로그램이 여기로 온다.
@@ -80,7 +80,7 @@ const TX = {
     unconfirmed: "Please click the confirmation link in your email first.",
     failed: "Something went wrong.",
   },
-} as const;
+};
 
 function LoginContent() {
   const sp = useSearchParams();
@@ -90,8 +90,7 @@ function LoginContent() {
   //     /price(결제)는 로그인한 뒤 **그 자리로 돌아가야** 하던 일이 끝난다.
   //     거기서 홈으로 끌고 오면 기기연결이 중간에 끊긴다.
   const next = safeNext(sp.get("next") ?? "/");
-  const { lang } = useLanguage();
-  const x = lang === "ko" ? TX.ko : TX.en;
+  const x = useTx(TX);
 
   // 🔴mode 는 세 값을 다 받는다. "reset"을 빠뜨리면 /reset-password 의
   //   "재설정 메일 다시 받기"(→ /login?mode=reset)가 그냥 로그인 폼으로 떨어져,

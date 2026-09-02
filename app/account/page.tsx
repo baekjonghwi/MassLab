@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
-import { useLanguage } from "@/lib/i18n";
+import { useLanguage, useTx, type Lang } from "@/lib/i18n";
 import PlanTable, { PLAN_CSS } from "@/components/PlanTable";
 import DarkTopBar, { DARK_TOPBAR_CSS, type DarkLink } from "@/components/DarkTopBar";
 import { LASERFISH_DOWNLOAD, LASERFISH_GUIDE } from "@/lib/products";
@@ -53,8 +53,9 @@ const PRODUCT = "all";
 // ==========================================================================
 const money = (n: number, cur: string) =>
   cur === "KRW" ? `₩${n.toLocaleString()}` : `$${(n / 100).toFixed(2)}`;
-const day = (s: string | null, isKo: boolean) =>
-  s ? new Date(s).toLocaleDateString(isKo ? "ko-KR" : "en-US",
+// 날짜는 그 언어의 방식으로 적는다 — 언어 코드를 그대로 넘긴다(ja·de·fr…).
+const day = (s: string | null, lang: Lang) =>
+  s ? new Date(s).toLocaleDateString(lang,
         { year: "numeric", month: "long", day: "numeric" }) : "—";
 
 // ==========================================================================
@@ -144,12 +145,11 @@ Continue?`,
     confirmDelete2: "Are you sure? Confirming this deletes your account right away.",
     confirmPaid: "Cancel your subscription?\nYou can keep using it through the period you've already paid for.",
   },
-} as const;
+};
 
 export default function AccountPage() {
   const { lang } = useLanguage();
-  const isKo = lang === "ko";
-  const x = isKo ? TX.ko : TX.en;
+  const x = useTx(TX);
   const [ready, setReady] = useState(false);
   const [email, setEmail] = useState("");
   const [plan, setPlan] = useState("free");
@@ -348,7 +348,7 @@ export default function AccountPage() {
           <>
             <Line
               k={sub.status === "trialing" ? x.firstBilling : x.nextBilling}
-              v={day(sub.next_billing_at, isKo)}
+              v={day(sub.next_billing_at, lang)}
             />
             <Line k={x.amount} v={money(sub.amount, sub.currency)} />
           </>
@@ -356,7 +356,7 @@ export default function AccountPage() {
 
         {sub?.status === "canceled" && (
           <>
-            <Line k={x.endsOn} v={day(sub.canceled_at, isKo)} />
+            <Line k={x.endsOn} v={day(sub.canceled_at, lang)} />
             <p className="note">{x.canceledNote}</p>
           </>
         )}

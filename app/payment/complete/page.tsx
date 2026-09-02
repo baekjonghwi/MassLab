@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useLanguage } from "@/lib/i18n";
+import { useLanguage, trPick } from "@/lib/i18n";
 import { t } from "@/lib/translations";
 
 declare global {
@@ -20,7 +20,7 @@ function PaymentCompleteContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { lang } = useLanguage();
-  const tr = t[lang].paymentComplete;
+  const tr = trPick(lang, t).paymentComplete;
 
   const paymentId = searchParams.get("paymentId");
   const count = Number(searchParams.get("count") || 0);
@@ -158,7 +158,7 @@ function PaymentCompleteContent() {
 
 export default function PaymentCompletePage() {
   const { lang } = useLanguage();
-  const tr = t[lang].paymentComplete;
+  const tr = trPick(lang, t).paymentComplete;
 
   return (
     <main style={{

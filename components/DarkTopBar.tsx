@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
-import { useLanguage } from "@/lib/i18n";
+import { useLanguage, trPick } from "@/lib/i18n";
+import LanguageMenu from "@/components/LanguageMenu";
 
 // ==========================================================================
 //  어두운 화면들이 함께 쓰는 상단 막대 — 로고(홈으로) · 링크 몇 개 · 언어.
@@ -35,13 +36,8 @@ export const DARK_TOPBAR_CSS = `
   .dtb-right a:hover { color: var(--tx); }
   /* 지금 보고 있는 화면 — 강조 톤을 쓰는 정해진 자리 중 하나다 */
   .dtb-right a.on { color: var(--acc); }
-  .dtb-lang { display: flex; margin-left: 8px; border: 1px solid var(--line); border-radius: var(--r); }
-  .dtb-lang button {
-    background: none; border: none; cursor: pointer; font-family: var(--mono);
-    font-size: 0.66rem; letter-spacing: 0.08em; color: var(--mut);
-    padding: 7px 11px; transition: background .15s, color .15s;
-  }
-  .dtb-lang button.on { background: var(--tx); color: var(--bg); }
+  /* 언어 단추는 components/LanguageMenu 가 제 모양을 갖고 온다 — 여기서는 자리만 띄운다 */
+  .dtb-right .mlang { margin-left: 8px; }
 
   @media (max-width: 720px) {
     .dtb { height: auto; flex-direction: column; gap: 4px; padding-top: 9px; padding-bottom: 9px; }
@@ -58,7 +54,7 @@ export default function DarkTopBar({
   /** 지금 보고 있는 주소. 그 링크만 밝게 남는다. */
   active?: string;
 }) {
-  const { lang, setLang } = useLanguage();
+  const { lang } = useLanguage();
 
   return (
     <div className="dtb">
@@ -66,13 +62,10 @@ export default function DarkTopBar({
       <div className="dtb-right">
         {links.map((l) => (
           <Link key={l.href} href={l.href} className={l.href === active ? "on" : ""}>
-            {lang === "ko" ? l.ko : l.en}
+            {trPick(lang, l)}
           </Link>
         ))}
-        <div className="dtb-lang">
-          <button className={lang === "en" ? "on" : ""} onClick={() => setLang("en")}>EN</button>
-          <button className={lang === "ko" ? "on" : ""} onClick={() => setLang("ko")}>한국어</button>
-        </div>
+        <LanguageMenu />
       </div>
     </div>
   );

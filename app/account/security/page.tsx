@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
-import { useLanguage } from "@/lib/i18n";
+import { useTx } from "@/lib/i18n";
 import { passwordErrorKind } from "@/lib/auth-errors";
 import SiteHeader from "@/components/SiteHeader";
 import { PwEyeIcon } from "@/components/AuthCard";
@@ -86,7 +86,7 @@ const TX = {
     doneSet: "Your password is set. You can now sign in with {email} and this password, as well as with Google.",
     relogin: "Sign in again",
   },
-} as const;
+};
 
 // ==========================================================================
 //  비밀번호 칸 — 오른쪽 눈 버튼으로 가린 글자를 잠깐 볼 수 있다.
@@ -130,8 +130,7 @@ function PwBox({
 const HERE = "/account/security";
 
 export default function SecurityPage() {
-  const { lang } = useLanguage();
-  const x = lang === "ko" ? TX.ko : TX.en;
+  const x = useTx(TX);
 
   const [ready, setReady] = useState(false);
   const [email, setEmail] = useState("");

@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import * as PortOne from "@portone/browser-sdk/v2";
-import { useLanguage } from "@/lib/i18n";
+import { useLanguage, trPick, fmt } from "@/lib/i18n";
 import { t } from "@/lib/translations";
 import { USE_TEST_CHANNELS, TEST_CHANNEL_INTL, TEST_CHANNEL_KRW } from "@/lib/interim";
 
@@ -96,7 +96,7 @@ const TX = {
     notForSale: "현재 판매하지 않는 상품입니다.",
     bundleActive: "이미 전체 구독 중이라 이 프로그램은 따로 결제하실 필요가 없습니다.",
     loadFail: "결제 정보를 불러오지 못했습니다.",
-    chargeFail: (m: string) => `결제에 실패했습니다. ${m}`,
+    chargeFail: "결제에 실패했습니다. {m}",
     saveFail: "결제는 완료됐지만 구독 등록에 실패했습니다. 고객센터로 문의해 주세요.",
     processFail: "처리에 실패했습니다.",
     canceled: "결제창에서 취소되었습니다.",
@@ -117,8 +117,8 @@ const TX = {
     agree: "에 동의합니다.",
     termsMore: "전체 이용약관 · 개인정보 처리방침 보기",
     processing: "처리 중…",
-    payNow: (amt: string) => `${amt} 결제하고 구독 시작`,
-    issueName: (plan: string) => `${plan} 구독`,
+    payNow: "{amt} 결제하고 구독 시작",
+    issueName: "{plan} 구독",
   },
   en: {
     badUrl: "This link isn't valid.",
@@ -128,7 +128,7 @@ const TX = {
     notForSale: "This plan isn't available right now.",
     bundleActive: "You already have the all-access subscription, so no separate purchase is needed.",
     loadFail: "Couldn't load your checkout details.",
-    chargeFail: (m: string) => `Payment failed. ${m}`,
+    chargeFail: "Payment failed. {m}",
     saveFail: "Your payment went through, but we couldn't activate the subscription. Please contact support.",
     processFail: "Something went wrong.",
     canceled: "Payment was canceled.",
@@ -148,10 +148,10 @@ const TX = {
     agree: " — I agree.",
     termsMore: "Read the full terms & privacy policy",
     processing: "Processing…",
-    payNow: (amt: string) => `Pay ${amt} and subscribe`,
-    issueName: (plan: string) => `${plan} subscription`,
+    payNow: "Pay {amt} and subscribe",
+    issueName: "{plan} subscription",
   },
-} as const;
+};
 
 function SubscribeContent() {
   const sp = useSearchParams();
@@ -174,12 +174,15 @@ function SubscribeContent() {
   // 세션을 읽고 나면 둘이 같은 값이지만, 읽기 전에는 언어만 홈페이지 설정을 따른다.
   const isKrw = channel === "toss";
   const isKo = info ? isKrw : lang === "ko";
-  const x = isKo ? TX.ko : TX.en;
+  // 🔴채널이 원화면 한국어로 말한다 — 원화로 물리는 사람은 한국 거주자다.
+  //   아니면 화면 언어를 따르되, 한국어 화면인데 달러로 물리는 경우만 영어로
+  //   내려간다(전부터 그랬다 — 금액·세금 표기가 달러 기준이라).
+  const x = isKo ? TX.ko : trPick(lang === "ko" ? "en" : lang, TX);
 
   // --- 세션 조회 ---------------------------------------------------------
   useEffect(() => {
     // 🔴이 시점엔 채널을 모른다 — 홈페이지 언어로 말한다.
-    const m = lang === "ko" ? TX.ko : TX.en;
+    const m = trPick(lang, TX);
     if (!sid) { setFatal(m.badUrl); return; }
     // 🔴제품·등급은 쿼리가 아니라 세션 행에서 읽는다(쿼리면 사용자가 바꿔 넣을 수 있다).
     fetch(`/api/subscribe/session?sid=${encodeURIComponent(sid)}`)
@@ -219,7 +222,7 @@ function SubscribeContent() {
       setLoading(false);
       if (!r.ok) {
         setError(
-          d.error === "charge_failed" ? x.chargeFail(d.message ?? "")
+          d.error === "charge_failed" ? fmt(x.chargeFail, { m: d.message ?? "" })
           : d.error === "save_failed" ? x.saveFail
           : x.processFail);
         return;
@@ -282,7 +285,7 @@ function SubscribeContent() {
             channelKey: CHANNEL_BILLING_TOSS,
             billingKeyMethod: "CARD",
             issueId,
-            issueName: x.issueName(info.planLabel),
+            issueName: fmt(x.issueName, { plan: info.planLabel }),
             // 표시용 금액. 실제 청구는 서버가 다시 계산해서 한다.
             displayAmount: info.amount,
             currency: info.currency,
@@ -296,7 +299,7 @@ function SubscribeContent() {
             // 🔴결제 ID를 화면에서 만들지 않는다 — 서버가 세션에서 내려준 값을 그대로
             //   쓴다. 브라우저가 정하면 남의 결제 ID를 넣어 구독을 가로챌 수 있다.
             paymentId: info.paymentId,
-            orderName: x.issueName(info.planLabel),
+            orderName: fmt(x.issueName, { plan: info.planLabel }),
             totalAmount: info.amount,
             currency: info.currency,
             customer,
@@ -304,7 +307,7 @@ function SubscribeContent() {
             //   수단에서는 아예 필수다. link도 엑심베이 필수 항목이다.
             products: [{
               id: product,
-              name: x.issueName(info.planLabel),
+              name: fmt(x.issueName, { plan: info.planLabel }),
               amount: info.amount,
               quantity: 1,
               link: window.location.origin,
@@ -429,7 +432,7 @@ function SubscribeContent() {
             {/* 🔴약관 원문은 lib/translations 한 곳에만 둔다. 여기에 따로 적으면
                 /policy/terms-and-policy 와 어긋나고, 그때 어느 쪽이 유효한
                 약관인지 다투게 된다. */}
-            {t[lang].terms.sections.map((sec, i) => (
+            {trPick(lang, t).terms.sections.map((sec, i) => (
               <section key={i}>
                 <h4>{sec.title}</h4>
                 {"body" in sec && sec.body && <p>{sec.body}</p>}
@@ -439,7 +442,7 @@ function SubscribeContent() {
                 {"body2" in sec && sec.body2 && <p>{sec.body2}</p>}
               </section>
             ))}
-            <p className="terms-eff">{t[lang].terms.effectiveDate}</p>
+            <p className="terms-eff">{trPick(lang, t).terms.effectiveDate}</p>
           </div>
         )}
         {termsOpen && (
@@ -451,7 +454,7 @@ function SubscribeContent() {
         {error && <div style={{ fontSize: "0.78rem", color: "#e53e3e", marginTop: 10 }}>{error}</div>}
 
         <button className="pay-btn" type="submit" disabled={loading || !agreed}>
-          {loading ? x.processing : x.payNow(money(info.amount, info.currency))}
+          {loading ? x.processing : fmt(x.payNow, { amt: money(info.amount, info.currency) })}
         </button>
       </form>
     </Card>

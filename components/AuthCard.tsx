@@ -1,7 +1,8 @@
 "use client";
 import { useState, useMemo, type ReactNode } from "react";
 import Link from "next/link";
-import { useLanguage } from "@/lib/i18n";
+import { useLanguage, useT } from "@/lib/i18n";
+import LanguageMenu from "@/components/LanguageMenu";
 import { countryOptions } from "@/lib/countries";
 
 // ==========================================================================
@@ -59,13 +60,7 @@ const AUTH_CSS = `
   }
   .auth-brand { font-size: 1rem; font-weight: 800; letter-spacing: -0.03em; }
   .auth-brand span { color: var(--dim); }
-  .auth-lang { display: flex; border: 1px solid var(--line); border-radius: var(--r); }
-  .auth-lang button {
-    background: none; border: none; cursor: pointer; font-family: var(--mono);
-    font-size: 0.66rem; letter-spacing: 0.08em; color: var(--mut);
-    padding: 7px 11px; transition: background .15s, color .15s;
-  }
-  .auth-lang button.on { background: var(--tx); color: var(--bg); }
+  /* 언어 단추는 components/LanguageMenu 가 제 모양을 갖고 온다(2026-09-03) */
 
   .auth-box {
     background: var(--card); border: 1px solid var(--line); border-radius: var(--r);
@@ -205,7 +200,7 @@ const AUTH_CSS = `
 //   로그인 화면은 여기에 제 길(가입·비밀번호 찾기·로그인으로 돌아가기)을 넣고 '홈으로'를 대신한다
 //   — 2026-08-29 사용자 지시. 상자 안이 아니라 이 자리인 이유 = 그게 원래 '돌아갈 길'의 자리다.
 export function AuthShell({ children, footer }: { children: ReactNode; footer?: ReactNode }) {
-  const { lang, setLang } = useLanguage();
+  const T = useT();
 
   return (
     <main className="auth-shell">
@@ -213,17 +208,14 @@ export function AuthShell({ children, footer }: { children: ReactNode; footer?: 
 
       <div className="auth-top">
         <Link href="/" className="auth-brand">Mass<span>Labs</span></Link>
-        <div className="auth-lang">
-          <button className={lang === "en" ? "on" : ""} onClick={() => setLang("en")}>EN</button>
-          <button className={lang === "ko" ? "on" : ""} onClick={() => setLang("ko")}>한국어</button>
-        </div>
+        <LanguageMenu />
       </div>
 
       {children}
 
       {footer ? <div className="auth-foot">{footer}</div> : (
         <Link href="/" className="auth-back">
-          {lang === "ko" ? "← 홈으로" : "← Back to home"}
+          {T("← 홈으로", "← Back to home")}
         </Link>
       )}
     </main>
