@@ -190,16 +190,22 @@ export async function POST(request: Request) {
   //   결제한 국내 거주자·여행 중 결제 같은 경우에 사는 곳이 조용히 바뀐다.
   //   ⇒ 채우는 건 여전히 여기서도 하되(가입 전에 만들어진 옛 계정 623개는 이 칸이
   //     비어 있다), **덮지는 않는다.**
-  // 🔴덮지 않는 것을 조건 필터로 한다(&country=is.null) — 읽고 나서 쓰면 그 사이에
-  //   /welcome 이 적은 값을 지울 수 있다. 한 문장으로 끝내면 그 틈이 없다.
+  // 🔴덮지 않는 것을 조건 필터로 한다 — 읽고 나서 쓰면 그 사이에 /welcome 이 적은
+  //   값을 지울 수 있다. 한 문장으로 끝내면 그 틈이 없다.
+  // 🔴🔴예외가 하나 있다 = country_src='ip' (2026-09-03). 그 값은 로그인 IP로 **추정**한
+  //   것이라(254명분을 그날 한 번 채웠다) 카드 발급국이 그보다 정확하다 ⇒ 추정값만은 덮는다.
+  //   본인이 고른 값(signup)과 이미 결제로 들어온 값(payment)은 그대로 둔다.
   // ⚠️모르면 아예 안 적는다(countryOfPayment 가 null).
   const country = countryOfPayment(charge.raw, channel);
   if (country) {
-    await sbFetch(`profiles?id=eq.${s.user_id}&country=is.null`, {
-      method: "PATCH",
-      body: JSON.stringify({ country }),
-      prefer: "return=minimal",
-    });
+    await sbFetch(
+      `profiles?id=eq.${s.user_id}&or=(country.is.null,country_src.eq.ip)`,
+      {
+        method: "PATCH",
+        body: JSON.stringify({ country, country_src: "payment" }),
+        prefer: "return=minimal",
+      },
+    );
   }
 
   await closeSession(sid, "done");
