@@ -1,7 +1,8 @@
 "use client";
-import { useState, type ReactNode } from "react";
+import { useState, useMemo, type ReactNode } from "react";
 import Link from "next/link";
 import { useLanguage } from "@/lib/i18n";
+import { countryOptions } from "@/lib/countries";
 
 // ==========================================================================
 //  로그인·비밀번호 재설정 화면이 함께 쓰는 껍데기.
@@ -37,6 +38,10 @@ const AUTH_CSS = `
 
     font-family: var(--font-geist-sans), -apple-system, 'Helvetica Neue', sans-serif;
     letter-spacing: -0.01em;
+    /* 🔴브라우저가 스스로 그리는 부품(드롭다운 목록·스크롤막대)도 어둡게 그리라는 표시.
+       국가 칸의 펼침 목록은 우리 CSS가 닿지 않는 자리라, 이게 없으면 어두운 상자에서
+       흰 목록이 튀어나온다. */
+    color-scheme: dark;
     background: var(--bg); color: var(--tx); min-height: 100vh;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     padding: 92px 24px 40px;
@@ -87,6 +92,20 @@ const AUTH_CSS = `
     -webkit-box-shadow: inset 0 0 0 1000px #131315;
     caret-color: var(--tx);
   }
+
+  /* 국가 칸 — 같은 .fld 를 쓰되 브라우저 기본 화살표를 우리 것으로 갈아 끼운다.
+     ⚠️appearance:none 을 걸면 화살표가 통째로 사라진다 — 배경 그림으로 다시 그려야
+       '펼치는 칸'으로 읽힌다(안 그리면 그냥 못 쓰는 입력칸처럼 보인다). */
+  select.fld {
+    appearance: none; -webkit-appearance: none;
+    padding-right: 34px; cursor: pointer;
+    background-image:
+      url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7' viewBox='0 0 11 7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' fill='none' stroke='%238a8a86' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+  }
+  /* 아직 안 고른 상태는 자리글(placeholder)처럼 흐리게 — 골랐는지 한눈에 보이게. */
+  select.fld.empty { color: var(--dim); }
 
   .pw-wrap { position: relative; }
   .pw-wrap .fld { padding-right: 40px; }
@@ -274,6 +293,44 @@ export function PasswordField({
           <PwEyeIcon shown={shown} />
         </button>
       </div>
+    </>
+  );
+}
+
+// ==========================================================================
+//  국가 칸 — 가입 화면(/login)과 가입 직후 한 번 묻는 화면(/welcome)이 함께 쓴다.
+//
+//  🔴두 화면이 **같은 칸**을 써야 한다. 한쪽에 복사해 두면 목록이나 규칙이
+//    갈라져 "가입 때 고른 나라"와 "다시 물었을 때 고른 나라"가 다른 목록에서
+//    나오게 된다(PasswordField 를 여기 둔 것과 같은 이유).
+//  🔴이름은 브라우저가 화면 언어로 지어 준다(lib/countries.ts).
+//  ⚠️첫 줄은 disabled 다 — required 와 짝이 되어 "안 고른 채로 넘어가기"를 막는다.
+// ==========================================================================
+export function CountryField({
+  label, placeholder, value, onChange, disabled,
+}: {
+  label: string;
+  placeholder: string;
+  value: string;
+  onChange: (v: string) => void;
+  disabled?: boolean;
+}) {
+  const { lang } = useLanguage();
+  const opts = useMemo(() => countryOptions(lang), [lang]);
+  return (
+    <>
+      <label className="fld-label">{label}</label>
+      <select
+        className={`fld${value ? "" : " empty"}`}
+        value={value} required disabled={disabled}
+        autoComplete="country"
+        onChange={(e) => onChange(e.target.value)}
+      >
+        <option value="" disabled>{placeholder}</option>
+        {opts.map((c) => (
+          <option key={c.code} value={c.code}>{c.name}</option>
+        ))}
+      </select>
     </>
   );
 }

@@ -25,6 +25,7 @@ export default function robots(): MetadataRoute.Robots {
         "/payment",       // 결제 진행 화면 — 값이 물음표 뒤에 실려 다녀 주소가 무한히 늘어난다
         "/link",          // 기기연결. 일회용 주소다
         "/reset-password",
+        "/welcome",       // 가입 직후 국가를 한 번 묻는 자리. 로그인해야 뜻이 있다
         "/subscribe",     // 🔴임시(2026-08-21) 구독을 안 파는 동안 홈으로 되돌려진다.
                           //   정기결제를 열면 이 줄을 뺄 것 — lib/interim.ts 의 SUBSCRIPTION_LIVE 와 한 벌이다.
       ],

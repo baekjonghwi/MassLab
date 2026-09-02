@@ -26,15 +26,20 @@ declare global {
 const STORE_ID = "store-ad54a018-057e-4d48-b98f-920b6d0fa05c";
 // 🔴🔴정기결제 채널은 단건(/payment)과 **다른 것**이다. PG가 정기결제에 MID를 따로
 //   발급하고 포트원 채널도 새로 만들어야 한다(2026-08-21 포트원 확인).
-//   ⚠️아래 두 값은 아직 단건 채널 키다 — 이 값으로는 빌링키가 발급되지 않는다.
-//     정기결제 채널이 열리면 여기와 lib/subscription.ts 두 곳을 함께 바꿀 것.
+//   🔴lib/subscription.ts 에 같은 값이 있다(서버가 매달 청구할 때 쓴다) — 한쪽만
+//     고치면 발급과 청구가 다른 채널로 갈린다. 반드시 함께 바꿀 것.
+//
+//   🔴🔴두 값 다 **지금은 죽었다**(2026-09-02). 토스는 심사 중 해지했고, 해외는 애초에
+//     단건 채널 키다. MoR(Paddle·Creem 등)로 가기로 방향을 틀었다 —
+//     자세한 사정은 lib/subscription.ts 의 같은 자리에 적어 두었다.
+//     ⛔단건결제(/payment)의 갤럭시아 채널은 살아 있다 — 이 해지와 무관하다.
 const REAL_CHANNEL_INTL = "channel-key-796e8cff-cddb-4731-a364-910163f64bcb";
-const REAL_CHANNEL_KRW = "channel-key-d725a6f3-ff5a-40ab-8f01-9f6b363f15db";
+const REAL_CHANNEL_TOSS = "channel-key-8ebc609c-5d56-429d-91f5-879c78abbf61";
 // 🔴테스트 채널로 돌릴 때는 lib/interim.ts의 USE_TEST_CHANNELS 하나만 뒤집는다.
 //   서버(lib/subscription.ts의 BILLING_CHANNEL)도 같은 스위치를 보므로 발급과
 //   청구가 따로 놀지 않는다.
 const CHANNEL_BILLING_INTL = USE_TEST_CHANNELS ? TEST_CHANNEL_INTL : REAL_CHANNEL_INTL;
-const CHANNEL_BILLING_KRW = USE_TEST_CHANNELS ? TEST_CHANNEL_KRW : REAL_CHANNEL_KRW;
+const CHANNEL_BILLING_TOSS = USE_TEST_CHANNELS ? TEST_CHANNEL_KRW : REAL_CHANNEL_TOSS;
 
 // 🔴PayPal 빌링키는 엑심베이에 PayPal이 개통된 뒤에야 실제로 발급된다.
 //   개통 확인 후 이 값만 true로 바꾸면 해외 결제수단에 PayPal이 뜬다.
@@ -60,7 +65,7 @@ type SessionInfo = {
   email: string;
   country: string | null;
   countryKnown: boolean;
-  channel: "eximbay" | "galaxia";
+  channel: "eximbay" | "toss";
   baseUsd: number;
   vat: number;
   vatCurrency: "USD" | "KRW";
@@ -69,13 +74,15 @@ type SessionInfo = {
   // 🔴해외(엑심베이)는 빌링키 발급과 동시에 첫 결제가 일어난다. 그 결제 ID를
   //   서버가 정해 내려준다 — 화면이 만들면 위조할 수 있다.
   paymentId: string;
+  // 🔴PG에 넘길 고객 식별자. 발급과 청구가 같은 값을 써야 해서 서버가 내려준다.
+  customerId: string;
 };
 
 
 // ==========================================================================
 //  화면 문구
 //
-//  🔴언어는 **결제 채널이 정한다** — 국내(갤럭시아)는 한글, 해외(엑심베이)는 영어.
+//  🔴언어는 **결제 채널이 정한다** — 국내(토스페이먼츠)는 한글, 해외(엑심베이)는 영어.
 //    건당 결제 페이지(/payment)와 같은 규칙이다. 결제수단·통화·세금이 지역으로
 //    갈리는데 문구만 따로 놀면 "내가 얼마를 어떤 카드로 내는가"가 흐려진다.
 //  ⚠️채널을 아직 모르는 동안(세션 조회 실패 등)에는 홈페이지에서 고른 언어를 쓴다.
@@ -160,12 +167,12 @@ function SubscribeContent() {
   const [termsOpen, setTermsOpen] = useState(false);
   const [done, setDone] = useState(false);
   // 국내/해외 채널. 기본은 가입 국가가 정하고, 국가를 모를 때만 사용자가 고른다.
-  const [channel, setChannel] = useState<"eximbay" | "galaxia">("eximbay");
+  const [channel, setChannel] = useState<"eximbay" | "toss">("eximbay");
   const [method, setMethod] = useState<"CARD" | "PAYPAL">("CARD");
 
   // 결제 채널(금액·수단·PG를 가른다)과 화면 언어를 이름부터 나눠 둔다.
   // 세션을 읽고 나면 둘이 같은 값이지만, 읽기 전에는 언어만 홈페이지 설정을 따른다.
-  const isKrw = channel === "galaxia";
+  const isKrw = channel === "toss";
   const isKo = info ? isKrw : lang === "ko";
   const x = isKo ? TX.ko : TX.en;
 
@@ -191,17 +198,17 @@ function SubscribeContent() {
         setInfo(d as SessionInfo);
         // 🔴국가를 아는 사람만 서버 판정을 따른다. 모르면 화면 언어로 정한다
         //   (2026-08-18 결정 — 가입 때 거주 지역을 묻지 않기로 했다).
-        //   한국어로 보고 있으면 원화(갤럭시아), 영어면 달러(엑심베이).
+        //   한국어로 보고 있으면 원화(토스페이먼츠), 영어면 달러(엑심베이).
         //   ⚠️추정일 뿐이라 아래 결제 지역 토글은 그대로 남겨 둔다 — 사람이 뒤집을 수 있어야 한다.
         const sess = d as SessionInfo;
-        setChannel(sess.countryKnown ? sess.channel : (lang === "ko" ? "galaxia" : "eximbay"));
+        setChannel(sess.countryKnown ? sess.channel : (lang === "ko" ? "toss" : "eximbay"));
       })
       .catch(() => setFatal(m.loadFail));
   }, [sid, product, lang]);
 
   // --- 빌링키 → 확정 -----------------------------------------------------
   const confirm = useCallback(
-    async (billingKey: string, ch: "eximbay" | "galaxia", methodLabel: string) => {
+    async (billingKey: string, ch: "eximbay" | "toss", methodLabel: string) => {
       setLoading(true);
       const r = await fetch("/api/subscribe/confirm", {
         method: "POST",
@@ -229,7 +236,7 @@ function SubscribeContent() {
     const code = sp.get("code");
     if (code) { setError(sp.get("message") || x.canceled); return; }
     if (bk && sid && !done) {
-      const ch = (sp.get("ch") as "eximbay" | "galaxia") ?? "eximbay";
+      const ch = (sp.get("ch") as "eximbay" | "toss") ?? "eximbay";
       confirm(bk, ch, sp.get("ml") ?? "");
     }
     // sp는 매 렌더 새 객체라 의존성에 넣지 않는다(무한 루프).
@@ -253,14 +260,17 @@ function SubscribeContent() {
       + `&product=${encodeURIComponent(product)}&ch=${channel}&ml=${encodeURIComponent(methodLabel)}`;
 
     const customer = {
-      customerId: sid.replace(/-/g, "").slice(0, 20),
+      // 🔴서버가 내려준 값 그대로 쓴다. 여기서 sid로 만들면 매달 청구하는
+      //   서버(customerIdOf(uid))와 값이 갈려, PG가 빌링키 주인을 못 맞춘다.
+      customerId: info.customerId,
       fullName: info.email.split("@")[0],
       email: info.email,
     };
 
     try {
       // 🔴국내와 해외는 **호출하는 함수가 다르다.** PG 정책이 정반대라서다.
-      //   - 갤럭시아: 카드 빌링키는 발급만 된다(동시 결제는 휴대폰 전용).
+      //   - 토스페이먼츠: 카드 빌링키를 **발급만** 한다. 첫 달 청구는 발급이 끝난 뒤
+      //     서버(/api/subscribe/confirm)가 그 빌링키로 따로 한다.
       //   - 엑심베이: 발급만 하는 호출을 아예 지원하지 않는다. 실제로 부르면
       //     포트원이 "EXIMBAY_V2 에 대해 지원하지 않는 기능입니다"로 막는다.
       //     발급과 첫 결제가 한 번에 일어나야 한다.
@@ -269,7 +279,7 @@ function SubscribeContent() {
       const res = isKrw
         ? await PortOne.requestIssueBillingKey({
             storeId: STORE_ID,
-            channelKey: CHANNEL_BILLING_KRW,
+            channelKey: CHANNEL_BILLING_TOSS,
             billingKeyMethod: "CARD",
             issueId,
             issueName: x.issueName(info.planLabel),

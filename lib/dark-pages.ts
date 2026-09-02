@@ -15,11 +15,12 @@
 //    · /account        내 계정      app/account/page.tsx 의 Shell (components/DarkTopBar)
 //    · /policy/*       약관·방침    components/PolicyView (같은 DarkTopBar)
 //    · /price          비용        app/price/page.tsx (같은 DarkTopBar, 2026-08-28)
+//    · /welcome        가입 직후 국가 묻기  같은 AuthShell (2026-09-02)
 //
 //  🔴여기 없는 화면(/contact · /link · /payment · /review 등)은
 //    아직 밝은 화면이라 저 띠와 바닥글이 붙는다.
 // ==========================================================================
 export const DARK_PAGES: string[] = [
-  "/", "/login", "/reset-password", "/account", "/price",
+  "/", "/login", "/welcome", "/reset-password", "/account", "/price",
   "/policy/terms-and-policy", "/policy/privacy",
 ];

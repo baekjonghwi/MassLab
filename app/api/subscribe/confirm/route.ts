@@ -35,7 +35,7 @@ export async function POST(request: Request) {
   try { body = await request.json(); } catch { return Response.json({ error: "bad_json" }, { status: 400 }); }
 
   const { sid, billingKey, methodLabel } = body;
-  const channel: Channel = body.channel === "galaxia" ? "galaxia" : "eximbay";
+  const channel: Channel = body.channel === "toss" ? "toss" : "eximbay";
 
   if (!sid || !billingKey) return Response.json({ error: "bad_request" }, { status: 400 });
   if (!CENTRAL.serviceKey) return Response.json({ error: "server_misconfigured" }, { status: 500 });
@@ -78,7 +78,7 @@ export async function POST(request: Request) {
   const nextBillingAt = addMonth(now);
 
   // --- 첫 달 청구 --------------------------------------------------------
-  // 🔴국내와 해외가 갈린다. 갤럭시아는 빌링키만 발급되므로 여기서 청구하고,
+  // 🔴국내와 해외가 갈린다. 토스페이먼츠는 빌링키만 발급되므로 여기서 청구하고,
   //   엑심베이는 결제창에서 발급과 동시에 **이미 결제가 끝났다**. 해외에서 또
   //   청구하면 이중 청구가 되므로 조회해서 확인만 한다.
   let usedPaymentId = paymentId;
@@ -177,21 +177,30 @@ export async function POST(request: Request) {
   // 🔴번들을 샀으면 Archi_map 등급도 같이 올라간다 — 그 판정은 DB의 plan_for가 한다.
   const plan = await syncPlanCache(s.user_id);
 
-  // --- 거주 국가 기록 ----------------------------------------------------
-  // 🔴가입 폼이 거주 지역을 묻지 않으므로(2026-08-18 결정) 국가를 알려 주는 건
-  //   결제뿐이다. 여기서 안 남기면 다음 결제 화면도 국가 대신 화면 언어로
-  //   통화를 추측한다 — 해외 사는 한국어 사용자에게 계속 원화 결제창이 뜬다.
-  // ⚠️모르면 안 적는다(countryOfPayment가 null). 아는 값이면 덮어쓴다 —
-  //   나라를 옮긴 사람은 가장 최근 결제가 정답이다.
-  const country = countryOfPayment(charge.raw, channel);
   await sbFetch(`profiles?id=eq.${s.user_id}`, {
     method: "PATCH",
-    body: JSON.stringify({
-      plan_since: now.toISOString(),
-      ...(country ? { country } : {}),
-    }),
+    body: JSON.stringify({ plan_since: now.toISOString() }),
     prefer: "return=minimal",
   });
+
+  // --- 거주 국가 기록 ----------------------------------------------------
+  // 🔴🔴**비어 있을 때만 적는다**(2026-09-02 결정 — 그전엔 덮어썼다).
+  //   2026-09-02 부터 국가는 **가입할 때** 받는다(MassLabs /login · /welcome).
+  //   본인이 고른 거주지가 이미 있는데 결제가 알려 준 값으로 덮으면, 해외 카드로
+  //   결제한 국내 거주자·여행 중 결제 같은 경우에 사는 곳이 조용히 바뀐다.
+  //   ⇒ 채우는 건 여전히 여기서도 하되(가입 전에 만들어진 옛 계정 623개는 이 칸이
+  //     비어 있다), **덮지는 않는다.**
+  // 🔴덮지 않는 것을 조건 필터로 한다(&country=is.null) — 읽고 나서 쓰면 그 사이에
+  //   /welcome 이 적은 값을 지울 수 있다. 한 문장으로 끝내면 그 틈이 없다.
+  // ⚠️모르면 아예 안 적는다(countryOfPayment 가 null).
+  const country = countryOfPayment(charge.raw, channel);
+  if (country) {
+    await sbFetch(`profiles?id=eq.${s.user_id}&country=is.null`, {
+      method: "PATCH",
+      body: JSON.stringify({ country }),
+      prefer: "return=minimal",
+    });
+  }
 
   await closeSession(sid, "done");
 

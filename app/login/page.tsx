@@ -2,7 +2,8 @@
 import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { supabase, safeNext } from "@/lib/supabase";
-import { AuthCard, AuthShell, PasswordField } from "@/components/AuthCard";
+import { AuthCard, AuthShell, PasswordField, CountryField } from "@/components/AuthCard";
+import { isCountryCode } from "@/lib/countries";
 import { useLanguage } from "@/lib/i18n";
 
 // ==========================================================================
@@ -41,6 +42,8 @@ const TX = {
     firstTime: "처음이시면 구글 계정으로 바로 시작됩니다.",
     googleFail: "구글 로그인을 사용할 수 없습니다.",
     email: "이메일", password: "비밀번호", password2: "비밀번호 확인",
+    country: "거주 국가", countryPick: "국가를 선택하세요",
+    countryNeed: "국가를 선택하세요.",
     showPw: "비밀번호 보기", hidePw: "비밀번호 가리기",
     mismatch: "비밀번호가 일치하지 않습니다.",
     or: "또는",
@@ -61,6 +64,8 @@ const TX = {
     firstTime: "New here? Your Google account gets you started right away.",
     googleFail: "Google sign-in isn't available right now.",
     email: "Email", password: "Password", password2: "Confirm password",
+    country: "Country", countryPick: "Select your country",
+    countryNeed: "Please select your country.",
     showPw: "Show password", hidePw: "Hide password",
     mismatch: "Those passwords don't match.",
     or: "or",
@@ -97,6 +102,9 @@ function LoginContent() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
+  // 🔴거주 국가 — 가입할 때만 묻는다(2026-09-02). 로그인은 이미 있는 계정이라 묻지 않는다.
+  //   담기는 자리는 profiles.country 이고, 결제 채널·통화를 여기서 가른다.
+  const [country, setCountry] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -118,13 +126,21 @@ function LoginContent() {
 
       if (mode === "signup") {
         if (password !== password2) { setError(x.mismatch); return; }
+        if (!isCountryCode(country)) { setError(x.countryNeed); return; }
         const { data, error } = await sb.auth.signUp({
           email,
           password,
           options: {
-            // 🔴가입 때 거주 지역을 묻지 않는다(2026-08-18 결정). profiles.country는
-            //   비워 두고 결제 채널은 결제 화면이 화면 언어로 정한다(app/subscribe/page.tsx).
-            //   → 구글 로그인으로 들어온 사람과 같은 길을 타므로 분기가 하나로 줄어든다.
+            // 🔴거주 국가는 **가입할 때** 받는다(2026-09-02 결정 — 그전 2026-08-18 결정을
+            //   뒤집었다). 그때는 결제가 끝나야 profiles.country 가 채워져서, 결제한 적
+            //   없는 계정은 이 칸이 영영 비어 있었다(실측 623명 중 0명).
+            // 🔴여기서 따로 쓰지 않는다 — DB 가입 트리거(handle_new_user)가
+            //   raw_user_meta_data->>'country' 를 읽어 프로필 행을 만들 때 같이 적는다.
+            //   ⇒ 메일 확인을 아직 안 한(세션이 없는) 사람도 값이 남는다. 여기서
+            //     update 를 부르면 세션이 없어 RLS 에 막힌다.
+            //   ⚠️모양(ISO2)은 서버가 다시 검사한다 — 아니면 조용히 null 이 된다
+            //     (supabase/2026-09-02_signup_country.sql 의 profiles_norm_country).
+            data: { country },
             // 🔴가입 확인 메일의 링크는 next를 따르지 않고 항상 홈으로 보낸다
             //   (2026-08-18 결정). 메일을 여는 건 가입하던 화면을 떠난 뒤라,
             //   원래 가려던 곳으로 곧장 떨어뜨리면 처음 온 사람이 사이트를 못 보고
@@ -179,9 +195,19 @@ function LoginContent() {
   //   ⛔프레임 밖(평소 로그인 페이지)에서는 예전 그대로다 — 여기서 창을 띄우면 평소 로그인이
   //     팝업 차단에 걸린다.
   const google = async () => {
+    // 🔴가입 탭에서 누른 구글은 국가를 먼저 고르게 한다(2026-09-02). 구글은 우리에게
+    //   거주지를 알려 주지 않아서, 여기서 안 받으면 결제할 때까지 영영 모른다.
+    //   ⚠️로그인 탭에서 누른 구글은 안 막는다 — 이미 있는 계정일 수도 있어서다.
+    //     그 길로 **새로 만들어진** 계정은 /auth/callback 이 /welcome 으로 한 번 보낸다.
+    if (mode === "signup" && !isCountryCode(country)) { setError(x.countryNeed); return; }
     setBusy(true); setError("");
     const framed = window.top !== window.self;
-    const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
+    // 🔴고른 국가를 주소에 실어 보낸다 — signInWithOAuth 에는 사용자 메타데이터를
+    //   실을 자리가 없다. 받는 쪽(/auth/callback)이 세션을 만든 직후 적는다.
+    //   ⚠️돌아오는 주소는 물음표 뒤까지 통째로 검사되므로 Supabase 의 Redirect URLs 가
+    //     와일드카드여야 한다(이미 그렇다 — lib/supabase.ts 주석 참고).
+    const cq = mode === "signup" && isCountryCode(country) ? `&country=${country}` : "";
+    const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}${cq}`;
     if (framed) {
       const { data, error } = await supabase().auth.signInWithOAuth({
         provider: "google",
@@ -268,6 +294,12 @@ function LoginContent() {
               label={x.password2} value={password2} onChange={setPassword2}
               autoComplete="new-password"
               showLabel={x.showPw} hideLabel={x.hidePw}
+            />
+            {/* 🔴맨 아래에 둔다 — 바로 밑의 구글 단추도 이 값을 쓰기 때문에
+                (가입 탭에서는 국가를 고른 뒤에야 구글이 열린다) 두 길이 한자리에 모인다. */}
+            <CountryField
+              label={x.country} placeholder={x.countryPick}
+              value={country} onChange={(v) => { setCountry(v); setError(""); }}
             />
           </>
         )}

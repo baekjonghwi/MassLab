@@ -1,6 +1,7 @@
 import {
   CENTRAL, sbFetch, emailOf, planAmount, priceOf, productOf, hasActiveBundle,
-  PLAN_LABEL, vatOf, monthlyPaymentId, ymOf, channelOf, type PlanKey, type Channel,
+  PLAN_LABEL, vatOf, monthlyPaymentId, ymOf, channelOf, customerIdOf,
+  type PlanKey, type Channel,
 } from "@/lib/subscription";
 
 // ==========================================================================
@@ -59,13 +60,13 @@ export async function GET(request: Request) {
   const email = await emailOf(s.user_id);
 
   // 3) 국가 → 채널. 🔴profiles.country가 있으면 그게 기준이다(ISO alpha-2, "KR").
-  //    ⚠️2026-08-18부터 가입 폼에서 거주 지역을 묻지 않는다 — 그래서 첫 결제를
-  //      마치기 전까지 country는 비어 있다. 그동안은 해외(달러)로 두고, 실제
-  //      기본값은 결제 화면이 화면 언어로 고른다(countryKnown=false로 알려 준다).
+  //    🔴2026-09-02부터 **가입할 때** 받으므로 새 계정은 첫 결제 전에도 값이 있다.
+  //    ⚠️그래도 비어 있을 수 있다 = 2026-09-02 이전 가입자 · /welcome 을 건너뛴 사람.
+  //      그때는 해외(달러)로 두고, 실제 기본값은 결제 화면이 화면 언어로 고른다
+  //      (countryKnown=false로 알려 준다).
   //      🔴서버가 언어로 추정하지 않는다 — Accept-Language는 브라우저 설정이라
   //        사이트에서 고른 언어와 어긋난다.
-  //    🔴첫 결제가 끝나면 confirm이 이 칸을 채운다(countryOfPayment) — 두 번째
-  //      결제부터는 추측이 아니라 지난 결제가 알려 준 국가로 통화가 정해진다.
+  //    🔴비어 있던 칸은 첫 결제가 끝나면 confirm이 채운다(countryOfPayment).
   let country: string | null = null;
   const pRes = await sbFetch(`profiles?id=eq.${s.user_id}&select=country`);
   if (pRes.ok) country = ((await pRes.json()) as { country?: string }[])[0]?.country ?? null;
@@ -106,5 +107,10 @@ export async function GET(request: Request) {
     //   구독을 가로챌 수 있으니 **서버가 정해서 내려준다**. confirm은 이 값을
     //   받아 쓰는 게 아니라 같은 규칙으로 다시 계산해 대조한다.
     paymentId: monthlyPaymentId(s.product, s.user_id, ymOf(new Date())),
+    // 🔴빌링키를 발급할 때와 매달 청구할 때의 customerId 는 **같은 값이어야 한다** —
+    //   PG는 그 둘로 "같은 사람의 카드"임을 맞춰 본다. 화면은 uid를 모르므로
+    //   (알려 주면 안 된다) 서버가 계산한 값을 여기서 내려준다.
+    //   ⚠️예전엔 화면이 sid로 만들어 썼다. 발급은 sid, 청구는 uid라 두 값이 갈렸다.
+    customerId: customerIdOf(s.user_id),
   });
 }

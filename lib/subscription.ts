@@ -17,19 +17,28 @@ export const PORTONE_STORE_ID = "store-ad54a018-057e-4d48-b98f-920b6d0fa05c";
 
 // 🔴🔴정기결제 채널은 단건 채널과 **다른 것**이다. PG가 정기결제에 상점아이디(MID)를
 //   따로 발급하고, 포트원 채널도 그 MID로 새로 만들어야 한다(2026-08-21 포트원 확인).
-//   갤럭시아·토스·이니시스 모두 같은 구조다.
+//   🔴화면 쪽에도 같은 상수가 있다(app/subscribe/page.tsx) — 한쪽만 고치지 말 것.
+//     lib을 import하지 않는 이유는 이 파일이 서버 전용 키를 들고 있어서다.
 //
-//   ⚠️아래 두 값은 아직 **단건 채널 키**다 — 자리를 잡아 두려고 넣어 둔 것이고,
-//     이 값으로는 빌링키 발급도 정기 청구도 되지 않는다. 정기결제 채널이 열리면
-//     여기 두 줄만 바꾸면 서버·화면이 함께 따라온다.
-//     🔴화면 쪽에도 같은 상수가 있다(app/subscribe/page.tsx) — 한쪽만 고치지 말 것.
-//       lib을 import하지 않는 이유는 이 파일이 서버 전용 키를 들고 있어서다.
+//   🔴🔴국내(TOSS)·해외(INTL) **둘 다 지금은 죽은 값**이다. 배선은 다 돼 있지만 계약이 없다.
+//     지우지 않은 이유는 되살릴 때 이 줄만 갈아끼우면 나머지가 따라오기 때문이다.
 //
-//   국내는 갤럭시아가 정기결제 추가에 20만원을 요구해 **KG이니시스로 신청 중**이다.
-//   PG가 바뀌면 아래 값과 함께 Channel 타입에 'inicis'를 더하고 BILLING_CHANNEL에
-//   한 줄을 추가하면 된다.
+//   ⛔국내 = 토스페이먼츠 정기결제 채널. 2026-09-01 에 키를 받아 여기까지 붙였는데,
+//     **2026-09-02 심사 중 해지했다**(사용자 결정 — 그 시점에 해지하면 33만원을 돌려받는다).
+//     해지한 이유: ①토스로는 해외카드 정기결제가 안 된다 ②그런데 연회비가 따로 든다.
+//     ⇒ 국내·해외를 한 번에 덮는 **MoR(Paddle·Creem 등)을 먼저 붙이고**, 한국 회원이
+//       충분히 쌓이면(대략 1만 명 규모) 그때 국내 전용으로 토스를 다시 붙인다.
+//       그날 하는 일 = 토스 **신규 신청**(취소하면 상점아이디를 재사용할 수 없어 MID·채널키가
+//       새로 나온다) + 이 줄의 키 교체. 코드는 그대로 산다.
+//       ⚠️신규 신청이라 가입비·심사가 다시 붙는다 — 지금 돌려받는 33만원은 그때 다시 낸다.
+//     ⚠️단건결제(/payment)의 갤럭시아·카카오페이는 살아 있다 — 이 해지와 무관하다.
+//
+//   ⛔해외(INTL)는 애초에 **단건 채널 키**였다 — 자리만 잡아 둔 값이라 빌링키가 발급되지
+//     않는다. 엑심베이 토큰빌링을 기다리는 대신 MoR로 가기로 방향을 틀었다(2026-09-02).
+//     🔴MoR을 붙이는 날 이 파일이 크게 바뀐다 — 빌링키를 우리가 들고 매달 청구하는
+//       구조가 아니라, 그쪽이 구독을 관리하고 webhook 으로 알려주는 구조다.
 export const CHANNEL_BILLING_INTL = "channel-key-796e8cff-cddb-4731-a364-910163f64bcb";
-export const CHANNEL_BILLING_KRW = "channel-key-d725a6f3-ff5a-40ab-8f01-9f6b363f15db";
+export const CHANNEL_BILLING_TOSS = "channel-key-8ebc609c-5d56-429d-91f5-879c78abbf61";
 
 export const PORTONE_API = "https://api.portone.io";
 
@@ -40,13 +49,17 @@ export { PLAN_LABEL, MIN_PLAN, DEFAULT_MIN_PLAN, minPlanOf, planAllows } from ".
 import type { PlanKey } from "./plans";
 import { USE_TEST_CHANNELS, TEST_CHANNEL_INTL, TEST_CHANNEL_KRW } from "./interim";
 
-export type Channel = "eximbay" | "galaxia";
+// 🔴이 값이 DB(subscriptions.channel)에 그대로 적힌다. 늘리거나 바꿀 때는 그 칸의
+//   CHECK 제약도 함께 고칠 것 — supabase/migrations/007_toss_billing_channel.sql.
+//   ⚠️'galaxia'는 2026-09-01에 없앴다(구독 국내 PG가 토스페이먼츠로 바뀌었다).
+//     단건결제는 여전히 갤럭시아지만 그쪽은 이 타입을 쓰지 않는다.
+export type Channel = "eximbay" | "toss";
 
 // 채널 이름(DB에 남는 값) → 포트원 채널 키. 🔴PG를 바꾸거나 늘릴 때 여기 한 줄만
 //   더하면 청구·발급이 함께 따라온다(분기를 코드 여기저기에 흩지 않는다).
 export const BILLING_CHANNEL: Record<Channel, string> = {
   eximbay: USE_TEST_CHANNELS ? TEST_CHANNEL_INTL : CHANNEL_BILLING_INTL,
-  galaxia: USE_TEST_CHANNELS ? TEST_CHANNEL_KRW : CHANNEL_BILLING_KRW,
+  toss: USE_TEST_CHANNELS ? TEST_CHANNEL_KRW : CHANNEL_BILLING_TOSS,
 };
 
 export const VAT_RATE = 0.1;
@@ -235,8 +248,8 @@ export function planAmount(
 ): Money | null {
   const base = priceOf(productKey, plan);
   if (base == null) return null;             // 팔지 않는 조합
-  if (channel === "galaxia") {
-    // 갤럭시아는 KRW 전용이라 가입 시점 환율로 환산한다. 여기에만 부가세가 붙는다.
+  if (channel === "toss") {
+    // 토스페이먼츠는 KRW 전용이라 가입 시점 환율로 환산한다. 여기에만 부가세가 붙는다.
     return { amount: Math.round(base * (1 + VAT_RATE) * krwRate), currency: "KRW" };
   }
   return { amount: Math.round(base * 100), currency: "USD" };
@@ -248,14 +261,14 @@ export function planAmount(
 //   손님이 영수증을 못 읽는다.
 // 🔴총액에서 공급가액을 빼서 구한다. 부가세를 따로 반올림하면 공급가+부가세가
 //   실제 청구액과 1원씩 어긋나 계산이 안 맞는다.
-//   ⚠️여기 total 식은 planAmount 의 galaxia 갈래와 **반드시 같아야 한다** —
+//   ⚠️여기 total 식은 planAmount 의 toss 갈래와 **반드시 같아야 한다** —
 //     한쪽만 고치면 화면의 부가세가 실제 청구액과 어긋난다.
 export function vatOf(
   productKey: string, plan: PlanKey, channel: Channel, krwRate: number,
 ): Money | null {
   const base = priceOf(productKey, plan);
   if (base == null) return null;                       // 팔지 않는 조합
-  if (channel !== "galaxia") return { amount: 0, currency: "USD" };
+  if (channel !== "toss") return { amount: 0, currency: "USD" };
   const total = Math.round(base * (1 + VAT_RATE) * krwRate);
   const supply = Math.round(base * krwRate);
   return { amount: total - supply, currency: "KRW" };
@@ -264,9 +277,11 @@ export function vatOf(
 // --------------------------------------------------------------------------
 //  식별자
 // --------------------------------------------------------------------------
-// 🔴갤럭시아는 customerId가 최대 20자인데 Supabase uid는 36자 UUID다.
+// 🔴국내 PG는 customerId를 20자까지만 받는데 Supabase uid는 36자 UUID다.
 //   하이픈을 떼고 앞 20자만 쓴다 — 결정론적이고(같은 사용자면 늘 같은 값)
 //   20 hex = 80비트라 충돌은 실질적으로 없다.
+//   ⚠️갤럭시아에서 부딪힌 제한이다. 토스페이먼츠로 옮긴 뒤에도 그대로 짧게 둔다 —
+//     늘려서 얻을 것이 없고, 늘리면 옛 빌링키의 customerId와 어긋난다.
 export function customerIdOf(uid: string): string {
   return uid.replace(/-/g, "").slice(0, 20);
 }
@@ -303,15 +318,22 @@ export function addMonth(from: Date): Date {
 //  거주 국가 (profiles.country)
 // --------------------------------------------------------------------------
 // 🔴형식은 ISO 3166-1 alpha-2 대문자 하나뿐이다("KR"·"US") — 포트원이 그 형식으로
-//   주기 때문에 그대로 받아 적는다. 적는 곳은 /api/subscribe/confirm, 읽는 곳은
-//   /api/subscribe/session 둘뿐이다. 형식을 바꾸려면 반드시 양쪽을 함께 고칠 것.
-// ⚠️가입 폼은 거주 지역을 묻지 않는다(2026-08-18 결정). 그래서 첫 결제를 마치기
-//   전까지 이 칸은 비어 있고, 그동안 결제 채널은 화면 언어로 고른다.
+//   주기 때문에 그대로 받아 적는다. 형식을 바꾸려면 아래 자리를 **모두** 함께 고칠 것.
+//   · 적는 곳 = 가입 화면(/login → DB 가입 트리거) · /welcome · set_country RPC ·
+//               /api/subscribe/confirm(비어 있을 때만)
+//   · 읽는 곳 = /api/subscribe/session (channelOf)
+//   · 모양 지킴이 = DB 트리거 profiles_norm_country (ISO2 가 아니면 null 로 떨어뜨린다)
+// 🔴🔴**국가는 이제 가입할 때 받는다**(2026-09-02 결정 — 2026-08-18 의 "묻지 않는다"를
+//   뒤집었다. 그전에는 결제한 적 없는 계정의 이 칸이 영영 비어 있었다: 623명 중 0명).
+//   ⚠️그래도 비어 있을 수 있다 = 2026-09-02 이전에 가입한 사람 · /welcome 에서
+//     [나중에 하기]로 지나간 사람. 그때는 예전처럼 결제 화면이 화면 언어로 고른다.
+// 🔴결제가 알려 준 국가는 **비어 있을 때만** 적는다(confirm) — 본인이 고른 거주지를
+//   결제 카드의 발급국으로 덮지 않는다.
 export const KOREA = "KR";
 
-// 국가 → 결제 채널. 국내만 갤럭시아고 나머지는 전부 엑심베이다.
+// 국가 → 결제 채널. 국내만 토스페이먼츠고 나머지는 전부 엑심베이다.
 export function channelOf(country: string | null | undefined): Channel {
-  return country === KOREA ? "galaxia" : "eximbay";
+  return country === KOREA ? "toss" : "eximbay";
 }
 
 // 끝난 결제에서 거주 국가를 캐낸다.
@@ -326,8 +348,9 @@ export function countryOfPayment(raw: unknown, channel: Channel): string | null 
   for (const c of [p?.country, p?.customer?.country, p?.customer?.address?.country]) {
     if (typeof c === "string" && /^[A-Za-z]{2}$/.test(c)) return c.toUpperCase();
   }
-  // 갤럭시아는 국내 카드만 받는 계약이라, 결제가 됐다는 사실 자체가 국내라는 뜻이다.
-  return channel === "galaxia" ? KOREA : null;
+  // 토스페이먼츠(국내 정기결제 채널)는 국내 카드만 받으므로, 결제가 됐다는 사실
+  // 자체가 국내라는 뜻이다.
+  return channel === "toss" ? KOREA : null;
 }
 
 // --------------------------------------------------------------------------
