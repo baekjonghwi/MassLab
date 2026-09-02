@@ -22,3 +22,31 @@ export const LASERFISH_GUIDE = "https://laserfish.masslabs-archi.com/guide";
 
 export const ARCHIMAP = "https://archimap.masslabs-archi.com/";
 export const COLORGRAM = "https://colorgram.masslabs-archi.com/";
+
+// ==========================================================================
+//  나가는 링크에 지금 보고 있는 언어를 실어 보낸다(2026-09-03 사용자 결정).
+//
+//  🔴받는 쪽 사정이 셋 다 다르다 — 그래도 붙이는 건 한 곳에서 한다.
+//    · archiMap  — 여덟 언어, `?lang=` 을 **맨 먼저** 읽는다(그쪽 pickInitialLang).
+//                  지금 값이 실제로 통하는 곳은 여기뿐이다.
+//    · LaserFish — 아직 ko·en 둘이고 `?lang=` 을 안 읽는다(그쪽 lib/i18n.tsx).
+//                  지금은 조용히 무시되지만, 그쪽이 읽기 시작하는 날 이 코드는 이미 서 있다.
+//    · Colorgram — 언어가 아예 없다(영어 전용). 늘 무시된다.
+//
+//  🔴영어일 때는 **안 붙인다.** 두 가지 이유다 —
+//    ① 영어는 어차피 세 사이트 모두의 마지막 폴백이라 붙여도 달라지는 게 없다.
+//    ② 서버가 그리는 판은 늘 영어다(lib/i18n 의 LanguageProvider). 그러니 검색
+//       로봇이 보는 href 도 깨끗한 주소로 남는다 — `?lang=` 이 붙은 주소가
+//       따로 색인되어 제품 사이트의 검색 결과가 갈라지는 일이 없다.
+//
+//  ⛔우리 안쪽 주소(`/contact`·`/#pricing`)에는 붙이지 않는다. 같은 창 안에서는
+//    언어가 이미 이어지고, 무엇보다 `/#pricing` 에 붙이면 물음표가 우물정 뒤로
+//    가서 주소가 깨진다. 그래서 http(s) 로 시작하는 것만 손댄다.
+// ==========================================================================
+export function withLang(url: string, lang: string): string {
+  if (!lang || lang === "en") return url;
+  if (!/^https?:\/\//i.test(url)) return url;
+  const [base, hash] = url.split("#");
+  const q = `${base}${base.includes("?") ? "&" : "?"}lang=${encodeURIComponent(lang)}`;
+  return hash ? `${q}#${hash}` : q;
+}

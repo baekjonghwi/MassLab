@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useLanguage, useT, trPick } from "@/lib/i18n";
 import { t } from "@/lib/translations";
-import { LASERFISH_DOWNLOAD, LASERFISH_GUIDE } from "@/lib/products";
+import { LASERFISH_DOWNLOAD, LASERFISH_GUIDE, withLang } from "@/lib/products";
 import { PRICING_HREF } from "@/lib/interim";
 
 export default function ContactPage() {
@@ -81,11 +81,11 @@ export default function ContactPage() {
 
           <div className="hnav-links" style={{ display: "flex", alignItems: "center", gap: "2px" }}>
             {/* 🔴밖으로 나간다(2026-08-29) — 사용방법의 정본은 LaserFish 소개 사이트다 */}
-            <a href={LASERFISH_GUIDE} className="hnav-link">
+            <a href={withLang(LASERFISH_GUIDE, lang)} className="hnav-link">
               {T("사용방법", "How to Use")}
             </a>
             {/* 🔴밖으로 나간다(2026-08-28) — 설치 안내의 정본은 LaserFish 소개 사이트다 */}
-            <a href={LASERFISH_DOWNLOAD} className="hnav-link">
+            <a href={withLang(LASERFISH_DOWNLOAD, lang)} className="hnav-link">
               {T("다운로드", "Download")}
             </a>
             {/* 🔴구독을 안 파는 동안에는 홈의 가격 구역으로 간다(lib/interim.ts) */}

@@ -7,7 +7,7 @@ import PlanTable, { PLAN_CSS } from "@/components/PlanTable";
 import { PerPieceNote, PIECE_PRICES, PIECE_MIN_USD, PIECE_MAX_USD, useUsdToKrw } from "@/components/PerPiecePricing";
 import DarkTopBar, { DARK_TOPBAR_CSS, type DarkLink } from "@/components/DarkTopBar";
 import { SUBSCRIPTION_LIVE } from "@/lib/interim";
-import { LASERFISH_DOWNLOAD, LASERFISH_GUIDE } from "@/lib/products";
+import { LASERFISH_DOWNLOAD, LASERFISH_GUIDE, withLang } from "@/lib/products";
 
 // ==========================================================================
 //  /price — 모든 프로그램이 공유하는 요금제 화면. 상단 메뉴의 "비용"이 여기다.
@@ -175,7 +175,7 @@ function PerPieceContent() {
 
       <div className="prc-foot">
         {next !== "/" && <a href={next}>{T("← 돌아가기", "← Back")}</a>}
-        <a href={LASERFISH_DOWNLOAD}>{T("다운로드", "Download")}</a>
+        <a href={withLang(LASERFISH_DOWNLOAD, lang)}>{T("다운로드", "Download")}</a>
       </div>
     </>
   );

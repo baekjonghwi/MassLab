@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useLanguage, trPick } from "@/lib/i18n";
+import { withLang } from "@/lib/products";
 import LanguageMenu from "@/components/LanguageMenu";
 
 // ==========================================================================
@@ -61,7 +62,7 @@ export default function DarkTopBar({
       <Link href="/" className="dtb-brand">Mass<span>Labs</span></Link>
       <div className="dtb-right">
         {links.map((l) => (
-          <Link key={l.href} href={l.href} className={l.href === active ? "on" : ""}>
+          <Link key={l.href} href={withLang(l.href, lang)} className={l.href === active ? "on" : ""}>
             {trPick(lang, l)}
           </Link>
         ))}

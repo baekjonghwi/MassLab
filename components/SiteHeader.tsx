@@ -2,7 +2,7 @@
 import { useLanguage, trPick } from "@/lib/i18n";
 import { SUBSCRIPTION_LIVE, PRICING_HREF } from "@/lib/interim";
 import { useSignedIn } from "@/lib/use-signed-in";
-import { LASERFISH_DOWNLOAD, LASERFISH_GUIDE } from "@/lib/products";
+import { LASERFISH_DOWNLOAD, LASERFISH_GUIDE, withLang } from "@/lib/products";
 
 // ==========================================================================
 //  모든 화면이 함께 쓰는 상단 막대.
@@ -73,7 +73,7 @@ export default function SiteHeader({ active }: { active?: string }) {
             {[...LINKS, ...(SUBSCRIPTION_LIVE && signedIn === true ? [MY_PLAN] : [])].map((l) => (
               <a
                 key={l.href}
-                href={l.href}
+                href={withLang(l.href, lang)}
                 className="hnav-link"
                 style={l.href === active ? { color: "#111", fontWeight: 700 } : undefined}
               >

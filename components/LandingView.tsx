@@ -9,7 +9,7 @@ import { t } from "@/lib/translations";
 import { useSignedIn } from "@/lib/use-signed-in";
 import { SUBSCRIPTION_LIVE, PER_PIECE_ON_HOME } from "@/lib/interim";
 import { TIER_KEYS } from "@/lib/plans";
-import { ARCHIMAP, COLORGRAM, LASERFISH } from "@/lib/products";
+import { ARCHIMAP, COLORGRAM, LASERFISH, withLang } from "@/lib/products";
 import { TIERS, PROGRAMS } from "@/components/PlanTable";
 import { PIECE_PRICES, PIECE_MIN_USD, PIECE_MAX_USD } from "@/components/PerPiecePricing";
 
@@ -1102,7 +1102,7 @@ export default function LandingView() {
                   key={key}
                   className="lp-tool glow reveal"
                   onMouseMove={onGlow}
-                  href={tool.href}
+                  href={withLang(tool.href, lang)}
                   target={tool.href.startsWith("http") ? "_blank" : undefined}
                   rel="noreferrer"
                   {...rv(i + 3)}
@@ -1176,7 +1176,7 @@ export default function LandingView() {
                       {SUBSCRIPTION_LIVE ? (
                         <a href="/price">{T("구독하기", "Subscribe")}</a>
                       ) : tier.key === "plus" ? (
-                        <a href={signedIn ? ARCHIMAP : "/login"}>
+                        <a href={signedIn ? withLang(ARCHIMAP, lang) : "/login"}>
                           {T("지금은 무료", "Free for now")}
                         </a>
                       ) : (
@@ -1215,7 +1215,7 @@ export default function LandingView() {
                   { min: PIECE_MIN_USD, max: PIECE_MAX_USD })}
               </p>
 
-              <a className="lp-buy" href={LASERFISH}>
+              <a className="lp-buy" href={withLang(LASERFISH, lang)}>
                 {T("플러그인 받기", "Get the plug-in")}
               </a>
             </div>
@@ -1238,9 +1238,9 @@ export default function LandingView() {
             <div className="lp-foot-cols">
               <div className="lp-foot-col reveal" {...rv(1)}>
                 <h4>{T("제품", "Products")}</h4>
-                <a href={ARCHIMAP} target="_blank" rel="noreferrer">archiMap</a>
-                <a href={COLORGRAM} target="_blank" rel="noreferrer">Colorgram</a>
-                <a href={LASERFISH} target="_blank" rel="noreferrer">LaserFish</a>
+                <a href={withLang(ARCHIMAP, lang)} target="_blank" rel="noreferrer">archiMap</a>
+                <a href={withLang(COLORGRAM, lang)} target="_blank" rel="noreferrer">Colorgram</a>
+                <a href={withLang(LASERFISH, lang)} target="_blank" rel="noreferrer">LaserFish</a>
               </div>
               <div className="lp-foot-col reveal" {...rv(2)}>
                 <h4>{T("약관", "Legal")}</h4>
