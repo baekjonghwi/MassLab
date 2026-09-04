@@ -197,7 +197,7 @@ function LoginContent() {
     // 🔴가입 탭에서 누른 구글은 국가를 먼저 고르게 한다(2026-09-02). 구글은 우리에게
     //   거주지를 알려 주지 않아서, 여기서 안 받으면 결제할 때까지 영영 모른다.
     //   ⚠️로그인 탭에서 누른 구글은 안 막는다 — 이미 있는 계정일 수도 있어서다.
-    //     그 길로 **새로 만들어진** 계정은 /auth/callback 이 /welcome 으로 한 번 보낸다.
+    //     그 길로 새로 만들어진 계정은 국가를 모른 채 지나간다(첫 결제가 채운다).
     if (mode === "signup" && !isCountryCode(country)) { setError(x.countryNeed); return; }
     setBusy(true); setError("");
     const framed = window.top !== window.self;

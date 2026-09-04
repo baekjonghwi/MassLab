@@ -19,8 +19,10 @@ import {
 //  🔴거주 국가도 여기서 챙긴다(2026-09-02). 구글 로그인은 우리에게 거주지를 알려
 //    주지 않아서 가입 화면이 물어야 하는데, signInWithOAuth 에는 그 값을 실을 자리가
 //    없다 — 그래서 ?country=XX 로 실어 보내고 여기서 세션이 생긴 직후에 적는다.
-//    그마저 없는 사람(로그인 탭에서 구글을 눌러 계정이 새로 만들어진 경우)은
-//    /welcome 으로 한 번 보내 묻는다. ⚠️둘 다 **이미 값이 있으면 안 덮는다**.
+//    ⚠️**이미 값이 있으면 안 덮는다**.
+//    ⛔그마저 없는 사람(로그인 탭에서 구글을 눌러 계정이 새로 만들어진 경우)에게
+//      따로 묻지 않는다 — 그 자리에 있던 /welcome 화면은 2026-09-04 사용자 지시로 없앴다.
+//      그 사람들 국가는 예전처럼 첫 결제가 채운다(confirm, 비어 있을 때만).
 // ==========================================================================
 
 export const dynamic = "force-dynamic";
@@ -133,30 +135,13 @@ export async function GET(request: Request) {
     try {
       const { data: { user } } = await client.auth.getUser();
       if (user) {
-        // ① 가입 화면이 실어 보낸 값. 모양은 서버(set_country)가 다시 검사한다.
+        // 가입 화면이 실어 보낸 값. 모양은 서버(set_country)가 다시 검사한다.
         //    p_only_if_empty=true — 이미 아는 국가(결제가 알려 준 값)를 덮지 않는다.
         const picked = url.searchParams.get("country");
         if (picked && /^[A-Za-z]{2}$/.test(picked)) {
           await client.rpc("set_country", {
             p_country: picked.toUpperCase(), p_only_if_empty: true,
           });
-        }
-
-        // ② 그래도 비어 있고 **방금 만들어진 계정**이면 한 번 묻는다.
-        //    🔴'방금'을 보는 이유 = 옛 계정(2026-09-02 이전 가입자 623명)까지 붙잡으면
-        //      로그인할 때마다 낯선 질문이 끼어든다. 그 사람들 국가는 예전처럼
-        //      결제가 채운다. 새로 가입하는 사람만 여기서 챙긴다.
-        //    ⚠️이메일 가입은 이미 값이 있어(가입 트리거) 이 길로 안 온다.
-        const fresh = user.created_at
-          && Date.now() - new Date(user.created_at).getTime() < 10 * 60 * 1000;
-        if (fresh) {
-          const { data: prof } = await client
-            .from("profiles").select("country").eq("id", user.id).maybeSingle();
-          if (!prof?.country) {
-            const ask = new URL("/welcome", url.origin);
-            ask.searchParams.set("next", next);
-            return Response.redirect(ask, 303);
-          }
         }
       }
     } catch (e) {
