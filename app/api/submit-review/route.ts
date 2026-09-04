@@ -42,6 +42,10 @@ export async function POST(request: Request) {
         {
           method: "POST",
           headers: {
+            // 🔴apikey가 없으면 sb_secret_ 키를 Storage가 JWT로 읽으려다
+            //   "Invalid Compact JWS"로 거절한다(2026-09-03에 잡은 버그 —
+            //   그동안 사진만 조용히 빠지고 후기는 저장됐다).
+            "apikey": SUPABASE_SERVICE_KEY,
             "Authorization": `Bearer ${SUPABASE_SERVICE_KEY}`,
             "Content-Type": photo.type,
             "x-upsert": "true",
