@@ -3,6 +3,7 @@ import {
   PLAN_LABEL, vatOf, monthlyPaymentId, ymOf, channelOf, customerIdOf,
   type PlanKey, type Channel,
 } from "@/lib/subscription";
+import { ipCountry } from "@/lib/countries";
 
 // ==========================================================================
 //  GET /api/subscribe/session?sid=…
@@ -59,17 +60,21 @@ export async function GET(request: Request) {
   // 2) 이메일 — profiles에는 없다. auth 스키마는 REST로 못 읽으므로 Admin API를 쓴다.
   const email = await emailOf(s.user_id);
 
-  // 3) 국가 → 채널. 🔴profiles.country가 있으면 그게 기준이다(ISO alpha-2, "KR").
-  //    🔴2026-09-02부터 **가입할 때** 받으므로 새 계정은 첫 결제 전에도 값이 있다.
-  //    ⚠️그래도 비어 있을 수 있다 = 2026-09-02 이전 가입자 · 로그인 탭 구글로 만들어진 계정.
-  //      그때는 해외(달러)로 두고, 실제 기본값은 결제 화면이 화면 언어로 고른다
+  // 3) 국가 → 채널.
+  //    🔴🔴**지금 이 요청의 접속 국가를 본다**(2026-09-05). profiles.country 가 아니다 —
+  //      그 칸은 *마지막 로그인* 때의 값이라, 그 사이에 나라가 바뀌었으면 옛 나라의
+  //      통화로 결제창이 뜬다. 결제는 "지금 어디서 사고 있는가"의 문제다.
+  //    ⚠️컬럼은 헤더가 없을 때만 쓰는 뒷받침이다(로컬 개발 · 엣지가 못 알아낸 요청).
+  //    ⚠️둘 다 없으면 해외(달러)로 두고, 실제 기본값은 결제 화면이 화면 언어로 고른다
   //      (countryKnown=false로 알려 준다).
   //      🔴서버가 언어로 추정하지 않는다 — Accept-Language는 브라우저 설정이라
   //        사이트에서 고른 언어와 어긋난다.
-  //    🔴비어 있던 칸은 첫 결제가 끝나면 confirm이 채운다(countryOfPayment).
-  let country: string | null = null;
-  const pRes = await sbFetch(`profiles?id=eq.${s.user_id}&select=country`);
-  if (pRes.ok) country = ((await pRes.json()) as { country?: string }[])[0]?.country ?? null;
+  //    ⚠️추정일 뿐이라 결제 화면의 지역 토글은 그대로 남는다 — 사람이 뒤집을 수 있다.
+  let country: string | null = ipCountry(request.headers);
+  if (!country) {
+    const pRes = await sbFetch(`profiles?id=eq.${s.user_id}&select=country`);
+    if (pRes.ok) country = ((await pRes.json()) as { country?: string }[])[0]?.country ?? null;
+  }
 
   const channel: Channel = channelOf(country);
 

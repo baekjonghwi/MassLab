@@ -317,18 +317,19 @@ export function addMonth(from: Date): Date {
 // --------------------------------------------------------------------------
 //  거주 국가 (profiles.country)
 // --------------------------------------------------------------------------
-// 🔴형식은 ISO 3166-1 alpha-2 대문자 하나뿐이다("KR"·"US") — 포트원이 그 형식으로
-//   주기 때문에 그대로 받아 적는다. 형식을 바꾸려면 아래 자리를 **모두** 함께 고칠 것.
-//   · 적는 곳 = 가입 화면(/login → DB 가입 트리거) · set_country RPC ·
-//               /api/subscribe/confirm(비어 있을 때만)
-//   · 읽는 곳 = /api/subscribe/session (channelOf)
+// 🔴형식은 ISO 3166-1 alpha-2 대문자 하나뿐이다("KR"·"US").
+// 🔴🔴**주인은 하나다 = 로그인할 때의 접속 국가**(2026-09-05 결정).
+//   · 적는 곳 = /auth/callback(구글·메일 링크) · /api/account/country(이메일 로그인)
+//               — 둘 다 x-vercel-ip-country 를 읽어 set_country(c, false) 로 **덮는다**.
+//               헤더가 없을 때만 가입 화면의 자기신고 값이 뒷받침으로 들어간다.
+//   · 읽는 곳 = /api/subscribe/session — 그마저 **뒷받침으로만** 읽는다.
+//               결제 채널은 체크아웃 요청 자체의 x-vercel-ip-country 가 가른다.
 //   · 모양 지킴이 = DB 트리거 profiles_norm_country (ISO2 가 아니면 null 로 떨어뜨린다)
-// 🔴🔴**국가는 이제 가입할 때 받는다**(2026-09-02 결정 — 2026-08-18 의 "묻지 않는다"를
-//   뒤집었다. 그전에는 결제한 적 없는 계정의 이 칸이 영영 비어 있었다: 623명 중 0명).
-//   ⚠️그래도 비어 있을 수 있다 = 2026-09-02 이전에 가입한 사람 · 로그인 탭에서 구글을
-//     눌러 계정이 새로 만들어진 사람. 그때는 예전처럼 결제 화면이 화면 언어로 고른다.
-// 🔴결제가 알려 준 국가는 **비어 있을 때만** 적는다(confirm) — 본인이 고른 거주지를
-//   결제 카드의 발급국으로 덮지 않는다.
+// ⛔**두 번째 주인을 만들지 말 것.** 예전에 /api/subscribe/confirm 이 카드 발급국을
+//   같은 칸에 적었는데(2026-09-02~09-05), 카드 발급국과 사는 곳이 다른 사람마다
+//   값이 로그인·결제 사이를 오갔다. 그 쓰기는 지웠다.
+// ⚠️바뀐 대가 = 여행 중 로그인하면 그 나라로 바뀐다. 알고 고른 것이다 —
+//   결제창 통화가 "옛날에 적어 둔 나라"로 뜨는 쪽이 더 자주, 더 아프게 틀렸다.
 export const KOREA = "KR";
 
 // 국가 → 결제 채널. 국내만 토스페이먼츠고 나머지는 전부 엑심베이다.
@@ -336,22 +337,9 @@ export function channelOf(country: string | null | undefined): Channel {
   return country === KOREA ? "toss" : "eximbay";
 }
 
-// 끝난 결제에서 거주 국가를 캐낸다.
-// 🔴모르면 null을 낸다 — 추측해서 적으면 다음 결제 때 엉뚱한 통화의 결제창이 뜨고,
-//   그 값이 부가세 판정(국내만 VAT) 근거로도 남는다. 비워 두는 편이 낫다.
-export function countryOfPayment(raw: unknown, channel: Channel): string | null {
-  const p = raw as {
-    country?: unknown;
-    customer?: { country?: unknown; address?: { country?: unknown } };
-  } | null;
-  // ⚠️국가가 실려 오는 자리가 PG마다 다르다 — 있는 자리를 순서대로 다 본다.
-  for (const c of [p?.country, p?.customer?.country, p?.customer?.address?.country]) {
-    if (typeof c === "string" && /^[A-Za-z]{2}$/.test(c)) return c.toUpperCase();
-  }
-  // 토스페이먼츠(국내 정기결제 채널)는 국내 카드만 받으므로, 결제가 됐다는 사실
-  // 자체가 국내라는 뜻이다.
-  return channel === "toss" ? KOREA : null;
-}
+// ⛔결제 원문에서 국가를 캐내던 countryOfPayment 는 지웠다(2026-09-05) — profiles.country
+//   의 주인이 접속 국가 하나가 되면서 쓸 곳이 없어졌다. 결제 원문의 국가가 다시
+//   필요해지면 billing_events.raw 에 통째로 남아 있다.
 
 // --------------------------------------------------------------------------
 //  포트원 빌링키 청구

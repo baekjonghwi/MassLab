@@ -1,7 +1,7 @@
 import {
   CENTRAL, sbFetch, emailOf, syncPlanCache, planAmount, priceOf, productOf,
   chargeWithBillingKey, getPayment, customerIdOf, monthlyPaymentId, ymOf, addMonth, PLAN_LABEL,
-  hasActiveBundle, cancelIndividualSubs, countryOfPayment, PAY_FAIL_MESSAGE,
+  hasActiveBundle, cancelIndividualSubs, PAY_FAIL_MESSAGE,
   type PlanKey, type Channel, type ChargeResult,
 } from "@/lib/subscription";
 
@@ -183,30 +183,14 @@ export async function POST(request: Request) {
     prefer: "return=minimal",
   });
 
-  // --- 거주 국가 기록 ----------------------------------------------------
-  // 🔴🔴**비어 있을 때만 적는다**(2026-09-02 결정 — 그전엔 덮어썼다).
-  //   2026-09-02 부터 국가는 **가입할 때** 받는다(MassLabs /login).
-  //   본인이 고른 거주지가 이미 있는데 결제가 알려 준 값으로 덮으면, 해외 카드로
-  //   결제한 국내 거주자·여행 중 결제 같은 경우에 사는 곳이 조용히 바뀐다.
-  //   ⇒ 채우는 건 여전히 여기서도 하되(가입 전에 만들어진 옛 계정 623개는 이 칸이
-  //     비어 있다), **덮지는 않는다.**
-  // 🔴덮지 않는 것을 조건 필터로 한다 — 읽고 나서 쓰면 그 사이에 가입 화면이 적은
-  //   값을 지울 수 있다. 한 문장으로 끝내면 그 틈이 없다.
-  // 🔴🔴예외가 하나 있다 = country_src='ip' (2026-09-03). 그 값은 로그인 IP로 **추정**한
-  //   것이라(254명분을 그날 한 번 채웠다) 카드 발급국이 그보다 정확하다 ⇒ 추정값만은 덮는다.
-  //   본인이 고른 값(signup)과 이미 결제로 들어온 값(payment)은 그대로 둔다.
-  // ⚠️모르면 아예 안 적는다(countryOfPayment 가 null).
-  const country = countryOfPayment(charge.raw, channel);
-  if (country) {
-    await sbFetch(
-      `profiles?id=eq.${s.user_id}&or=(country.is.null,country_src.eq.ip)`,
-      {
-        method: "PATCH",
-        body: JSON.stringify({ country, country_src: "payment" }),
-        prefer: "return=minimal",
-      },
-    );
-  }
+  // --- 거주 국가는 여기서 안 적는다 ---------------------------------------
+  // ⛔🔴**결제가 알려 준 국가를 profiles.country 에 쓰지 말 것**(2026-09-05 결정).
+  //   그 칸의 주인은 로그인의 접속 국가 하나다(/auth/callback · /api/account/country).
+  //   주인이 둘이면 값이 오락가락한다 — 카드 발급국과 사는 곳은 자주 다르고
+  //   (해외 카드를 쓰는 국내 거주자, 여행 중 결제), 그때마다 다음 결제창의 통화가
+  //   바뀐다. 결제는 그 칸을 **읽지도 않는다** — /api/subscribe/session 이
+  //   체크아웃 요청의 x-vercel-ip-country 로 채널을 가른다.
+  //   ⚠️결제 원문의 국가가 필요해지면 billing_events.raw 에 그대로 남아 있다.
 
   await closeSession(sid, "done");
 

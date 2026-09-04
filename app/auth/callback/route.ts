@@ -3,6 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import {
   SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, cookieOptionsFor, safeNext,
 } from "@/lib/supabase";
+import { ipCountry } from "@/lib/countries";
 
 // ==========================================================================
 //  GET /auth/callback?code=…&next=…
@@ -16,13 +17,13 @@ import {
 //  🔴실패해도 그냥 튕기지 않는다 — 이유(error)를 목적지에 달아 보낸다.
 //    /reset-password 가 그걸 읽어 "만료됐다 / 잘못됐다"를 구분해 알려준다.
 //
-//  🔴거주 국가도 여기서 챙긴다(2026-09-02). 구글 로그인은 우리에게 거주지를 알려
-//    주지 않아서 가입 화면이 물어야 하는데, signInWithOAuth 에는 그 값을 실을 자리가
-//    없다 — 그래서 ?country=XX 로 실어 보내고 여기서 세션이 생긴 직후에 적는다.
-//    ⚠️**이미 값이 있으면 안 덮는다**.
-//    ⛔그마저 없는 사람(로그인 탭에서 구글을 눌러 계정이 새로 만들어진 경우)에게
-//      따로 묻지 않는다 — 그 자리에 있던 /welcome 화면은 2026-09-04 사용자 지시로 없앴다.
-//      그 사람들 국가는 예전처럼 첫 결제가 채운다(confirm, 비어 있을 때만).
+//  🔴거주 국가도 여기서 챙긴다. 구글 로그인이 서버를 거치는 자리는 여기뿐이라,
+//    접속 국가(x-vercel-ip-country)를 적기에 제일 깔끔한 곳이다(2026-09-05).
+//    🔴**덮어쓴다**(p_only_if_empty=false) — profiles.country 의 주인은 접속 국가
+//      하나다. ⛔가입 화면이 국가를 묻던 ?country= 는 없앴다(2026-09-05) — 물어 봐야
+//      첫 로그인에 그대로 덮였다. 다시 만들지 말 것.
+//    ⛔이메일 로그인은 여기를 안 지나간다(브라우저에서 곧장 signInWithPassword) —
+//      그쪽은 /api/account/country 가 같은 일을 한다. 둘이 한 벌이다.
 // ==========================================================================
 
 export const dynamic = "force-dynamic";
@@ -135,13 +136,12 @@ export async function GET(request: Request) {
     try {
       const { data: { user } } = await client.auth.getUser();
       if (user) {
-        // 가입 화면이 실어 보낸 값. 모양은 서버(set_country)가 다시 검사한다.
-        //    p_only_if_empty=true — 이미 아는 국가(결제가 알려 준 값)를 덮지 않는다.
-        const picked = url.searchParams.get("country");
-        if (picked && /^[A-Za-z]{2}$/.test(picked)) {
-          await client.rpc("set_country", {
-            p_country: picked.toUpperCase(), p_only_if_empty: true,
-          });
+        // 로그인할 때마다 지금 접속한 나라로 덮는다.
+        // ⚠️헤더가 없으면(로컬 개발 · 엣지가 못 알아낸 요청) 아무것도 안 한다 —
+        //   물어서 받아 둔 값이 이제 없다. 모르면 비워 두는 편이 맞다.
+        const ip = ipCountry(request.headers);
+        if (ip) {
+          await client.rpc("set_country", { p_country: ip, p_only_if_empty: false });
         }
       }
     } catch (e) {

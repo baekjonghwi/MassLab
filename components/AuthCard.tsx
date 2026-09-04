@@ -1,9 +1,8 @@
 "use client";
-import { useState, useMemo, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import Link from "next/link";
-import { useLanguage, useT } from "@/lib/i18n";
+import { useT } from "@/lib/i18n";
 import LanguageMenu from "@/components/LanguageMenu";
-import { countryOptions } from "@/lib/countries";
 
 // ==========================================================================
 //  로그인·비밀번호 재설정 화면이 함께 쓰는 껍데기.
@@ -289,39 +288,3 @@ export function PasswordField({
   );
 }
 
-// ==========================================================================
-//  국가 칸 — 가입 화면(/login)이 쓴다.
-//
-//  🔴칸을 복사해 두지 말 것. 목록이나 규칙이 갈라지면 "가입 때 고른 나라"가
-//    자리마다 다른 목록에서 나오게 된다(PasswordField 를 여기 둔 것과 같은 이유).
-//  🔴이름은 브라우저가 화면 언어로 지어 준다(lib/countries.ts).
-//  ⚠️첫 줄은 disabled 다 — required 와 짝이 되어 "안 고른 채로 넘어가기"를 막는다.
-// ==========================================================================
-export function CountryField({
-  label, placeholder, value, onChange, disabled,
-}: {
-  label: string;
-  placeholder: string;
-  value: string;
-  onChange: (v: string) => void;
-  disabled?: boolean;
-}) {
-  const { lang } = useLanguage();
-  const opts = useMemo(() => countryOptions(lang), [lang]);
-  return (
-    <>
-      <label className="fld-label">{label}</label>
-      <select
-        className={`fld${value ? "" : " empty"}`}
-        value={value} required disabled={disabled}
-        autoComplete="country"
-        onChange={(e) => onChange(e.target.value)}
-      >
-        <option value="" disabled>{placeholder}</option>
-        {opts.map((c) => (
-          <option key={c.code} value={c.code}>{c.name}</option>
-        ))}
-      </select>
-    </>
-  );
-}
