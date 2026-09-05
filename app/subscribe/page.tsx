@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import * as PortOne from "@portone/browser-sdk/v2";
+import { supabase } from "@/lib/supabase";
 import { useLanguage, trPick, fmt } from "@/lib/i18n";
 import { t } from "@/lib/translations";
 import { USE_TEST_CHANNELS, TEST_CHANNEL_INTL, TEST_CHANNEL_KRW } from "@/lib/interim";
@@ -215,7 +216,13 @@ function SubscribeContent() {
       setLoading(true);
       const r = await fetch("/api/subscribe/confirm", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        // 🔴Authorization 을 함께 보낸다 — 서버가 "이 체크아웃의 주인이 맞는가"를
+        //   대조한다(2026-09-05). 쿠키가 먼저지만, 쿠키를 못 읽는 브라우저에서도
+        //   주인 확인이 살아 있게 하는 두 번째 줄이다.
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${(await supabase().auth.getSession()).data.session?.access_token ?? ""}`,
+        },
         body: JSON.stringify({ sid, billingKey, channel: ch, methodLabel }),
       });
       const d = await r.json().catch(() => ({}));

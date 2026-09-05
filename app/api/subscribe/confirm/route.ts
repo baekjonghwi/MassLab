@@ -1,3 +1,7 @@
+import { cookies } from "next/headers";
+import { createServerClient } from "@supabase/ssr";
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "@/lib/supabase";
+import { bearerOf, uidFromAccessToken } from "@/lib/plugin-auth";
 import {
   CENTRAL, sbFetch, emailOf, syncPlanCache, planAmount, priceOf, productOf,
   chargeWithBillingKey, getPayment, customerIdOf, monthlyPaymentId, ymOf, addMonth, PLAN_LABEL,
@@ -15,12 +19,35 @@ import {
 //  🔴금액도 제품도 클라이언트에서 받지 않는다. sid로 세션 행을 읽어 서버가
 //    다시 계산한다(브라우저가 보낸 숫자를 믿으면 $0.01 구독이 만들어진다).
 //
+//  🔴신원을 대조한다(2026-09-05) — 쿠키 세션이나 Bearer 가 세션 행의 주인과
+//    달라지면 거절한다. sid 만 알면 남의 체크아웃을 확정할 수 있었다.
+//
 // ==========================================================================
 
 type SessionRow = {
   id: string; user_id: string; product: string; plan: PlanKey;
   status: string; expires_at: string;
 };
+
+// --------------------------------------------------------------------------
+//  부르는 사람이 누구인가 — 쿠키 세션이 먼저, 없으면 Bearer(쿠키 갱신은 안 한다).
+//  🔴없으면 null 이다. **없다고 막지 않는다** — 아래 주인 확인의 주석 참고.
+// --------------------------------------------------------------------------
+async function callerUid(request: Request): Promise<string | null> {
+  try {
+    const jar = await cookies();
+    const client = createServerClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+      cookies: { getAll: () => jar.getAll(), setAll: () => {} },
+    });
+    const { data } = await client.auth.getUser();
+    if (data.user?.id) return data.user.id;
+  } catch {
+    /* 쿠키가 없거나 깨졌다 — 아래 Bearer 로 넘어간다 */
+  }
+  // 화면(/subscribe)이 Authorization 도 함께 보낸다. 쿠키를 못 읽는 브라우저에서
+  // 주인 확인이 통째로 꺼지지 않게 하는 두 번째 줄이다.
+  return uidFromAccessToken(bearerOf(request));
+}
 
 async function closeSession(sid: string, status: string, note?: string) {
   await sbFetch(`checkout_sessions?id=eq.${encodeURIComponent(sid)}`, {
@@ -49,6 +76,22 @@ export async function POST(request: Request) {
   if (new Date(s.expires_at).getTime() < Date.now()) {
     return Response.json({ error: "expired" }, { status: 410 });
   }
+
+  // --- 세션의 주인인가 ---------------------------------------------------
+  //  🔴sid 만 알면 남의 체크아웃을 확정할 수 있었다(2026-09-05 보수). 이 라우트는
+  //    금액·제품을 몸통에서 안 받지만 **billingKey 는 받는다** — 남의 sid 에 제
+  //    카드를 붙이거나, 반대로 남의 계정 구독을 내 손으로 확정하는 길이 열린다.
+  //  ⚠️신원이 **아예 없을 때는 막지 않는다.** 이 API 를 부르는 곳은 우리 도메인의
+  //    /subscribe 한 곳뿐이라 쿠키든 Bearer 든 늘 있어야 정상이지만, PG 창을 거쳐
+  //    돌아오는 흐름에서 둘 다 못 읽는 브라우저가 하나라도 있으면 **돈은 빠졌는데
+  //    구독이 안 서는** 최악이 된다. 그래서 "있는데 다르면 거절"만 한다.
+  //    그 경우는 로그에 남긴다 — 실제로 없는 요청이 있는지 여기서 확인할 것.
+  const uid = await callerUid(request);
+  if (uid && uid !== s.user_id) {
+    console.error("[subscribe] 남의 체크아웃 확정 시도:", sid, "부른이", uid, "세션", s.user_id);
+    return Response.json({ error: "forbidden" }, { status: 403 });
+  }
+  if (!uid) console.warn("[subscribe] 신원 없이 확정:", sid);
 
   const prod = productOf(s.product);
   if (!prod || priceOf(s.product, s.plan) == null) {

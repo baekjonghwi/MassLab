@@ -17,7 +17,21 @@
 
 export const dynamic = "force-dynamic";
 
+// 브라우저가 보내는 진짜 보고는 몇 KB 다. 이보다 크면 읽지 않는다.
+const MAX_BYTES = 16 * 1024;
+const TYPES = ["application/csp-report", "application/reports+json", "application/json"];
+
 export async function POST(request: Request) {
+  // 🔴여기는 누구나 부를 수 있는 자리다(브라우저가 로그인 없이 보낸다). 그래서
+  //   ①모양이 맞는 것만 읽고 ②큰 몸통은 아예 안 읽는다 — 안 그러면 아무나
+  //   Vercel 로그를 자기 글로 채워 로그 비용을 태울 수 있다. 답은 늘 204 라
+  //   막혔는지 아닌지도 밖에서는 안 보인다.
+  const type = (request.headers.get("content-type") ?? "").split(";")[0].trim().toLowerCase();
+  if (!TYPES.includes(type)) return new Response(null, { status: 204 });
+  if (Number(request.headers.get("content-length") ?? 0) > MAX_BYTES) {
+    return new Response(null, { status: 204 });
+  }
+
   try {
     const body = await request.json().catch(() => null);
     // report-uri 는 { "csp-report": {...} }, report-to 는 [{ body: {...} }] 로 온다.
