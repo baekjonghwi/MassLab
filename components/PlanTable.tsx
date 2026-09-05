@@ -2,6 +2,7 @@
 
 import { Fragment } from "react";
 import { TIER_KEYS, planAllows } from "@/lib/plans";
+import { PLUS_FREE_PROMO } from "@/lib/interim";
 import { trs, trPick, type Lang } from "@/lib/i18n";
 
 // ==========================================================================
@@ -47,6 +48,18 @@ export const PLAN_CSS = `
   }
   .pg-tier b { font-size: 0.92rem; font-weight: 800; letter-spacing: 0.06em; }
   .pg-tier .cur { font-size: 0.62rem; font-weight: 600; color: #b9b9b9; }
+
+  /* 🔴할인 기간에 동그라미가 쳐지는 등급(지금은 PLUS) — 2026-09-05 사용자 지시.
+       테두리 하나로만 표시한다. 배경까지 바꾸면 "이용 중"(.cur)과 헷갈린다.
+       ⚠️ring 은 바깥으로 그린다(box-shadow). border 로 주면 그 칸만 2px 커져
+         등급 머리줄의 밑선이 어긋난다. */
+  .pg-tier.promo { box-shadow: 0 0 0 2px #111, 0 0 0 4px #fff, 0 0 0 6px #111; }
+  .pg-tier .promo-tag {
+    font-size: 0.6rem; font-weight: 700; letter-spacing: 0.02em; color: #ffd76a;
+  }
+  /* 값에 그은 줄 — 원래 얼마인지를 지우지 않는다. 행사가 끝나면 이 값이 청구된다. */
+  .pg-price.promo .pg-amt { color: #b0b0b0; text-decoration: line-through; text-decoration-thickness: 1.5px; }
+  .pg-promo-now { font-size: 0.72rem; font-weight: 800; color: #111; letter-spacing: -0.01em; }
 
   /* 왼쪽 — 프로그램 이름 */
   .pg-prog {
@@ -151,7 +164,9 @@ export const PROGRAMS: Program[] = [
   {
     name: "LaserFish",
     features: [
-      // PRO부터 열린다(2026-08-18 결정) — 원본은 lib/plans의 MIN_PLAN.
+      // 🔴PLUS부터 열린다(2026-09-05 결정 — 2026-08-18 의 PRO 에서 내렸다).
+      //   원본은 lib/plans 의 MIN_PLAN 이고, 이 칸은 gate() 가 거기서 그대로
+      //   끌어온다 — 손으로 ○ 를 적지 않는다.
       // 🔴이름표를 비워 둔다 — 열리냐 마느냐뿐이라 "전 기능 이용: 사용가능"은
       //   같은 말을 두 번 하는 것이다. 빈 이름표는 렌더가 알아서 건너뛴다.
       {
@@ -205,6 +220,9 @@ export default function PlanTable({ lang, currentPlan, onSubscribe, busy, varian
   const focus = variant === "status" && tiers.some((t) => t.key === currentPlan);
   const none  = variant === "status" && !focus;             // 미구독
   const faded = (key: string) => (none || (focus && key !== currentPlan) ? " dim" : "");
+  // 🔴행사 중인 등급. 파는 표(sell)에서만 표시한다 — /account 의 상태표에
+  //   "(할인 기간)"이 뜨면 지금 내 등급이 무엇인지를 말하는 화면에 광고가 섞인다.
+  const promo = (key: string) => variant === "sell" && PLUS_FREE_PROMO && key === "plus";
   const at = (cells: readonly Cell[], key: string): Cell =>
     cells[TIER_KEYS.indexOf(key as (typeof TIER_KEYS)[number])] ?? null;
 
@@ -217,9 +235,13 @@ export default function PlanTable({ lang, currentPlan, onSubscribe, busy, varian
         {/* 1줄 — 등급 이름 */}
         <div className="pg-corner" />
         {tiers.map((t) => (
-          <div className={`pg-tier${faded(t.key)}`} key={t.key}>
+          // 🔴할인 기간에는 PLUS 에 동그라미를 치고 "(할인 기간)"을 적는다
+          //   (2026-09-05 사용자 지시). 어느 등급이 공짜인지는 lib/plans 의
+          //   DEFAULT_MIN_PLAN 이 아니라 **행사 대상**이라, 여기서만 plus 를 짚는다.
+          <div className={`pg-tier${promo(t.key) ? " promo" : ""}${faded(t.key)}`} key={t.key}>
             <b>{t.label}</b>
             {currentPlan === t.key && <span className="cur">{T("이용 중", "Current")}</span>}
+            {promo(t.key) && <span className="promo-tag">{T("(할인 기간)", "(Promo)")}</span>}
           </div>
         ))}
 
@@ -263,18 +285,27 @@ export default function PlanTable({ lang, currentPlan, onSubscribe, busy, varian
           </Fragment>
         ))}
 
-        {/* 가격 줄. 🔴할인·무료 배지를 여기 붙이지 않는다 — 표에 적힌 값과
-            결제창에 뜨는 값이 어긋나는 순간 화면이 거짓말을 한 셈이 된다.
-            공짜로 써보는 길은 FREE 등급 하나로만 안내한다. */}
+        {/* 가격 줄.
+            🔴원래 규칙: 할인·무료 배지를 붙이지 않는다 — 표에 적힌 값과 결제창에
+              뜨는 값이 어긋나는 순간 화면이 거짓말을 한 셈이 되기 때문이다.
+            🔴2026-09-05 예외(사용자 지시): **아무것도 안 파는 동안에만** PLUS 에
+              줄을 긋고 "지금은 무료"라고 적는다. 어긋날 결제창 자체가 없으므로
+              위 규칙이 막으려던 사고가 성립하지 않는다. 원래 값은 그어서 남긴다 —
+              지우면 행사가 끝난 뒤 얼마가 청구되는지 알 수 없다.
+            ⚠️PLUS_FREE_PROMO 가 false 가 되면(=구독을 팔기 시작하면) 저절로
+              원래 규칙으로 돌아간다. */}
         {variant === "sell" && (
           <>
             <div className="pg-corner" />
             {tiers.map((t) => (
-              <div className="pg-price" key={t.key}>
+              <div className={`pg-price${promo(t.key) ? " promo" : ""}`} key={t.key}>
                 <div className="pg-amt">
                   {t.price}
                   <span className="pg-per">/mon</span>
                 </div>
+                {promo(t.key) && (
+                  <div className="pg-promo-now">{T("지금은 무료", "Free for now")}</div>
+                )}
               </div>
             ))}
 

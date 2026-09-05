@@ -23,9 +23,17 @@ MassLabs는 배포되는 프로젝트라 하위 폴더가 빌드 컨텍스트에
   ⛔제품 쪽에 로그인 폼, `/account`, 결제 화면을 만들지 말 것 (2026-08-17 통합 로그인 결정).
   제품은 `masslabs-archi.com/price`으로 내보내기만 한다.
 - 🔴**임시(2026-08-21 ~ 국내·해외 정기결제가 동시에 열릴 때까지)** — 구독을 안 판다.
-  MassLabs는 LaserFish **건당결제**만, archiMap은 **로그인하면 PLUS 무료**로 **따로** 굴린다.
+  🔴**2026-09-05 — LaserFish도 구독 안으로 들어왔다**(사용자 결정). 건당결제를 폐기하고
+  `lib/plans.ts`의 `MIN_PLAN.laserfish`를 `pro`→**`plus`**로 내렸다. 이제 두 프로그램이
+  같은 규칙 아래 선다: **로그인하면 PLUS, 당분간 공짜(할인 기간).**
+  판정은 서버 한 곳이다 — `lib/plugin-auth.ts`의 `entitlementOf`가 `PLUS_FREE_PROMO`
+  (=`!SUBSCRIPTION_LIVE`)를 보고 free를 plus로 올려 답한다. ⛔화면마다 다시 판정하지 말 것.
+  ⚠️DB(`profiles.plan`)는 안 건드린다 — 적으면 행사가 끝난 뒤에도 전원이 PLUS로 남는다.
   스위치 두 개가 한 벌이다: `lib/interim.ts`의 `SUBSCRIPTION_LIVE` ·
   archiMap `public/app.js`의 `SOLO_PLUS_FREE`. 한쪽만 뒤집으면 두 사이트 말이 어긋난다.
+  ⚠️LaserFish 소개 사이트에도 베낀 값이 있다(그쪽 `lib/site.ts`의 `PLUS_FREE_PROMO`) — 셋을 함께 볼 것.
+  🔴**"(할인 기간)" 표시가 화면 셋에 있다** — MassLabs `PlanTable`·`LandingView`,
+  archiMap PLAN 창(`renderSubscription`), LaserFish 홈 비용 구역. 스위치를 내리면 함께 사라진다.
   구독 코드(`/account`·`/subscribe`·`PlanTable`·`/api/subscribe/*`)는 **하나도 안 지웠다** — 되돌리면 그대로 산다.
   🔴**2026-08-29 — 값 이야기를 홈 한 곳으로 모았다**(사용자 결정).
   홈의 건당표는 감췄고(`PER_PIECE_ON_HOME`), 건당결제 안내의 정본은 LaserFish 소개 사이트다.
@@ -33,6 +41,20 @@ MassLabs는 배포되는 프로젝트라 하위 폴더가 빌드 컨텍스트에
   ⛔`/price`를 화면에 직접 적지 말 것 — 메뉴·단추가 보는 주소는 `lib/interim.ts`의 `PRICING_HREF` 한 곳이다.
   archiMap의 [구독 해지]는 `/account`로, LaserFish의 [자세히 보기]는 껐다(그쪽 `BUY_LIVE`).
   🔴**해지는 `/account` 한 곳에서만 한다** — 다른 화면에 해지 단추를 만들지 말 것.
+- ⛔**건당결제는 폐기됐다**(2026-09-05 사용자 결정). 스위치는 `lib/interim.ts`의 `PER_PIECE_LIVE`.
+  `/payment`는 결제창 대신 "이제 구독에 포함된다"는 안내문을 띄운다 — 화면을 지우지 않은 이유는
+  **배포된 옛 플러그인(2.2.3)이 그 주소를 직접 열기 때문**이다.
+  `/api/verify-payment`는 **살려 뒀다** — 스위치를 내린 순간 결제창을 이미 띄워 둔 사람의
+  폴링이 끝나야 한다. `/api/submit-review`(paymentId로 신원을 삼던 후기 저장)는 **지웠다.**
+  플러그인 쪽(`LaserCuttingDrawings`)에서도 `PaymentHandler` 호출을 걷어냈다 — 구독이 없으면 굽지 않는다.
+- 🔴**후기(review)는 화면은 제품마다 따로, 글은 한 곳에 모은다**(2026-09-05 사용자 결정).
+  · 쓰는 자리 — archiMap 상단 **[REVIEW]** 모달(HELP 오른쪽) · LaserFish **`/review`** 화면.
+  · 모이는 곳 — MassLabs **`/api/reviews`** 하나. 표는 `public.reviews`(product 칸으로 가른다,
+    `supabase/migrations/010_reviews.sql`). 표에 **쓰기 정책이 없다** — 브라우저가 직접 못 쓴다.
+  · MassLabs `/review`는 **읽기 전용 모음 화면**이다(제품 탭). 여기서는 후기를 안 쓴다.
+  ⛔제품 저장소에서 Supabase에 후기를 직접 쓰지 말 것 — 신원·길이·중복 판정이 저장소 수만큼 갈라진다.
+  🔴신원은 `.masslabs-archi.com` 쿠키(또는 Bearer)다. 로그인만 하면 쓴다(구독 여부는 안 본다).
+  한 계정에 후기 하나 — 두 번째로 쓰면 새로 쌓이지 않고 고쳐 쓴다.
 - 🔴**설치 안내(`/download`)와 사용방법(`/howtouse`)은 LaserFish 소개 사이트가 정본이다**
   (`/download` 2026-08-28, `/howtouse` 2026-08-29 — 둘 다 사용자 결정).
   같은 글이 두 저장소에 살면서 갈라지던 것을 끝냈다 — MassLabs 안쪽 화면 둘은 지웠고,

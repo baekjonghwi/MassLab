@@ -7,7 +7,7 @@ import { useLanguage, useT, trPick, TRich, fmt, type Lang } from "@/lib/i18n";
 import LanguageMenu from "@/components/LanguageMenu";
 import { t } from "@/lib/translations";
 import { useSignedIn } from "@/lib/use-signed-in";
-import { SUBSCRIPTION_LIVE, PER_PIECE_ON_HOME } from "@/lib/interim";
+import { SUBSCRIPTION_LIVE, PER_PIECE_ON_HOME, PLUS_FREE_PROMO } from "@/lib/interim";
 import { TIER_KEYS } from "@/lib/plans";
 import { ARCHIMAP, COLORGRAM, LASERFISH, withLang } from "@/lib/products";
 import { TIERS, PROGRAMS } from "@/components/PlanTable";
@@ -22,16 +22,20 @@ import { PIECE_PRICES, PIECE_MIN_USD, PIECE_MAX_USD } from "@/components/PerPiec
 //
 //  🔴가격은 여기서 짓지 않는다. 세 곳에서 그대로 읽어 온다 —
 //    · 구독 등급·가격 = components/PlanTable 의 TIERS
-//    · archiMap 사양   = components/PlanTable 의 PROGRAMS
-//    · LaserFish 단가  = components/PerPiecePricing 의 PIECE_PRICES
-//    ⚠️그래서 이 화면의 왼쪽 표에는 LaserFish 가 안 나온다(PROGRAMS 에서
-//      archiMap 만 골라 쓴다). "구독은 archiMap 계열, LaserFish 는 건당"이라는
-//      2026-08-27 사용자 결정이 화면에 그렇게 나타난 것이다.
-//    🔴2026-08-29 부터 **오른쪽 건당표도 안 나온다** — 건당결제 안내의 정본은
-//      LaserFish 소개 사이트다. 그림과 값은 아래에 그대로 있고 lib/interim.ts 의
-//      PER_PIECE_ON_HOME 뒤에 숨어 있을 뿐이다.
-//      🔴권한 판정(lib/plans.ts 의 MIN_PLAN)은 **아직 안 바꿨다** — 배포된 라이노
-//        플러그인이 그걸 보고 있어서, 화면과 함께 뒤집으면 기존 구독자가 막힌다.
+//    · 프로그램별 사양 = components/PlanTable 의 PROGRAMS
+//    · LaserFish 단가  = components/PerPiecePricing 의 PIECE_PRICES (폐기된 건당결제)
+//
+//  🔴2026-09-05 — 가격 구역이 **구독 한 칸**이 되었다(사용자 결정).
+//    · 왼쪽 표가 archiMap 한 줄이 아니라 **PROGRAMS 전부**를 싣는다. LaserFish 가
+//      건당결제를 떠나 구독 안으로 들어왔으므로(lib/plans 의 MIN_PLAN → plus),
+//      "구독 하나로 전부"라는 말과 표가 이제 같은 것을 말한다.
+//      ⚠️프로그램이 늘면 여기는 손대지 않는다 — PROGRAMS 에 한 덩이를 더하면
+//        이 표에 구역 하나가 저절로 생긴다.
+//    · PLUS 에 동그라미와 "(할인 기간)"이 붙는다 — 판정은 lib/interim 의
+//      PLUS_FREE_PROMO 한 곳이고, 그 값이 false 가 되면 표시가 통째로 사라진다.
+//    🔴2026-08-29 부터 **오른쪽 건당표는 안 나온다** — lib/interim.ts 의
+//      PER_PIECE_ON_HOME 뒤에 숨어 있다. 2026-09-05 에 건당결제 자체가 폐기되어
+//      이제 되살릴 일이 없지만, 값과 그림은 지우지 않았다.
 //
 //  🔴사진 — 아직 없는 자리는 자리표시자가 대신 선다. 아래 데이터의 img 에 경로만
 //    적으면 그 자리가 저절로 채워진다. 지금 진짜 사진이 있는 건 LaserFish 뿐이다.
@@ -535,6 +539,19 @@ const LANDING_CSS = `
   .lp-tier-head b { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.16em; color: var(--mut); }
   .lp-tier-head span { font-size: 1rem; font-weight: 800; letter-spacing: -0.03em; color: var(--acc); }
   .lp-tier-lab { display: flex; align-items: center; font-size: 0.71rem; color: var(--mut); padding: 0 2px; }
+  /* 프로그램 이름 줄 — 표 전체를 가로지른다(어느 사양이 어느 프로그램의 것인지
+     알려 주는 유일한 단서다). grid-column: 1/-1 이라 등급 칸 수가 바뀌어도 따라간다. */
+  .lp-tier-prog {
+    grid-column: 1 / -1; display: flex; align-items: center; gap: 10px;
+    font-size: 0.78rem; font-weight: 800; letter-spacing: -0.02em; color: var(--acc);
+    padding: 14px 2px 4px;
+  }
+  .lp-tier-prog::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+  /* 🔴할인 기간에 동그라미가 쳐지는 등급 — 2026-09-05 사용자 지시.
+     ⚠️ring 은 box-shadow 로 바깥에 그린다. border 로 주면 그 칸만 커져 머리줄이 어긋난다. */
+  .lp-tier-head.promo { box-shadow: 0 0 0 2px var(--acc), 0 0 0 4px var(--bg), 0 0 0 6px var(--acc); }
+  .lp-tier-head.promo span { color: var(--dim); text-decoration: line-through; text-decoration-thickness: 1.5px; }
+  .lp-tier-promo { font-family: var(--mono); font-size: 0.56rem; letter-spacing: 0.12em; color: #ffd76a; }
   .lp-tier-cell {
     background: var(--bg2); border: 1px solid var(--line); border-radius: var(--r);
     padding: 11px 9px; font-size: 0.72rem; font-weight: 600; text-align: center;
@@ -902,9 +919,11 @@ export default function LandingView() {
   const prod = PRODUCTS[active];
   const foot = trPick(lang, t).footer;
 
-  // 왼쪽 가격표 = archiMap 한 줄만. LaserFish 는 오른쪽 건당표가 맡는다.
-  const archimap = PROGRAMS.find((p) => p.name === "archiMap");
+  // 🔴가격표는 PROGRAMS 전부를 싣는다(2026-09-05) — 구독 하나가 모든 프로그램을
+  //   덮으므로, 표에 한 프로그램만 서 있으면 그 말이 거짓이 된다.
   const tiers = TIERS.filter((tier) => tier.key !== "free");
+  // 할인 기간에 동그라미가 쳐지는 등급. 판정은 lib/interim 한 곳이다.
+  const isPromo = (key: string) => PLUS_FREE_PROMO && key === "plus";
 
   return (
     <main className="lp" id="top">
@@ -1133,37 +1152,57 @@ export default function LandingView() {
               ? (T("archiMap 과 LaserFish 는 당분간 분리해서 운영됩니다.", "For now, archiMap and LaserFish are run separately."))
               : SUBSCRIPTION_LIVE
                 ? (T("구독 하나로 MassLabs 의 모든 프로그램을 사용합니다.", "One subscription covers every MassLabs program."))
-                : (T("지금은 로그인만 하면 archiMap PLUS 를 무료로 사용합니다.", "For now, just sign in — archiMap PLUS is free."))}
+                /* 🔴2026-09-05 — "archiMap PLUS"가 아니라 그냥 PLUS 다. LaserFish 도
+                     같은 문턱 안으로 들어와서(lib/plans 의 MIN_PLAN), 로그인 하나로
+                     두 프로그램이 함께 열린다. */
+                : (T("할인 기간입니다. 지금은 로그인만 하면 PLUS 를 무료로 사용합니다.", "Promotional period — just sign in and PLUS is free."))}
           </p>
 
           <div className={PER_PIECE_ON_HOME ? "lp-prices" : "lp-prices one"}>
             {/* ── 왼쪽 · archiMap 구독 ── */}
             <div className="lp-price-box reveal" {...rv(3)}>
+              {/* 🔴카드 이름이 프로그램이 아니라 **구독**이다(2026-09-05). 표가
+                    프로그램 여럿을 싣게 되었으므로, 머리에 archiMap 이 남아 있으면
+                    그 아래 LaserFish 줄이 archiMap 의 사양처럼 읽힌다. */}
               <div className="lp-price-top">
-                <b>archiMap</b>
+                <b>MassLabs</b>
                 <span className="lp-price-kind">{T("구독 · 월", "subscription · monthly")}</span>
               </div>
               <div className="lp-tier-scroll">
                 <div className="lp-tier-grid">
                   <div />
                   {tiers.map((tier) => (
-                    <div className="lp-tier-head" key={tier.key}>
+                    <div className={`lp-tier-head${isPromo(tier.key) ? " promo" : ""}`} key={tier.key}>
                       <b>{tier.label}</b>
                       <span>{tier.price}</span>
+                      {isPromo(tier.key) && (
+                        <em className="lp-tier-promo">{T("할인 기간", "PROMO")}</em>
+                      )}
                     </div>
                   ))}
 
-                  {archimap?.features.map((f) => (
-                    <div style={{ display: "contents" }} key={f.label.en}>
-                      <div className="lp-tier-lab">{trPick(lang, f.label)}</div>
-                      {tiers.map((tier) => {
-                        const txt = cellText(f.cells[TIER_KEYS.indexOf(tier.key)], lang);
-                        return (
-                          <div className={`lp-tier-cell${txt ? "" : " off"}`} key={tier.key}>
-                            {txt ?? "×"}
-                          </div>
-                        );
-                      })}
+                  {/* 🔴프로그램마다 이름 줄 하나 + 사양 줄들. PROGRAMS 를 그대로
+                        훑으므로 프로그램이 늘면 이 화면은 손대지 않아도 된다.
+                      ⚠️LaserFish 의 사양 줄은 이름표가 비어 있다(열리냐 마느냐뿐이라
+                        PlanTable 이 일부러 비워 뒀다). 그 줄은 이름표 칸을 비우고
+                        칸만 그린다 — 여기서 "전 기능 이용" 같은 말을 새로 지으면
+                        저쪽 표와 갈라진다. */}
+                  {PROGRAMS.map((p) => (
+                    <div style={{ display: "contents" }} key={p.name}>
+                      <div className="lp-tier-prog">{p.name}</div>
+                      {p.features.map((f, fi) => (
+                        <div style={{ display: "contents" }} key={f.label.en || fi}>
+                          <div className="lp-tier-lab">{trPick(lang, f.label)}</div>
+                          {tiers.map((tier) => {
+                            const txt = cellText(f.cells[TIER_KEYS.indexOf(tier.key)], lang);
+                            return (
+                              <div className={`lp-tier-cell${txt ? "" : " off"}`} key={tier.key}>
+                                {txt === "○" ? T("사용가능", "Available") : (txt ?? "×")}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ))}
                     </div>
                   ))}
 
@@ -1176,9 +1215,17 @@ export default function LandingView() {
                       {SUBSCRIPTION_LIVE ? (
                         <a href="/price">{T("구독하기", "Subscribe")}</a>
                       ) : tier.key === "plus" ? (
-                        <a href={signedIn ? withLang(ARCHIMAP, lang) : "/login"}>
-                          {T("지금은 무료", "Free for now")}
-                        </a>
+                        /* 🔴2026-09-05 — 로그인한 사람은 archiMap 으로 내보내지
+                             않는다. PLUS 가 archiMap 한 프로그램이 아니라 두
+                             프로그램을 함께 여는 등급이 되었으므로, 한쪽으로
+                             보내면 나머지 하나가 없는 것처럼 읽힌다.
+                           ⚠️signedIn 은 null(아직 모른다)일 수 있다 — 그때는
+                             단추 글자를 바꾸지 않는다(먼저 띄웠다 바꾸면 깜빡인다). */
+                        signedIn ? (
+                          <span>{T("이용 중", "Active")}</span>
+                        ) : (
+                          <a href="/login">{T("지금은 무료", "Free for now")}</a>
+                        )
                       ) : (
                         <span>{T("준비 중", "Coming soon")}</span>
                       )}

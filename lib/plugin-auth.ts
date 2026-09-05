@@ -1,5 +1,6 @@
 import { createHash, createSign, randomBytes } from "crypto";
 import { CENTRAL, minPlanOf, planAllows, sbFetch, type PlanKey } from "./subscription";
+import { PLUS_FREE_PROMO } from "./interim";
 
 // ==========================================================================
 //  라이노 플러그인 신원 — 로그인 연결과 장기 토큰.
@@ -135,9 +136,17 @@ export async function entitlementOf(uid: string, product: string): Promise<Entit
     method: "POST",
     body: JSON.stringify({ p_user: uid, p_product: product }),
   });
-  const plan = r.ok ? ((await r.json()) as string) : "free";
-  // 🔴"유료냐"가 아니라 "이 프로그램의 문턱을 넘느냐"다. LaserFish는 PLUS로는
-  //   못 연다 — 판정 기준은 lib/plans의 MIN_PLAN 한 곳에만 둔다.
+  const real = r.ok ? ((await r.json()) as string) : "free";
+  // 🔴할인 기간 — 로그인만 했으면 PLUS로 본다(lib/interim 의 PLUS_FREE_PROMO).
+  //   여기 오는 사람은 이미 신원이 확인된 사람이다(uid 가 있다) → "로그인했다"가
+  //   곧 참이다. archiMap 의 promoPlan(그쪽 public/app.js)과 같은 규칙이고,
+  //   두 프로그램이 같은 날 같은 스위치로 함께 열리고 닫혀야 해서 이렇게 맞췄다.
+  //  ⛔올리는 것은 free 뿐이다. 돈을 낸 pro·max 를 plus 로 끌어내리면 안 된다.
+  //  ⚠️DB에는 안 적는다 — 진짜 등급은 free 그대로 두고, 답할 때만 올려 준다.
+  //    적어 버리면 행사가 끝난 뒤에도 전원이 PLUS 로 남는다.
+  const plan = PLUS_FREE_PROMO && real === "free" ? "plus" : real;
+  // 🔴"유료냐"가 아니라 "이 프로그램의 문턱을 넘느냐"다. 문턱은 lib/plans의
+  //   MIN_PLAN 한 곳에만 둔다(2026-09-05 부터 laserfish 도 PLUS 다).
   const allowed = planAllows(plan, product);
   // until = 온라인 재확인 주기. 서명 exp = 오프라인 한계(더 길다). 둘을 나눈 이유는
   // 🔴온라인일 땐 자주 다시 물어 해지를 빨리 반영하고, 오프라인일 땐 서명 만료까지

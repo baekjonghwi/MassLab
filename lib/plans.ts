@@ -25,9 +25,16 @@ export const DEFAULT_MIN_PLAN: PlanKey = "plus";
 
 // 🔴프로그램에 등급 문턱을 두려면 여기 한 줄만 더한다.
 //   적지 않은 프로그램은 유료면(plus 이상) 전부 열린다.
-//   · laserfish — 2026-08-18 사용자 결정: PRO 이상.
+//
+//   🔴2026-09-05 — laserfish 를 pro 에서 **plus 로 내렸다**(사용자 결정).
+//     2026-08-18 에 PRO 로 잡았던 것은 LaserFish 를 건당결제로 따로 팔던 때의
+//     서열이다. 건당결제를 폐기하고 구독 하나로 모으면서, 문턱도 archiMap 과
+//     같은 자리(PLUS)로 내렸다 — 지금은 "구독 하나로 전부"가 표의 말이라,
+//     제일 싼 등급이 프로그램 하나를 못 여는 표는 그 말과 어긋난다.
+//   ⚠️여기를 pro 로 되돌리면 요금제 표(PlanTable 의 gate)와 플러그인 판정
+//     (lib/plugin-auth 의 entitlementOf)이 **함께** 따라온다. 한 곳이다.
 export const MIN_PLAN: Record<string, PlanKey> = {
-  laserfish: "pro",
+  laserfish: "plus",
 };
 
 export function minPlanOf(product: string): PlanKey {

@@ -82,3 +82,51 @@ export const USE_TEST_CHANNELS: boolean = false;
 
 export const TEST_CHANNEL_KRW = "channel-key-b5054294-344b-4833-8f5a-7f3a445d4b40";
 export const TEST_CHANNEL_INTL = "channel-key-6e915a7e-6083-4af1-a301-6eeb7fa4ce72";
+
+// ==========================================================================
+//  🔴할인 기간 — 로그인하면 PLUS (2026-09-05 사용자 결정)
+//
+//  archiMap 은 2026-08-21 부터 `SOLO_PLUS_FREE`(그쪽 public/app.js)로 이미 이렇게
+//  굴러왔다: 로그인한 사람은 전부 PLUS 로 본다. 그런데 LaserFish 는 건당결제로
+//  따로 팔고 있어서 그 규칙 밖에 있었다.
+//  ⇒ 건당결제를 폐기하고 LaserFish 문턱을 PLUS 로 내리면서(lib/plans 의 MIN_PLAN),
+//    두 프로그램이 같은 규칙 아래 선다 — **로그인하면 PLUS, 당분간 공짜.**
+//
+//  🔴이 값은 SUBSCRIPTION_LIVE 하나에서 파생된다. 스위치를 둘로 두면 언젠가
+//    "구독은 파는데 여전히 공짜"인 상태가 생긴다 — 그건 돈이 안 들어오는 상태다.
+//
+//  🔴판정을 얹는 곳은 **서버 한 곳뿐이다**: lib/plugin-auth 의 entitlementOf.
+//    거기서 free 를 plus 로 올려 주므로, 라이노 플러그인·요금제 표·/account 가
+//    전부 같은 답을 본다. ⛔화면마다 "지금은 무료" 판정을 새로 적지 말 것.
+//  ⚠️DB(profiles.plan · subscriptions)는 **안 건드린다.** 진짜 등급은 free 그대로다 —
+//    거기에 plus 를 적으면 행사가 끝난 뒤에도 전원이 PLUS 로 남는다
+//    (archiMap 이 같은 이유로 ACCT.plan 을 안 건드린다).
+//
+//  ⚠️화면에 "(할인 기간)" 이라고 적는 자리가 셋이다. 이 값이 false 가 되면 셋이
+//    함께 사라진다 — components/PlanTable · components/LandingView, 그리고
+//    저장소가 달라 손으로 봐야 하는 archiMap 의 PLAN 창(그쪽 renderSubscription).
+// ==========================================================================
+export const PLUS_FREE_PROMO: boolean = !SUBSCRIPTION_LIVE;
+
+// ==========================================================================
+//  ⛔건당결제 폐기 (2026-09-05 사용자 결정)
+//
+//  LaserFish 를 조각당 $0.1/$0.05 로 팔던 배선이다. 구독(PLUS)이 LaserFish 를
+//  덮게 되면서(lib/plans 의 MIN_PLAN) 같은 것을 두 번 파는 꼴이 되어 접었다.
+//
+//  🔴이 값이 false 인 동안 `/payment` 는 결제창을 그리지 않고 **안내문**을 띄운다:
+//    "건당결제는 끝났습니다. 플러그인을 새로 받으면 로그인만으로 열립니다."
+//    ⚠️화면을 통째로 없애지 않는 이유 — 배포된 옛 플러그인(2.2.3)이 이 주소를
+//      직접 연다. 404 를 띄우면 사람이 무슨 일이 난 건지 알 길이 없다.
+//
+//  🔴`/api/verify-payment` 는 **살려 둔다.** 이 스위치를 내리는 순간에 결제창을
+//    이미 띄워 둔 사람이 있을 수 있고, 그 사람의 폴링이 영영 성공하지 않으면
+//    돈만 내고 도면을 못 받는다. 새로 시작하는 길만 막고, 이미 시작된 것은 끝나게 둔다.
+//
+//  🔴함께 죽은 것 — `/api/submit-review`(paymentId 로 신원을 삼던 후기 저장)와
+//    결제 완료 뒤 후기 화면으로 자동으로 넘기던 배선. 후기는 이제 `/api/reviews` 다.
+//
+//  ⚠️되살릴 일은 없다고 보지만, 값·그림·화면은 하나도 안 지웠다
+//    (components/PerPiecePricing · app/payment · PER_PIECE_ON_HOME).
+// ==========================================================================
+export const PER_PIECE_LIVE: boolean = false;

@@ -4,6 +4,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import * as PortOne from "@portone/browser-sdk/v2";
 import { useLanguage, useT, trPick } from "@/lib/i18n";
 import { t } from "@/lib/translations";
+import { PER_PIECE_LIVE } from "@/lib/interim";
+import { LASERFISH_DOWNLOAD } from "@/lib/products";
 
 declare global {
   interface Window {
@@ -495,6 +497,59 @@ function PaymentContent() {
   );
 }
 
+// ==========================================================================
+//  ⛔건당결제가 끝난 뒤의 이 화면 — 안내문 (2026-09-05)
+//
+//  🔴화면을 지우지 않는 이유: **배포된 옛 플러그인(2.2.3)이 이 주소를 직접 연다.**
+//    조각 수를 세고 나면 브라우저로 `/payment?wall=84&...` 를 띄우도록 박혀 있어서,
+//    404 를 만나면 사람이 무슨 일이 난 건지 알 길이 없다.
+//  🔴그래서 결제창 대신 "이제 공짜다"라고 말하고 새 플러그인으로 보낸다.
+//    ⚠️`/api/verify-payment` 는 살아 있다 — 스위치를 내린 순간 이미 결제창을
+//      띄워 둔 사람의 폴링이 끝나야 하기 때문이다(lib/interim 의 PER_PIECE_LIVE).
+// ==========================================================================
+function PerPieceRetired() {
+  const T = useT();
+  return (
+    <div style={{ textAlign: "center", maxWidth: "420px", padding: "0 24px" }}>
+      <h1 style={{ fontSize: "1.35rem", fontWeight: 700, letterSpacing: "-0.02em", marginBottom: "12px" }}>
+        {T("건당 결제는 종료되었습니다", "Pay-per-piece has ended")}
+      </h1>
+      <p style={{ fontSize: "0.86rem", color: "#666", lineHeight: 1.8, marginBottom: "10px" }}>
+        {T(
+          "이제 LaserFish 는 MassLabs 구독에 포함됩니다. 할인 기간 동안에는 로그인만 하면 무료입니다.",
+          "LaserFish is now part of the MassLabs subscription. During the promotional period it is free once you sign in.",
+        )}
+      </p>
+      <p style={{ fontSize: "0.86rem", color: "#666", lineHeight: 1.8, marginBottom: "28px" }}>
+        {T(
+          "플러그인을 최신 버전으로 새로 받은 뒤 라이노에서 로그인해 주세요.",
+          "Please update the plug-in to the latest version and sign in from Rhino.",
+        )}
+      </p>
+      <div style={{ display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" }}>
+        <a
+          href={LASERFISH_DOWNLOAD}
+          style={{
+            padding: "11px 22px", background: "#1a1a1a", color: "#fff", borderRadius: "8px",
+            fontSize: "0.86rem", fontWeight: 600, textDecoration: "none",
+          }}
+        >
+          {T("플러그인 받기", "Get the plug-in")}
+        </a>
+        <a
+          href="/login"
+          style={{
+            padding: "11px 22px", background: "#fff", color: "#333", border: "1px solid #ddd",
+            borderRadius: "8px", fontSize: "0.86rem", fontWeight: 600, textDecoration: "none",
+          }}
+        >
+          {T("로그인", "Sign in")}
+        </a>
+      </div>
+    </div>
+  );
+}
+
 export default function PaymentPage() {
   return (
     <main style={{
@@ -506,13 +561,19 @@ export default function PaymentPage() {
       alignItems: "center",
       justifyContent: "center",
     }}>
-      <Suspense fallback={
-        <div style={{ textAlign: "center" }}>
-          <p style={{ fontSize: "0.88rem", color: "#888" }}>Loading...</p>
-        </div>
-      }>
-        <PaymentContent />
-      </Suspense>
+      {/* 🔴스위치 하나로 갈린다. PER_PIECE_LIVE 를 true 로 되돌리면 아래 결제
+          화면이 그대로 다시 선다 — 지운 것이 하나도 없다. */}
+      {PER_PIECE_LIVE ? (
+        <Suspense fallback={
+          <div style={{ textAlign: "center" }}>
+            <p style={{ fontSize: "0.88rem", color: "#888" }}>Loading...</p>
+          </div>
+        }>
+          <PaymentContent />
+        </Suspense>
+      ) : (
+        <PerPieceRetired />
+      )}
     </main>
   );
 }

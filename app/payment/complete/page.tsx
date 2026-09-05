@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState, Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useLanguage, trPick } from "@/lib/i18n";
 import { t } from "@/lib/translations";
 
@@ -18,7 +18,6 @@ declare global {
 function PaymentCompleteContent() {
   const [status, setStatus] = useState<"loading" | "success" | "fail">("loading");
   const searchParams = useSearchParams();
-  const router = useRouter();
   const { lang } = useLanguage();
   const tr = trPick(lang, t).paymentComplete;
 
@@ -72,14 +71,13 @@ function PaymentCompleteContent() {
     savePayment();
   }, [paymentId]);
 
-  useEffect(() => {
-    if (status !== "success") return;
-    const timer = setTimeout(() => {
-      sessionStorage.setItem("reviewPaymentId", paymentId!);
-      router.push("/review");
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, [status, paymentId, router]);
+  // 🔴결제가 끝나면 3초 뒤 후기 화면으로 넘기던 자리다 — **뺐다**(2026-09-05).
+  //   "laserfish 만들 때마다 뜨는 review 창"이 바로 이것이었다(사용자 지적).
+  //   후기는 이제 결제의 꼬리가 아니라 제품 안의 제 자리에서 쓴다:
+  //   archiMap 의 [REVIEW] 모달 · LaserFish 의 /review. 저장은 /api/reviews.
+  //   ⚠️건당결제 자체가 폐기되어(lib/interim 의 PER_PIECE_LIVE) 이 화면에
+  //     닿는 사람은 옛 플러그인을 쓰는 사람뿐이다. 그 사람을 후기 폼 앞에
+  //     세워 두는 대신 결제 완료 화면에 그대로 머물게 둔다.
 
   if (status === "loading") {
     return (
