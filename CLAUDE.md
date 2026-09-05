@@ -125,5 +125,12 @@ MassLabs는 배포되는 프로젝트라 하위 폴더가 빌드 컨텍스트에
 - 세션은 `.masslabs-archi.com` 쿠키(앞에 점) 한 벌을 전 제품이 공유한다.
   🔴쿠키 형식은 archiMap의 `ckStore`(`public/app.js`)와 **한 벌로 움직이는 규약**이다 —
   한쪽만 고치면 다른 제품 로그인이 조용히 깨진다.
+  🔴🔴**제품 화면은 로그인 상태를 스스로 읽어 [로그인]과 [내 계정]을 갈라야 한다**
+  (2026-09-06 — LaserFish가 안 읽어서 "제품마다 따로 로그인해야 한다"는 버그가 났다).
+  쿠키는 HttpOnly가 아니라 브라우저가 읽는다 — Supabase 클라이언트를 새로 달 필요가 없다.
+  넷 다 답이 있다: archiMap `onAuth` · Colorgram `SiteHeader` · LaserFish `lib/session.ts` ·
+  MassLabs `lib/use-signed-in.ts`. ⛔새 제품에서 이 자리를 비워 두지 말 것.
+  🔴그물이 하나 더 있다 — **`/login`은 이미 로그인한 사람을 `next`로 곧장 돌려보낸다.**
+  ⚠️`?mode=reset`·`signup`은 예외다(로그인한 채로 비밀번호를 바꾸러 오는 길이다).
 
 🔴**파일을 열기 전에 어느 폴더인지부터 확인할 것.** `MassLabs`와 `archiMap`은 오가다 섞이기 쉽다.

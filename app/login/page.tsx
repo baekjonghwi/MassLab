@@ -1,5 +1,5 @@
 "use client";
-import { useState, Suspense } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { supabase, safeNext } from "@/lib/supabase";
 import { AuthCard, AuthShell, PasswordField } from "@/components/AuthCard";
@@ -93,6 +93,35 @@ function LoginContent() {
   const mode0 = sp.get("mode");
   const [mode, setMode] = useState<Mode>(
     mode0 === "signup" ? "signup" : mode0 === "reset" ? "reset" : "login");
+
+  // ==========================================================================
+  //  🔴이미 로그인한 사람에게는 폼을 안 보여 주고 곧장 돌려보낸다(2026-09-06).
+  //
+  //  세션은 `.masslabs-archi.com` 쿠키 한 벌이라 제품 하위도메인도 이미 로그인
+  //  상태다. 그런데 제품 화면의 [로그인]은 상태를 안 보고 늘 여기로 보내서,
+  //  로그인한 사람이 눌러도 **빈 로그인 폼**을 만났다 — 통합 로그인이 "제품마다
+  //  따로 로그인해야 한다"로 읽히던 자리가 여기다(LaserFish 에서 발견).
+  //  ⚠️LaserFish 쪽도 함께 고쳤다(그쪽 components/TopBar + lib/session.ts —
+  //    로그인했으면 [내 계정]으로 선다). 여기는 그 문이 어디서 열리든 막는 그물이다.
+  //
+  //  🔴getUser() 가 아니라 getSession() 이다. 여기서 물을 것은 "이 브라우저에
+  //    세션이 있나"뿐이고, getSession 은 쿠키를 그 자리에서 읽어 답한다 —
+  //    인증 서버를 한 번 더 왕복하면 그동안 폼이 그만큼 오래 서 있는다.
+  //    ⚠️쿠키가 낡았어도 상관없다. 도착한 화면이 어차피 다시 판정한다.
+  //  ⚠️mode 가 login 일 때만이다. `?mode=reset`·`signup` 으로 **일부러** 온 사람은
+  //    로그인해 있어도 그 화면을 봐야 한다(비밀번호 바꾸기가 그 길이다).
+  //  ⚠️next 가 다시 /login 이면 여기로 돌아와 끝없이 돈다 — 그때는 홈으로.
+  //  ⚠️replace 다. push 로 두면 뒤로가기가 여기로 떨어져 또 튕긴다.
+  // ==========================================================================
+  useEffect(() => {
+    if (mode !== "login") return;
+    let alive = true;
+    supabase().auth.getSession().then(({ data }) => {
+      if (!alive || !data.session) return;
+      window.location.replace(next.startsWith("/login") ? "/" : next);
+    });
+    return () => { alive = false; };
+  }, [mode, next]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
