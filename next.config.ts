@@ -1,6 +1,28 @@
 import type { NextConfig } from "next";
 import { SUBSCRIPTION_LIVE } from "./lib/interim";
 
+// 🔴CSP 는 **Report-Only** 로 시작한다 — 아무것도 차단하지 않고 위반만 /api/csp-report
+//   로 보고한다. 결제창(PortOne)이 여러 PG 도메인으로 튀어 script-src·frame-src 를
+//   미리 다 적을 수 없어서, 실제 트래픽이 무엇을 부르는지 모은 뒤 목록을 굳히고
+//   강제(Content-Security-Policy)로 전환한다. 지금 값은 "알려진 출처"의 첫 추정이다.
+//   ⚠️강제로 바꾸기 전엔 홈·로그인·결제·후기를 돌려 보며 보고를 반드시 확인할 것 —
+//     빠뜨린 도메인이 있으면 강제 순간 그 기능이 죽는다.
+const CSP_REPORT_ONLY = [
+  "default-src 'self'",
+  // 'unsafe-inline' 은 Next 의 부트스트랩·fb-pixel 인라인 때문에 아직 필요하다.
+  // 다음 단계에서 nonce 로 좁힌다(그래야 인라인 주입 XSS 까지 막힌다).
+  "script-src 'self' 'unsafe-inline' https://connect.facebook.net",
+  "connect-src 'self' https://api.portone.io https://tnadzbzvqwoxdghnesrl.supabase.co https://connect.facebook.net https://www.facebook.com https://open.er-api.com",
+  "img-src 'self' data: blob: https://tnadzbzvqwoxdghnesrl.supabase.co https://www.facebook.com",
+  "style-src 'self' 'unsafe-inline'",
+  "font-src 'self' data:",
+  "frame-src 'self' https://api.portone.io",
+  "frame-ancestors 'self' https://*.masslabs-archi.com",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "report-uri /api/csp-report",
+].join("; ");
+
 const nextConfig: NextConfig = {
   // 🔴Next 16 부터 quality 는 **허용목록제**다. 여기 없는 값을 <Image quality={…}>
   //   에 적으면 그 사진이 통째로 안 나온다(빌드가 아니라 요청 때 막힌다).
@@ -22,6 +44,8 @@ const nextConfig: NextConfig = {
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "Strict-Transport-Security", value: "max-age=5184000; includeSubDomains" },
           { key: "Content-Security-Policy", value: "frame-ancestors 'self' https://*.masslabs-archi.com" },
+          // 🔴전체 정책은 아직 보고만 한다(차단 안 함). 위 frame-ancestors 만 강제다.
+          { key: "Content-Security-Policy-Report-Only", value: CSP_REPORT_ONLY },
         ],
       },
     ];
