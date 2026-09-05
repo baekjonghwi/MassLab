@@ -9,6 +9,24 @@ const nextConfig: NextConfig = {
   //   ⚠️75 를 빼지 말 것 — 값을 안 적은 모든 <Image> 가 그걸 쓴다.
   images: { qualities: [75, 90] },
 
+  // 🔴보안 헤더 — 정상 동작엔 영향 없고 브라우저 방어막만 얹는다(2026-09-05).
+  //   frame-ancestors 는 DENY 가 아니다: archiMap 이 /login 을 의도적으로 iframe 으로
+  //   품으므로 가족 도메인은 허용하고 바깥만 막는다(클릭재킹). CSP script-src 는
+  //   사이트를 하얗게 죽일 수 있어 여기 넣지 않는다 — 별도로 report-only 부터.
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "Strict-Transport-Security", value: "max-age=5184000; includeSubDomains" },
+          { key: "Content-Security-Policy", value: "frame-ancestors 'self' https://*.masslabs-archi.com" },
+        ],
+      },
+    ];
+  },
+
   // 🔴맨 주소 /favicon.ico 를 이 폴더로 넘긴다.
   //   app/favicon.ico(Next 파일 규약)를 지웠기 때문에 필요하다 — 브랜드 그림의
   //   원본을 public/images/icon/ 한 곳으로 모으면서 그 사본을 걷어냈다.
