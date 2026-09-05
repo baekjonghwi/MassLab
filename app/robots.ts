@@ -20,6 +20,8 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: [
         "/api/",          // 서버 통로. 사람이 읽을 글이 없다
+        "/admin",         // 🔴운영 현황. 화면 쪽에 noindex 도 함께 있다
+                          //   (app/admin/layout.tsx) — 이 줄만으로는 못 감춘다.
         "/auth/",         // 로그인 돌아오는 자리
         "/account",       // 로그인해야 열리는 내 정보 (아래 /security 까지 함께 걸린다)
         "/payment",       // 결제 진행 화면 — 값이 물음표 뒤에 실려 다녀 주소가 무한히 늘어난다

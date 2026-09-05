@@ -83,6 +83,44 @@ MassLabs는 배포되는 프로젝트라 하위 폴더가 빌드 컨텍스트에
   최종 폴백이 `en` 이다). 제목·설명만 한국어면 구글이 그걸 버리고 영어 본문에서 새로 짓는다.
   ⚠️그 대가로 **네이버·국내 한국어 검색어에는 안 걸린다.** 되찾으려면 번역이 아니라
   `/ko`·`/en` 로 **주소를 나눠야** 한다(그래야 로봇이 한국어 화면을 본다). 그날은 세 사이트를 함께 볼 것.
+- 🔴**운영 현황판은 `/admin` 하나다**(2026-09-05 사용자 결정 — MassLabs 안에 넣는다).
+  들어갈 수 있는 사람은 `profiles.plan = 'admin'`, 아니면 **404**다(403은 존재를 알려 준다).
+  문이 둘이다: 화면·API가 `lib/admin-auth.ts`로 먼저 걸르고, DB 함수 쪽에도
+  anon·authenticated 실행 권한이 아예 없다(`supabase/migrations/011_admin_dashboard.sql`
+  + `013_admin_credits_as_activity.sql`).
+  집계는 **DB 함수 둘**이 전부 한다 — `admin_overview()`(카드·추이·지도·제품·등급·후기),
+  `admin_user_rows()`(사용자 표. 검색·정렬·쪽나눔·**이메일 마스킹**까지 여기서).
+  ⛔행을 긁어다 자바스크립트로 세지 말 것. ⛔이메일 원문을 화면으로 내리지 말 것(2026-09-05 결정).
+  🔴**세션·체류시간 계측이 없다.** 그래서 "실시간 접속자"·"평균 체류"를 **안 만든다** —
+  대신 DB에 남은 흔적으로 잰다. 활동의 정의가 **두 층**이다(013):
+  · `public.admin_activity` — 시각이 붙은 흔적 하나하나(제품이 붙는다): archiMap
+    `style_files`·`style_refs`·`ref_likes`, Colorgram `likes`, LaserFish `plugin_tokens.last_seen_at`.
+  · `public.admin_user_activity` — **사람 단위 집계. 화면·API는 언제나 이쪽을 본다.**
+    위 흔적에 **크레딧 사용**(`profiles.credits_used`)을 합친다.
+  🔴🔴크레딧을 빠뜨렸다가 큰 거짓말을 했다(2026-09-06 발견) — archiMap의 주된 쓰임인
+  크레딧 소비는 **아무 행도 남기지 않고** 숫자만 올린다. 그래서 크레딧을 쓴 450명 중
+  **282명이 "한 번도 안 쓴 사람"으로 세어졌고**, 화면이 76%라고 말했다(실제 42%).
+  ⛔활동을 세는 코드를 새로 쓸 때 `admin_activity`만 보지 말 것.
+  🔴크레딧에는 시각이 없었다 → `profiles.credits_last_at`을 만들고 `consume_credit`이 적게 했다.
+  ⚠️**지난 사용은 되살릴 수 없다**(근거가 없다). 그 사람들은 누적엔 들지만 "최근 7일"엔
+  안 든다 — 다시 쓰는 순간부터 든다. 그 인원수는 `admin_overview()` 의
+  `active.undated` 로 내려온다(2026-09-06 현재 화면에는 안 그린다 — 캡션을 한 줄로 줄였다).
+  ⚠️나중에 진짜 ping을 붙이면 **`admin_activity`에 한 줄** 더하면 된다(화면은 안 바뀐다).
+  다만 그 일은 제품 저장소 셋을 함께 고치는 일이다 — 오늘부터의 데이터만 쌓인다.
+  🔴지도의 나라 도형은 **archiMap 것을 가져왔다**(2026-09-06 사용자 지시).
+  원본은 그쪽 `public/land/<cc>.json` 237개(Natural Earth 1:50m, 생성기는 `land_build.js`).
+  그걸 등장방형으로 미리 투영·재단순화해 `lib/admin-worldmap.ts`에 넣었다(199개국·90KB).
+  런타임에 아무것도 안 받아 온다. ⛔날짜변경선을 넘는 나라는 링을 펴서 ±360 사본을 함께
+  두어야 한다 — 안 그러면 지도를 가로지르는 줄이 생긴다.
+  ⛔격자(경위도 선)는 육지 **위에** 그린다. 아래에 그리면 육지가 덮어 선이 끊긴다.
+  ⚠️도법을 바꾸면 `lib/admin-geo.ts`의 나라 중심 좌표와 **함께** 바꿀 것 —
+  한쪽만 바꾸면 점이 바다에 뜬다.
+  🔴화면 규칙은 여기만 **다르다** — `app/admin/DESIGN.md`(getdesign "apple")를 따르고,
+  토큰은 `app/admin/admin.css`의 `.adm` 아래에 갇혀 있다. ⛔제품 화면에 끌어다 쓰지 말 것
+  (그쪽 원본은 archiMap = 스킬 `masslabs-ui`). 차트 색만은 예외로 `lib/admin-data.ts`의
+  `PRODUCT_COLOR`가 원본이다(제품이 셋이라 범주색이 필요하고, 색각 검증을 통과한 값이다).
+  ⚠️번역하지 않는다(i18n 사전에 넣지 말 것). ⚠️`robots.ts` Disallow + 화면 `noindex` 한 벌이다.
+
 - 제품 저장소는 **기능만** 갖는다. 권한 판정이 필요하면 MassLabs의 `/api/entitlement`에 묻는다.
 - 세션은 `.masslabs-archi.com` 쿠키(앞에 점) 한 벌을 전 제품이 공유한다.
   🔴쿠키 형식은 archiMap의 `ckStore`(`public/app.js`)와 **한 벌로 움직이는 규약**이다 —

@@ -1,0 +1,214 @@
+/* ==========================================================================
+ *  /admin 의 화면 규칙 — app/admin/DESIGN.md(getdesign "apple")를 토큰으로 옮긴 것.
+ *
+ *  🔴이 파일은 /admin 안에서만 산다. 전부 `.adm` 아래에 갇혀 있다.
+ *    (별표 두 개 뒤에 슬래시를 붙이면 CSS 주석이 거기서 닫힌다 — 강조를 뺀 이유다.)
+ *    ⛔제품 화면(홈·/price·/account…)에 이 규칙을 끌어다 쓰지 말 것 —
+ *      그쪽 원본은 archiMap 이다(스킬 masslabs-ui). 두 언어를 섞으면 둘 다 죽는다.
+ *
+ *  🔴Apple 문법의 핵심 셋만 지키면 나머지는 따라온다:
+ *    ① 파란색 하나(#0066cc)가 모든 상호작용을 진다. 두 번째 브랜드색은 없다.
+ *    ② 크롬에는 그림자가 없다. 그림자는 **바닥에 놓인 것** 하나에만(--shadow-rest).
+ *    ③ 큰 글자는 자간을 좁힌다(negative letter-spacing). 그게 "애플처럼" 보이는 정체다.
+ *
+ *  ⚠️차트 색은 여기 있는 파랑 하나가 아니다 — 제품이 셋이라 범주색이 필요하다.
+ *    lib/admin-data.ts 의 PRODUCT_COLOR 가 원본이고, dataviz 검증을 통과한 값이다.
+ * ========================================================================== */
+
+.adm {
+  /* 색 */
+  --primary: #0066cc;
+  --primary-focus: #0071e3;
+  --ink: #1d1d1f;
+  --ink-80: #333333;
+  --ink-48: #7a7a7a;
+  --hairline: #e0e0e0;
+  --divider: #f0f0f0;
+  --canvas: #ffffff;
+  --parchment: #f5f5f7;
+  --pearl: #fafafc;
+  --tile-dark: #272729;
+  --on-dark: #ffffff;
+  --on-dark-muted: #cccccc;
+
+  /* 모서리 */
+  --r-xs: 5px;
+  --r-sm: 8px;
+  --r-md: 11px;
+  --r-lg: 18px;
+  --r-pill: 9999px;
+
+  /* 간격 */
+  --s-xxs: 4px;
+  --s-xs: 8px;
+  --s-sm: 12px;
+  --s-md: 17px;
+  --s-lg: 24px;
+  --s-xl: 32px;
+  --s-xxl: 48px;
+
+  /* 🔴이 시스템에 존재하는 유일한 그림자. 바닥에 놓인 물건 하나에만 쓴다. */
+  --shadow-rest: rgba(0, 0, 0, 0.22) 3px 5px 30px;
+
+  color: var(--ink);
+  background: var(--parchment);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+    "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.47;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100%;
+}
+
+/* --- 글자 ---------------------------------------------------------------- */
+.adm .t-hero { font-size: 40px; font-weight: 600; line-height: 1.1; letter-spacing: -0.5px; }
+.adm .t-num { font-size: 34px; font-weight: 600; line-height: 1.2; letter-spacing: -0.374px; }
+.adm .t-num-sm { font-size: 21px; font-weight: 600; letter-spacing: -0.2px; }
+.adm .t-title { font-size: 19px; font-weight: 600; letter-spacing: -0.19px; }
+.adm .t-body { font-size: 14px; font-weight: 400; letter-spacing: -0.224px; }
+.adm .t-cap { font-size: 12px; font-weight: 400; letter-spacing: -0.12px; color: var(--ink-48); }
+.adm .t-micro { font-size: 10px; letter-spacing: -0.08px; color: var(--ink-48); }
+.adm .muted { color: var(--ink-48); }
+.adm .strong { font-weight: 600; }
+.adm .tnum { font-variant-numeric: tabular-nums; }
+
+/* --- 상단 막대 (global-nav: 검정, 44px) ---------------------------------- */
+.adm-nav {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: var(--s-md);
+  height: 44px;
+  padding: 0 var(--s-lg);
+  background: #000;
+  color: var(--on-dark);
+  font-size: 12px;
+  letter-spacing: -0.12px;
+}
+.adm-nav a { color: var(--on-dark); text-decoration: none; opacity: 0.85; }
+.adm-nav a:hover { opacity: 1; }
+.adm-nav .spacer { flex: 1; }
+.adm-nav .who { color: var(--on-dark-muted); font-variant-numeric: tabular-nums; }
+
+/* --- 뼈대 ---------------------------------------------------------------- */
+.adm-page { max-width: 1240px; margin: 0 auto; padding: var(--s-xl) var(--s-lg) 80px; }
+.adm-head { display: flex; align-items: flex-end; gap: var(--s-md); flex-wrap: wrap; margin-bottom: var(--s-xl); }
+.adm-head .sub { color: var(--ink-48); font-size: 14px; letter-spacing: -0.224px; }
+
+.adm-grid { display: grid; gap: var(--s-md); }
+.adm-grid.k4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.adm-grid.k2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 1080px) {
+  .adm-grid.k4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .adm-grid.k2 { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 560px) {
+  .adm-grid.k4 { grid-template-columns: minmax(0, 1fr); }
+  .adm-page { padding: var(--s-lg) var(--s-sm) 64px; }
+}
+
+/* store-utility-card: 흰 바닥 · 18px 모서리 · 얇은 테두리 · 그림자 없음 */
+.adm-card {
+  background: var(--canvas);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-lg);
+  padding: var(--s-lg);
+}
+.adm-card.dark { background: var(--tile-dark); border-color: var(--tile-dark); color: var(--on-dark); }
+.adm-card.dark .muted, .adm-card.dark .t-cap { color: var(--on-dark-muted); }
+.adm-card > header { display: flex; align-items: baseline; gap: var(--s-xs); margin-bottom: var(--s-md); }
+.adm-card > header .spacer { flex: 1; }
+
+.adm-sec { margin-top: var(--s-xl); }
+.adm-sec > h2 { font-size: 24px; font-weight: 600; letter-spacing: -0.3px; margin: 0 0 var(--s-sm); }
+.adm-sec > .lead { color: var(--ink-48); margin: 0 0 var(--s-md); font-size: 14px; }
+
+/* --- 지표 카드 ----------------------------------------------------------- */
+.adm-kpi .label { font-size: 12px; letter-spacing: -0.12px; color: var(--ink-48); margin-bottom: var(--s-sm); }
+.adm-kpi .value { display: flex; align-items: baseline; gap: 6px; }
+.adm-kpi .unit { font-size: 14px; color: var(--ink-48); }
+.adm-kpi .foot { margin-top: var(--s-sm); padding-top: var(--s-sm); border-top: 1px solid var(--divider); font-size: 12px; color: var(--ink-48); }
+
+/* --- 알갱이들 ------------------------------------------------------------ */
+.adm-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px; border-radius: var(--r-pill);
+  background: var(--pearl); border: 1px solid var(--hairline);
+  font-size: 12px; letter-spacing: -0.12px; color: var(--ink-80);
+  white-space: nowrap;
+}
+.adm-chip.on { background: var(--primary); border-color: var(--primary); color: #fff; }
+.adm-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+
+/* 세그먼트 토글 (일/주/월) */
+.adm-seg { display: inline-flex; gap: 2px; padding: 2px; background: var(--parchment); border-radius: var(--r-pill); }
+.adm-seg button {
+  appearance: none; border: 0; background: transparent; cursor: pointer;
+  padding: 5px 14px; border-radius: var(--r-pill);
+  font: inherit; font-size: 12px; letter-spacing: -0.12px; color: var(--ink-80);
+}
+.adm-seg button[aria-pressed="true"] { background: var(--canvas); color: var(--ink); box-shadow: none; font-weight: 600; }
+
+/* 단추 · 입력 */
+.adm-btn {
+  appearance: none; cursor: pointer; font: inherit; font-size: 14px; letter-spacing: -0.224px;
+  padding: 8px 15px; border-radius: var(--r-sm);
+  background: var(--ink); color: #fff; border: 1px solid var(--ink);
+}
+.adm-btn.ghost { background: var(--canvas); color: var(--primary); border-color: var(--hairline); }
+.adm-btn:disabled { opacity: 0.4; cursor: default; }
+.adm-field {
+  font: inherit; font-size: 14px; letter-spacing: -0.224px; color: var(--ink);
+  height: 36px; padding: 0 14px;
+  background: var(--canvas); border: 1px solid var(--hairline); border-radius: var(--r-pill);
+}
+.adm-field:focus-visible, .adm-btn:focus-visible, .adm-seg button:focus-visible {
+  outline: 2px solid var(--primary-focus); outline-offset: 2px;
+}
+select.adm-field { padding-right: 8px; }
+
+/* --- 표 ------------------------------------------------------------------ */
+.adm-tablewrap { overflow-x: auto; margin: 0 calc(var(--s-lg) * -1) calc(var(--s-lg) * -1); padding: 0 var(--s-lg) var(--s-lg); }
+.adm-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.adm-table th {
+  text-align: left; font-weight: 400; color: var(--ink-48); font-size: 12px;
+  padding: 8px 12px 8px 0; border-bottom: 1px solid var(--hairline); white-space: nowrap;
+}
+.adm-table th button {
+  appearance: none; background: none; border: 0; cursor: pointer; font: inherit; color: inherit; padding: 0;
+}
+.adm-table th button[data-on="1"] { color: var(--primary); }
+.adm-table td { padding: 11px 12px 11px 0; border-bottom: 1px solid var(--divider); vertical-align: middle; }
+.adm-table tbody tr:hover { background: var(--pearl); }
+.adm-table .num { font-variant-numeric: tabular-nums; }
+
+/* --- 지도 ---------------------------------------------------------------- */
+/* 🔴이 시스템에서 그림자를 갖는 유일한 물건. "바닥에 놓인 것"이라 그렇다. */
+.adm-map { border-radius: var(--r-lg); background: #08080a; box-shadow: var(--shadow-rest); overflow: hidden; }
+.adm-map svg { display: block; width: 100%; height: auto; }
+
+/* --- 차트 공통 ----------------------------------------------------------- */
+.adm-chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.adm-chart .grid { stroke: var(--divider); stroke-width: 1; }
+.adm-chart .axis { fill: var(--ink-48); font-size: 10px; letter-spacing: -0.08px; }
+.adm-legend { display: flex; flex-wrap: wrap; gap: var(--s-sm) var(--s-md); font-size: 12px; color: var(--ink-80); }
+.adm-legend span { display: inline-flex; align-items: center; gap: 6px; }
+
+/* 떠오르는 값 상자 */
+.adm-tip {
+  position: absolute; pointer-events: none; z-index: 5;
+  background: rgba(29, 29, 31, 0.96); color: #fff;
+  padding: 8px 11px; border-radius: var(--r-sm);
+  font-size: 12px; letter-spacing: -0.12px; line-height: 1.45; white-space: nowrap;
+  transform: translate(-50%, calc(-100% - 10px));
+}
+.adm-tip .k { color: #b9b9bd; }
+.adm-relative { position: relative; }
+
+/* --- 빈 상태 ------------------------------------------------------------- */
+.adm-empty {
+  border: 1px dashed var(--hairline); border-radius: var(--r-md);
+  padding: var(--s-lg); text-align: center; color: var(--ink-48); font-size: 13px;
+}
