@@ -33,6 +33,14 @@ export const PRODUCT_COLOR: Record<string, string> = {
 
 export type Point = { d: string; n: number; cum: number };
 
+export type UsePoint = {
+  d: string;
+  archimap: number;
+  colorgram: number;
+  laserfish: number;
+  credit: number;
+};
+
 export type Overview = {
   generated_at: string;
   totals: {
@@ -45,12 +53,18 @@ export type Overview = {
     first_signup: string | null;
     last_signup: string | null;
   };
+  // 🔴증감률은 **굴러가는 창**끼리 견준다(24시간 vs 직전 24시간 …). 달력으로
+  //   자르면 "오늘 반나절"과 "어제 하루"를 견주게 되어 아침마다 없는 하락이 뜬다.
   signups: {
     today: number;
     this_month: number;
     last_month: number;
+    d1: number;
+    prev_d1: number;
     last7: number;
     prev7: number;
+    d30: number;
+    prev_d30: number;
   };
   active: {
     d1: number;
@@ -79,6 +93,18 @@ export type Overview = {
     laserfish_cuts: number;
     laserfish_cuts7: number;
   };
+  /** 활동 추이. archimap 은 크레딧을 뺀 값이다 — credit 이 따로 서 있다. */
+  use_daily: UsePoint[];
+  use_monthly: UsePoint[];
+  credits: {
+    logged_total: number;
+    logged_today: number;
+    logged7: number;
+    /** profiles.credits_used 의 합 — **이번 달** 카운터다(달마다 0으로 리셋된다). */
+    counter_month: number;
+    /** 건별 기록이 시작된 시각. null 이면 아직 한 건도 안 쌓였다. */
+    since: string | null;
+  };
   plans: { plan: string; n: number }[];
   activity_buckets: { label: string; n: number }[];
   reviews: {
@@ -91,6 +117,23 @@ export type Overview = {
     status: string;
     created_at: string;
   }[];
+};
+
+// 🔴크레딧은 다른 지표와 읽는 법이 다르다 — **횟수는 있고 시각이 없다.**
+//   그래서 admin_overview 에 안 섞고 제 함수(admin_credit_stats)를 따로 부른다.
+export type CreditStats = {
+  /** 총 사용 횟수 = 얼린 옛 값 + 건별 기록 */
+  total: number;
+  /** 한 번이라도 쓴 사람 수 */
+  people: number;
+  max: number;
+  /** 2026-09-06에 얼린 몫. 시각이 없어 날짜 그래프에 못 올린다. */
+  legacy_total: number;
+  logged_total: number;
+  logged_today: number;
+  logged7: number;
+  since: string | null;
+  dist: { used: number; people: number }[];
 };
 
 export type UserRow = {
@@ -141,6 +184,10 @@ async function rpc<T>(name: string, args: Record<string, unknown>): Promise<T> {
 
 export function fetchOverview(): Promise<Overview> {
   return rpc<Overview>("admin_overview", {});
+}
+
+export function fetchCreditStats(): Promise<CreditStats> {
+  return rpc<CreditStats>("admin_credit_stats", {});
 }
 
 export function fetchUsers(q: UserQuery): Promise<UserPage> {

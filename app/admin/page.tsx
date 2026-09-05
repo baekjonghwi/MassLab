@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/admin-auth";
-import { fetchOverview, fetchUsers, PRODUCT_LABEL } from "@/lib/admin-data";
+import { fetchCreditStats, fetchOverview, fetchUsers, PRODUCT_LABEL } from "@/lib/admin-data";
 import GrowthChart from "@/components/admin/GrowthChart";
+import UseTrend from "@/components/admin/UseTrend";
+import CreditPanel from "@/components/admin/CreditPanel";
 import WorldPanel from "@/components/admin/WorldPanel";
 import UserTable from "@/components/admin/UserTable";
 import { ActivityPanel, PlanPanel, ProductPanel, ReviewsPanel } from "@/components/admin/Panels";
@@ -66,9 +68,13 @@ export default async function AdminPage() {
   if (!gate.ok) notFound();
   const who = gate;
 
-  let o, users;
+  let o, users, credits;
   try {
-    [o, users] = await Promise.all([fetchOverview(), fetchUsers({ limit: 25 })]);
+    [o, users, credits] = await Promise.all([
+      fetchOverview(),
+      fetchUsers({ limit: 25 }),
+      fetchCreditStats(),
+    ]);
   } catch {
     return (
       <>
@@ -151,15 +157,19 @@ export default async function AdminPage() {
         <section className="adm-sec">
           <h2>이용자수</h2>
           <div className="adm-grid k2">
-            <GrowthChart daily={o.daily} weekly={o.weekly} monthly={o.monthly} />
+            <GrowthChart daily={o.daily} weekly={o.weekly} monthly={o.monthly} signups={o.signups} />
             <ProductPanel o={o} />
+          </div>
+          <div className="adm-grid" style={{ marginTop: "var(--s-md)" }}>
+            <UseTrend daily={o.use_daily} monthly={o.use_monthly} />
           </div>
         </section>
 
         {/* ── 쓰임새 ──────────────────────────────────────────────── */}
         <section className="adm-sec">
           <h2>분포</h2>
-          <div className="adm-grid k2">
+          <div className="adm-grid k3">
+            <CreditPanel c={credits} />
             <ActivityPanel o={o} />
             <PlanPanel o={o} />
           </div>

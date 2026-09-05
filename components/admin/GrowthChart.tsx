@@ -1,6 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
-import type { Point } from "@/lib/admin-data";
+import type { Overview, Point } from "@/lib/admin-data";
 import { useMeasure } from "./useMeasure";
 
 // ==========================================================================
@@ -41,14 +41,43 @@ function fmtDate(iso: string, span: Span): string {
   return `${m}.${d}`;
 }
 
+// 🔴증감률은 **굴러가는 창**끼리 견준다. 달력으로 자르면 "오늘 반나절"과
+//   "어제 하루"를 견주게 되어 아침마다 없는 하락이 뜬다.
+// 🔴앞뒤 숫자를 함께 적는다(1 → 828). 밑이 작으면 퍼센트가 혼자서는 거짓말을 한다.
+function Delta({ label, now, prev, note }: { label: string; now: number; prev: number; note: string }) {
+  const up = now > prev;
+  const flat = now === prev;
+  const pct = prev === 0 ? null : Math.round(((now - prev) / prev) * 100);
+  return (
+    <div style={{ flex: "1 1 130px" }}>
+      <div className="t-cap" style={{ marginBottom: 2 }}>{label}</div>
+      <div style={{
+        display: "flex", alignItems: "baseline", gap: 4,
+        fontSize: 21, fontWeight: 600, letterSpacing: "-0.2px",
+        color: flat ? "var(--ink-48)" : up ? "var(--primary)" : "var(--ink-80)",
+      }}>
+        <span aria-hidden>{flat ? "–" : up ? "↑" : "↓"}</span>
+        <span className="tnum">
+          {pct === null ? "새로" : `${Math.abs(pct).toLocaleString("ko-KR")}%`}
+        </span>
+      </div>
+      <div className="t-micro tnum">
+        {prev.toLocaleString("ko-KR")} → {now.toLocaleString("ko-KR")}명 · {note}
+      </div>
+    </div>
+  );
+}
+
 export default function GrowthChart({
   daily,
   weekly,
   monthly,
+  signups,
 }: {
   daily: Point[];
   weekly: Point[];
   monthly: Point[];
+  signups: Overview["signups"];
 }) {
   const [span, setSpan] = useState<Span>("weekly");
   const [hover, setHover] = useState<number | null>(null);
@@ -182,6 +211,15 @@ export default function GrowthChart({
             <div><span className="k">누적 </span>{hp.cum.toLocaleString("ko-KR")}명</div>
           </div>
         )}
+      </div>
+
+      <div style={{
+        display: "flex", flexWrap: "wrap", gap: "var(--s-md)",
+        marginTop: "var(--s-md)", paddingTop: "var(--s-md)", borderTop: "1px solid var(--divider)",
+      }}>
+        <Delta label="전일 대비" now={signups.d1}    prev={signups.prev_d1}  note="24시간" />
+        <Delta label="전주 대비" now={signups.last7} prev={signups.prev7}    note="7일" />
+        <Delta label="전월 대비" now={signups.d30}   prev={signups.prev_d30} note="30일" />
       </div>
     </div>
   );

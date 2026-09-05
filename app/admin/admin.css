@@ -100,12 +100,13 @@
 .adm-grid { display: grid; gap: var(--s-md); }
 .adm-grid.k4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .adm-grid.k2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.adm-grid.k3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 @media (max-width: 1080px) {
-  .adm-grid.k4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .adm-grid.k4, .adm-grid.k3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .adm-grid.k2 { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 560px) {
-  .adm-grid.k4 { grid-template-columns: minmax(0, 1fr); }
+  .adm-grid.k4, .adm-grid.k3 { grid-template-columns: minmax(0, 1fr); }
   .adm-page { padding: var(--s-lg) var(--s-sm) 64px; }
 }
 
