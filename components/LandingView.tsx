@@ -380,13 +380,6 @@ const LANDING_CSS = `
   }
   .lp-btn.sec:hover { border-color: var(--acc); color: var(--acc); }
 
-  .lp-tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 28px auto 0; justify-content: center; }
-  .lp-tags i {
-    font-style: normal; font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.14em;
-    text-transform: uppercase; color: var(--dim);
-    border: 1px solid var(--line); border-radius: var(--r); padding: 6px 11px;
-  }
-
   /* ── 사진 틀 — 가장자리를 어둡게 먹인다 ── */
   .shot { position: relative; overflow: hidden; background: var(--bg2); }
   /* 🔴사진에 색 손을 대지 않는다(2026-08-27 지시). 한때 흑백으로 빨아들였는데,
@@ -1051,12 +1044,6 @@ export default function LandingView() {
                 <span>{T("영상 보기", "Watch video")}</span>
                 <i>&#9654;</i>
               </a>
-            </div>
-
-            <div className="lp-tags reveal" {...rv(3)}>
-              <i>{T("라이노 플러그인", "rhino plug-in")}</i>
-              <i>{T("브라우저에서 바로", "browser based")}</i>
-              <i>png &middot; svg &middot; dxf &middot; 3dm</i>
             </div>
           </div>
         </div>
