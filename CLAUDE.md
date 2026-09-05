@@ -36,6 +36,12 @@ MassLabs는 배포되는 프로젝트라 하위 폴더가 빌드 컨텍스트에
   스위치 두 개가 한 벌이다: `lib/interim.ts`의 `SUBSCRIPTION_LIVE` ·
   archiMap `public/app.js`의 `SOLO_PLUS_FREE`. 한쪽만 뒤집으면 두 사이트 말이 어긋난다.
   ⚠️LaserFish 소개 사이트에도 베낀 값이 있다(그쪽 `lib/site.ts`의 `PLUS_FREE_PROMO`) — 셋을 함께 볼 것.
+  🔴🔴**2026-09-05부터 넷이다 — 네 번째는 DB에 있다**: `app_flags.plus_free_promo`
+  (`supabase/migrations/012_credit_promo_flag.sql`). archiMap 크레딧 한도를 서버가
+  판정하게 만들면서 생겼다 — 판정하는 자리가 SQL 함수(`consume_credit`)라 코드 상수를 볼 수 없다.
+  ⛔이 한 줄을 잊고 코드 셋만 내리면, 행사가 끝난 뒤에도 전원이 크레딧 10회를 받는다
+  (등급은 안 오른다 — 크레딧 한도만 어긋나 조용하다). 내리는 법:
+  `update public.app_flags set value=false where key='plus_free_promo';`
   🔴**"(할인 기간)" 표시가 화면 셋에 있다** — MassLabs `PlanTable`·`LandingView`,
   archiMap PLAN 창(`renderSubscription`), LaserFish 홈 비용 구역. 스위치를 내리면 함께 사라진다.
   구독 코드(`/account`·`/subscribe`·`PlanTable`·`/api/subscribe/*`)는 **하나도 안 지웠다** — 되돌리면 그대로 산다.
