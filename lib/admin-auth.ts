@@ -22,7 +22,12 @@ import { CENTRAL, sbFetch } from "./subscription";
 //  ⛔"use client" 파일에서 import 하지 말 것(next/headers 가 들어 있다).
 // ==========================================================================
 
-export type AdminWho = { uid: string; email: string } | null;
+// 🔴"못 들어온다"를 한 덩이로 뭉치지 않는다 — 로그인을 안 한 것과 관리자가
+//   아닌 것은 **다음에 할 일이 다르다.** 앞엣것은 로그인하면 되고, 뒤엣것은
+//   할 수 있는 게 없다. 부르는 쪽이 그 둘을 갈라 쓸 수 있어야 한다.
+export type AdminGate =
+  | { ok: true; uid: string; email: string }
+  | { ok: false; signedIn: boolean };
 
 /** 로그인한 사람의 uid. 없으면 null. */
 async function uidFromCookies(): Promise<string | null> {
@@ -43,19 +48,24 @@ async function uidFromCookies(): Promise<string | null> {
 }
 
 /**
- * 지금 요청이 관리자인가. 맞으면 {uid, email}, 아니면 null.
+ * 지금 요청이 관리자인가.
  * 🔴화면과 API 가 **같은 함수**를 부른다 — 판정이 두 곳으로 갈리지 않게.
+ *   다만 거절하는 **방식**은 부르는 쪽이 정한다:
+ *   · 화면 — 로그인 안 했으면 /login 으로 보내고, 관리자가 아니면 404.
+ *   · API  — 둘 다 404. 통로가 로그인 화면을 띄울 일은 없다.
  */
-export async function requireAdmin(): Promise<AdminWho> {
-  if (!CENTRAL.serviceKey) return null;
+export async function requireAdmin(): Promise<AdminGate> {
+  // 서버 키가 없으면 아무것도 판정할 수 없다. 로그인 화면으로 보내 봐야
+  // 돌아와서 또 막히므로 "로그인은 된 것"으로 쳐서 404 로 끝낸다.
+  if (!CENTRAL.serviceKey) return { ok: false, signedIn: true };
 
   const uid = await uidFromCookies();
-  if (!uid) return null;
+  if (!uid) return { ok: false, signedIn: false };
 
   const r = await sbFetch(`profiles?id=eq.${uid}&select=plan`);
-  if (!r.ok) return null;
+  if (!r.ok) return { ok: false, signedIn: true };
   const rows = (await r.json()) as { plan?: string }[];
-  if (rows[0]?.plan !== "admin") return null;
+  if (rows[0]?.plan !== "admin") return { ok: false, signedIn: true };
 
   // 화면 오른쪽 위에 "누구로 보고 있는지"를 적어 준다. 계정을 두 개 쓰다가
   // 엉뚱한 쪽에서 보고 있는 것을 눈치채지 못하는 일이 잦다.
@@ -64,5 +74,5 @@ export async function requireAdmin(): Promise<AdminWho> {
     cache: "no-store",
   });
   const email = u.ok ? (((await u.json()) as { email?: string }).email ?? "") : "";
-  return { uid, email };
+  return { ok: true, uid, email };
 }

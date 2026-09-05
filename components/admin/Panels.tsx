@@ -86,7 +86,7 @@ export function ActivityPanel({ o }: { o: Overview }) {
   return (
     <div className="adm-card">
       <header>
-        <h3 className="t-title" style={{ margin: 0 }}>사용건수</h3>
+        <h3 className="t-title" style={{ margin: 0 }}>활성계정</h3>
         <div className="spacer" />
         <span className="adm-chip">한 번도 안 쓴 계정 {total ? Math.round((idle / total) * 100) : 0}%</span>
       </header>

@@ -47,7 +47,9 @@ function toCsv(rows: UserRow[]): string {
 }
 
 export async function GET(request: Request) {
-  if (!(await requireAdmin())) return new Response("Not found", { status: 404 });
+  // 🔴통로는 로그인 화면으로 안 보낸다 — 부르는 쪽이 fetch 라 리다이렉트를 따라가
+  //   HTML 을 JSON 으로 읽으려 든다. 로그인 여부와 무관하게 404 하나로 끝낸다.
+  if (!(await requireAdmin()).ok) return new Response("Not found", { status: 404 });
 
   const p = new URL(request.url).searchParams;
   const wantCsv = p.get("format") === "csv";

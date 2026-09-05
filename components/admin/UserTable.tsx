@@ -129,7 +129,7 @@ export default function UserTable({
   return (
     <div className="adm-card">
       <header>
-        <h3 className="t-title" style={{ margin: 0 }}>사용자</h3>
+        <h3 className="t-title" style={{ margin: 0 }}>가입계정</h3>
         <span className="adm-chip tnum">{KO(data.total)}명</span>
         <div className="spacer" />
         <a className="adm-btn ghost" href={`/api/admin/users?${params}&format=csv`}

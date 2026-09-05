@@ -84,7 +84,13 @@ MassLabs는 배포되는 프로젝트라 하위 폴더가 빌드 컨텍스트에
   ⚠️그 대가로 **네이버·국내 한국어 검색어에는 안 걸린다.** 되찾으려면 번역이 아니라
   `/ko`·`/en` 로 **주소를 나눠야** 한다(그래야 로봇이 한국어 화면을 본다). 그날은 세 사이트를 함께 볼 것.
 - 🔴**운영 현황판은 `/admin` 하나다**(2026-09-05 사용자 결정 — MassLabs 안에 넣는다).
-  들어갈 수 있는 사람은 `profiles.plan = 'admin'`, 아니면 **404**다(403은 존재를 알려 준다).
+  들어갈 수 있는 사람은 `profiles.plan = 'admin'`. 거절하는 방식이 **둘로 갈린다**
+  (2026-09-06): 로그인을 안 했으면 `/login?next=/admin`으로 보내고(새 기기·시크릿창에서
+  들어온 운영자가 길을 잃지 않게), 로그인했는데 관리자가 아니면 **404**다
+  (403은 "권한만 있으면 되는 곳"이라고 알려 주는 꼴이다). ⛔`/api/admin/*`은 둘 다 404 —
+  통로가 리다이렉트를 내면 `fetch`가 따라가 HTML을 JSON으로 읽으려 든다.
+  ⛔`robots.txt`에 `/admin`을 적지 말 것(적었다가 뺐다) — 누구나 읽는 파일이라
+  감추려던 줄이 오히려 주소를 광고한다. 화면의 `noindex`와 위 규칙이면 검색에 안 뜬다.
   문이 둘이다: 화면·API가 `lib/admin-auth.ts`로 먼저 걸르고, DB 함수 쪽에도
   anon·authenticated 실행 권한이 아예 없다(`supabase/migrations/011_admin_dashboard.sql`
   + `013_admin_credits_as_activity.sql`).
@@ -119,7 +125,7 @@ MassLabs는 배포되는 프로젝트라 하위 폴더가 빌드 컨텍스트에
   토큰은 `app/admin/admin.css`의 `.adm` 아래에 갇혀 있다. ⛔제품 화면에 끌어다 쓰지 말 것
   (그쪽 원본은 archiMap = 스킬 `masslabs-ui`). 차트 색만은 예외로 `lib/admin-data.ts`의
   `PRODUCT_COLOR`가 원본이다(제품이 셋이라 범주색이 필요하고, 색각 검증을 통과한 값이다).
-  ⚠️번역하지 않는다(i18n 사전에 넣지 말 것). ⚠️`robots.ts` Disallow + 화면 `noindex` 한 벌이다.
+  ⚠️번역하지 않는다(i18n 사전에 넣지 말 것).
 
 - 제품 저장소는 **기능만** 갖는다. 권한 판정이 필요하면 MassLabs의 `/api/entitlement`에 묻는다.
 - 세션은 `.masslabs-archi.com` 쿠키(앞에 점) 한 벌을 전 제품이 공유한다.

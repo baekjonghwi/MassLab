@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/admin-auth";
 import { fetchOverview, fetchUsers, PRODUCT_LABEL } from "@/lib/admin-data";
 import GrowthChart from "@/components/admin/GrowthChart";
@@ -57,8 +57,14 @@ function Kpi({
 }
 
 export default async function AdminPage() {
-  const who = await requireAdmin();
-  if (!who) notFound();
+  const gate = await requireAdmin();
+  // 🔴로그인만 안 한 사람은 되돌릴 수 있다 — 로그인 화면으로 보내고 next 로 다시 데려온다.
+  //   ⚠️404 로 뭉뚱그리면 새 기기·시크릿창에서 들어온 운영자가 길을 잃는다.
+  if (!gate.ok && !gate.signedIn) redirect("/login?next=/admin");
+  // 🔴로그인은 했는데 관리자가 아니면 **404** 다. 여기서 403 을 주면 "권한만
+  //   있으면 되는 곳"이라고 알려 주는 꼴이라, 남에게는 없는 화면으로 둔다.
+  if (!gate.ok) notFound();
+  const who = gate;
 
   let o, users;
   try {
@@ -88,7 +94,6 @@ export default async function AdminPage() {
         <span className="strong">MassLabs 운영</span>
         <Link href="/">홈</Link>
         <Link href="/review">후기</Link>
-        <Link href="/account">내 계정</Link>
         <span className="spacer" />
         <span className="who">{who.email}</span>
       </nav>
@@ -111,7 +116,7 @@ export default async function AdminPage() {
             foot={<>최근 7일 <span className="strong tnum">+{KO(o.signups.last7)}명</span> · 그 전 7일 대비 {pct(o.signups.last7, o.signups.prev7)}</>}
           />
           <Kpi
-            label="활성 사용자 · 7일"
+            label="활성 사용자(7일 이내 접속자)"
             value={KO(o.active.d7)}
             unit="명"
             chip={`전체의 ${activeShare}%`}
@@ -131,12 +136,6 @@ export default async function AdminPage() {
           />
         </div>
 
-        {/* 🔴한 줄이라도 남겨 둘 것. 안 적으면 "실시간 접속자"로 읽힌다 —
-            이 화면에 세션 계측은 없다(supabase/migrations/013 의 admin_user_activity). */}
-        <p className="t-cap" style={{ margin: "var(--s-sm) 2px 0" }}>
-          활성 : 최근 7일에 사용한 사람.
-        </p>
-
         {/* ── 지도 ────────────────────────────────────────────────── */}
         <section className="adm-sec">
           <h2>국가별 분포</h2>
@@ -150,7 +149,7 @@ export default async function AdminPage() {
 
         {/* ── 성장 ────────────────────────────────────────────────── */}
         <section className="adm-sec">
-          <h2>성장</h2>
+          <h2>이용자수</h2>
           <div className="adm-grid k2">
             <GrowthChart daily={o.daily} weekly={o.weekly} monthly={o.monthly} />
             <ProductPanel o={o} />
@@ -159,7 +158,7 @@ export default async function AdminPage() {
 
         {/* ── 쓰임새 ──────────────────────────────────────────────── */}
         <section className="adm-sec">
-          <h2>쓰임새</h2>
+          <h2>분포</h2>
           <div className="adm-grid k2">
             <ActivityPanel o={o} />
             <PlanPanel o={o} />
@@ -168,7 +167,7 @@ export default async function AdminPage() {
 
         {/* ── 사람 ────────────────────────────────────────────────── */}
         <section className="adm-sec">
-          <h2>사람</h2>
+          <h2>사용자</h2>
           <UserTable
             initial={users}
             countries={o.countries.map(({ code, n }) => ({ code, n }))}
@@ -178,7 +177,7 @@ export default async function AdminPage() {
 
         {/* ── 후기 · 기기 ─────────────────────────────────────────── */}
         <section className="adm-sec">
-          <h2>목소리</h2>
+          <h2>리뷰</h2>
           <ReviewsPanel o={o} />
         </section>
       </div>
