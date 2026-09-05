@@ -120,7 +120,7 @@ export const t = {
         {
           title: "Article 7 (User Rights)",
           // ⚠️연락처 줄은 남긴다 — 한국어판과 같은 이유(위 주석 참고).
-          body: "You can close your account and cancel your subscription yourself from the My Plan screen. For anything else — access to, correction of, deletion of, or suspension of processing of your personal data — send a request to masslabs.archi@gmail.com and we will act on it within 10 business days.",
+          body: "You can close your account and cancel your subscription yourself from the My account screen. For anything else — access to, correction of, deletion of, or suspension of processing of your personal data — send a request to masslabs.archi@gmail.com and we will act on it within 10 business days.",
         },
         {
           title: "Article 8 (Destruction of Personal Data)",
@@ -220,7 +220,7 @@ export const t = {
         },
         {
           title: "Article 9 (Cancellation)",
-          body: "You may cancel your subscription at any time from the My Plan screen.",
+          body: "You may cancel your subscription at any time from the My account screen.",
           list: [
             "After cancelling you are not charged from the next billing date, and you keep access until the period you have already paid for ends.",
             "If you start an all-access subscription while individual program subscriptions are active, those individual subscriptions are cancelled immediately and merged into the all-access subscription; fees already paid for them are not refunded pro rata.",
@@ -402,8 +402,8 @@ export const t = {
         {
           title: "제7조 (이용자의 권리)",
           // ⚠️연락처 줄은 남긴다. 열람·정정처럼 화면에 버튼이 없는 권리까지
-          //   [내 구독]으로 떠넘기면, 그 권리를 행사할 통로가 사라진다.
-          body: "이용자는 [내 구독] 화면에서 직접 회원 탈퇴와 구독 해지를 할 수 있습니다. 그 밖에 개인정보 열람·정정·삭제·처리 정지가 필요한 경우 masslabs.archi@gmail.com으로 접수해 주시면 영업일 기준 10일 이내에 처리합니다.",
+          //   [내 계정]으로 떠넘기면, 그 권리를 행사할 통로가 사라진다.
+          body: "이용자는 [내 계정] 화면에서 직접 회원 탈퇴와 구독 해지를 할 수 있습니다. 그 밖에 개인정보 열람·정정·삭제·처리 정지가 필요한 경우 masslabs.archi@gmail.com으로 접수해 주시면 영업일 기준 10일 이내에 처리합니다.",
         },
         {
           title: "제8조 (개인정보의 파기)",
@@ -503,7 +503,7 @@ export const t = {
         },
         {
           title: "제9조 (해지)",
-          body: "이용자는 언제든지 [내 구독] 화면에서 구독을 해지할 수 있습니다.",
+          body: "이용자는 언제든지 [내 계정] 화면에서 구독을 해지할 수 있습니다.",
           list: [
             "해지하면 다음 결제일부터 청구되지 않으며, 이미 결제한 기간이 끝날 때까지는 그대로 이용할 수 있습니다.",
             "이용 중인 개별 프로그램 구독이 있는 상태에서 전체 구독을 시작하면 기존 개별 구독은 즉시 해지되어 전체 구독으로 합쳐지며, 이미 결제된 개별 구독료는 일할 계산하여 환불되지 않습니다.",
