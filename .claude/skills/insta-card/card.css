@@ -1,0 +1,124 @@
+/* ==========================================================================
+   인스타 카드 — 보이는 것 전부
+   🔴색·모서리·그림자 값은 손으로 적지 않는다. `.claude/skills/masslabs-ui/tokens.css`
+     에서 그대로 베껴 온 것이고, 그쪽이 원본이다(그 원본은 archiMap 의 styles.css 다).
+     색을 바꿔야 하면 archiMap → tokens.css → 여기 순서로 내려온다.
+
+   🔴여기만 tokens.css 와 다른 점 하나 — 다크를 `@media` 가 아니라 **클래스**로 건다.
+     내보낸 PNG 에는 "보는 사람의 테마"가 없다. 어느 쪽으로 그릴지는 spec 의
+     theme 가 정하므로, 미디어쿼리가 아니라 .t-dark 가 값을 갈아 끼운다.
+     ⚠️그래도 **이름은 한 글자도 새로 만들지 않았다** — tokens.css 의 규칙 그대로,
+       같은 이름의 값만 갈아 끼운다.
+   ========================================================================== */
+
+/* 🔴글꼴은 render.mjs 가 여기에 **파일째 심어 넣는다**(아래 한 줄이 그 자리다).
+     ⚠️인터넷에서 받아 쓰지 않는 이유 — 헤드리스 크롬의 스크린샷은 글꼴이 다 오기를
+       안 기다린다. 굵은 글씨가 한 판에서만 조용히 가늘게 찍히는 일이 실제로 있었다
+       (2026-09-05, 에스코어드림 Medium 이 늦게 도착해 Regular 로 찍혔다).
+     ⚠️화면용 CSS 는 tokens.css 처럼 원격 url 을 그대로 써도 된다 — 거기선 늦게 와도
+       글꼴이 바뀌어 다시 그려진다. 그림으로 굳는 이 경로만 다르다. */
+/*@FONTS@*/
+
+.t-light {
+  --pan:#f7f7f7; --card:#ffffff; --cbd:#ececec; --bd:#e5e5e5; --bd2:#d4d4d4;
+  --chip:#f5f5f5; --hov:#f2f2f2;
+  --tx:#333333; --tx2:#262626; --tx3:#939393;
+  --ac:#1a1a1a; --acx:#ffffff;
+  --r:8px; --r2:6px;
+  --cardsh:0 1px 2px rgba(0,0,0,.05), 0 3px 10px rgba(0,0,0,.045);
+}
+.t-dark {
+  --pan:#1e1e1e; --card:#2a2a2a; --cbd:#3a3a3a; --bd:#3d3d3d; --bd2:#4a4a4a;
+  --chip:#343434; --hov:#383838;
+  --tx:#e8e8e8; --tx2:#f0f0f0; --tx3:#9a9a9a;
+  --ac:#e9e9e9; --acx:#1a1a1a;   /* ⚠️강조는 다크에서 뒤집힌다 */
+  --r:8px; --r2:6px;
+  --cardsh:0 1px 2px rgba(0,0,0,.4), 0 3px 10px rgba(0,0,0,.32);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { background:#000; }
+
+/* 🔴자간은 한 부호로 통일한다(−0.01em). 예외는 아래 .eyebrow 하나 —
+   작은 대문자 라벨은 자간을 벌리지 않으면 글자가 서로 붙어 안 읽힌다. */
+body {
+  font-family:'Geist','S-Core Dream',-apple-system,'Segoe UI','Malgun Gothic',sans-serif;
+  letter-spacing:-0.01em;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ── 판 한 장 ─────────────────────────────────────────────────────────── */
+.canvas {
+  position:relative; overflow:hidden;
+  background:var(--pan); color:var(--tx);
+  display:flex; flex-direction:column;
+}
+/* 🔴스토리는 인스타 UI 가 위아래를 가린다 — 위 약 250px(프로필·닫기),
+   아래 약 250px(답장창·공유). 그 안쪽으로 글을 밀어 넣는다. */
+.canvas.post   { padding:96px; }
+.canvas.square { padding:96px; }
+.canvas.story  { padding:300px 96px 300px; }
+
+/* ── 위쪽 브랜드 줄 ───────────────────────────────────────────────────── */
+.brand { display:flex; align-items:center; gap:20px; }
+.brand img { width:56px; height:56px; object-fit:contain; border-radius:var(--r2); }
+.brand .nm { font-size:30px; font-weight:600; color:var(--tx2); }
+
+/* ── 본문 자리 ────────────────────────────────────────────────────────── */
+.body { flex:1; display:flex; flex-direction:column; justify-content:center; min-height:0; }
+.canvas.story .body { justify-content:center; }
+
+/* ── 아래쪽 줄 ────────────────────────────────────────────────────────── */
+.foot { display:flex; align-items:center; justify-content:space-between;
+        font-size:24px; color:var(--tx3); line-height:1.5; }
+.foot .pg { font-variant-numeric:tabular-nums; }
+
+/* ── 글 ───────────────────────────────────────────────────────────────── */
+/* 🔴위계는 자간이 아니라 크기로 준다(masslabs-ui 규칙). */
+.eyebrow { font-size:26px; font-weight:600; color:var(--tx3);
+           letter-spacing:0.12em; text-transform:uppercase; margin-bottom:32px; }
+.title   { font-size:84px; font-weight:700; line-height:1.14; color:var(--tx2); }
+.canvas.story .title { font-size:96px; }
+.sub     { font-size:34px; line-height:1.55; color:var(--tx); margin-top:36px; max-width:22em; }
+.bodytx  { font-size:32px; line-height:1.62; color:var(--tx); margin-top:28px; max-width:24em; }
+/* 🔴900 이다(700·800 이 아니다). 제목이 이미 700 이라 같은 값을 주면 아무것도 안 바뀐다.
+   에스코어드림은 701~900 이 Bold 라 여기서 한 칸 올라가고, Geist 도 900 을 함께 받아 둔다.
+   ⚠️제목이 700 인 건 일부러다 — 한글 Bold 는 Geist Bold 보다 무거워서, 한 칸 낮춘
+     Medium 이라야 영문과 무게가 맞는다(masslabs-ui tokens.css 의 설계 의도).
+   */
+b, .hl   { font-weight:900; color:var(--tx2); }
+
+/* ── 번호 카드 ────────────────────────────────────────────────────────── */
+.num { font-size:130px; font-weight:700; line-height:1; color:var(--tx3);
+       opacity:.35; margin-bottom:24px; font-variant-numeric:tabular-nums; }
+.ptitle { font-size:62px; font-weight:700; line-height:1.2; color:var(--tx2); }
+
+/* ── 흰 칸 ────────────────────────────────────────────────────────────── */
+/* 🔴칸을 가르는 건 둥근 모서리가 아니라 그림자다. 모서리는 얕게(8px). */
+.box { background:var(--card); border:1px solid var(--cbd);
+       border-radius:var(--r); box-shadow:var(--cardsh); overflow:hidden; }
+.shot { width:100%; display:block; object-fit:cover; }
+.canvas.post  .shot { height:620px; }
+.canvas.story .shot { height:820px; }
+.canvas.square .shot { height:540px; }
+.cap { font-size:30px; line-height:1.5; color:var(--tx); margin-top:36px; }
+.cap .k { display:block; font-size:44px; font-weight:700; color:var(--tx2);
+          margin-bottom:14px; letter-spacing:-0.01em; }
+
+/* ── 한 문장 ──────────────────────────────────────────────────────────── */
+.quote { font-size:76px; font-weight:700; line-height:1.28; color:var(--tx2); }
+.canvas.story .quote { font-size:88px; }
+.qmark { font-size:120px; line-height:.6; color:var(--tx3); opacity:.4; display:block; margin-bottom:28px; }
+
+/* ── 목록 ─────────────────────────────────────────────────────────────── */
+.list { display:flex; flex-direction:column; gap:22px; margin-top:44px; }
+.li { display:flex; gap:22px; align-items:flex-start; font-size:34px;
+      line-height:1.45; color:var(--tx); }
+.li .dot { flex:none; width:14px; height:14px; margin-top:15px; border-radius:999px; background:var(--tx3); }
+
+/* ── 마지막 장 ────────────────────────────────────────────────────────── */
+/* 🔴알약(999px)은 아주 드물게 — 여기 단추 하나가 그 자리다. */
+.pill { display:inline-flex; align-items:center; align-self:flex-start;
+        margin-top:52px; padding:26px 44px; border-radius:999px;
+        background:var(--ac); color:var(--acx); font-size:32px; font-weight:600; }
+.url { margin-top:32px; font-size:30px; color:var(--tx3); }
