@@ -95,9 +95,12 @@ export const TEST_CHANNEL_INTL = "channel-key-6e915a7e-6083-4af1-a301-6eeb7fa4ce
 //  🔴이 값은 SUBSCRIPTION_LIVE 하나에서 파생된다. 스위치를 둘로 두면 언젠가
 //    "구독은 파는데 여전히 공짜"인 상태가 생긴다 — 그건 돈이 안 들어오는 상태다.
 //
-//  🔴판정을 얹는 곳은 **서버 한 곳뿐이다**: lib/plugin-auth 의 entitlementOf.
-//    거기서 free 를 plus 로 올려 주므로, 라이노 플러그인·요금제 표·/account 가
-//    전부 같은 답을 본다. ⛔화면마다 "지금은 무료" 판정을 새로 적지 말 것.
+//  🔴판정을 얹는 곳은 **아래 effectivePlan 한 함수뿐이다.** 서버(lib/plugin-auth 의
+//    entitlementOf)도, DB 값을 직접 읽는 화면들(/account · /price · 홈의
+//    lib/use-my-plan)도 전부 그것을 부른다 — 그래야 라이노 플러그인·요금제 표·
+//    내 계정이 같은 답을 본다. ⛔화면마다 "지금은 무료" 판정을 새로 적지 말 것.
+//    ⚠️2026-09-05 이전에는 이 규칙이 entitlementOf 안에만 있었다. 화면들이 my_plan
+//      RPC 를 날로 읽으면서 같은 사람이 서버에선 PLUS, /account 에선 미구독이었다.
 //  ⚠️DB(profiles.plan · subscriptions)는 **안 건드린다.** 진짜 등급은 free 그대로다 —
 //    거기에 plus 를 적으면 행사가 끝난 뒤에도 전원이 PLUS 로 남는다
 //    (archiMap 이 같은 이유로 ACCT.plan 을 안 건드린다).
@@ -107,6 +110,22 @@ export const TEST_CHANNEL_INTL = "channel-key-6e915a7e-6083-4af1-a301-6eeb7fa4ce
 //    저장소가 달라 손으로 봐야 하는 archiMap 의 PLAN 창(그쪽 renderSubscription).
 // ==========================================================================
 export const PLUS_FREE_PROMO: boolean = !SUBSCRIPTION_LIVE;
+
+/**
+ * 진짜 등급(DB)을 **화면·플러그인에 답할 등급**으로 바꾼다.
+ *
+ * 🔴할인 기간에는 로그인만 하면 PLUS 다. 그 한 줄이 여기 한 곳에만 있다 —
+ *   전에는 서버(lib/plugin-auth 의 entitlementOf)에만 있었는데, 화면들이
+ *   DB 값을 직접 읽으면서 같은 사람이 홈에서는 PLUS, /account 에서는 free 로
+ *   보이는 일이 생겼다(2026-09-05 발견).
+ * ⛔올리는 것은 free 뿐이다. 돈을 낸 pro·max 를 plus 로 끌어내리면 안 된다.
+ * ⚠️DB 에는 안 적는다 — 답할 때만 올려 준다. 적어 버리면 행사가 끝난 뒤에도
+ *   전원이 PLUS 로 남는다.
+ */
+export function effectivePlan(real: string | null | undefined): string {
+  const r = real || "free";
+  return PLUS_FREE_PROMO && r === "free" ? "plus" : r;
+}
 
 // ==========================================================================
 //  ⛔건당결제 폐기 (2026-09-05 사용자 결정)

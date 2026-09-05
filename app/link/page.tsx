@@ -51,7 +51,7 @@ const TX = {
     foot: "If you didn't start this from Rhino, please close this window.",
     notFound: "We couldn't find that code. Please double-check the code shown in Rhino.",
     badCode: "Please enter the 6-character code.",
-    ambiguous: "Please start sign-in again from Rhino in a moment.",
+    ambiguous: "Please start the login again from Rhino in a moment.",
     unauthorized: "Your session expired. Please refresh and try again.",
     failed: "Couldn't connect this device.",
   },

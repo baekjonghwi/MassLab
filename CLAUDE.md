@@ -26,8 +26,12 @@ MassLabs는 배포되는 프로젝트라 하위 폴더가 빌드 컨텍스트에
   🔴**2026-09-05 — LaserFish도 구독 안으로 들어왔다**(사용자 결정). 건당결제를 폐기하고
   `lib/plans.ts`의 `MIN_PLAN.laserfish`를 `pro`→**`plus`**로 내렸다. 이제 두 프로그램이
   같은 규칙 아래 선다: **로그인하면 PLUS, 당분간 공짜(할인 기간).**
-  판정은 서버 한 곳이다 — `lib/plugin-auth.ts`의 `entitlementOf`가 `PLUS_FREE_PROMO`
-  (=`!SUBSCRIPTION_LIVE`)를 보고 free를 plus로 올려 답한다. ⛔화면마다 다시 판정하지 말 것.
+  판정은 **한 함수**다 — `lib/interim.ts`의 `effectivePlan(real)`이 `PLUS_FREE_PROMO`
+  (=`!SUBSCRIPTION_LIVE`)를 보고 free를 plus로 올린다. ⛔화면마다 다시 판정하지 말 것.
+  서버(`lib/plugin-auth.ts`의 `entitlementOf`)도, DB 값을 직접 읽는 화면들
+  (`/account`·`/price`·홈의 `lib/use-my-plan.ts`)도 전부 그 함수를 부른다.
+  🔴2026-09-05 — 전에는 이 규칙이 `entitlementOf` 안에만 있었다. 화면들이 `my_plan`
+  RPC를 날로 읽으면서 같은 사람이 서버에선 PLUS, `/account`에선 미구독으로 갈렸다.
   ⚠️DB(`profiles.plan`)는 안 건드린다 — 적으면 행사가 끝난 뒤에도 전원이 PLUS로 남는다.
   스위치 두 개가 한 벌이다: `lib/interim.ts`의 `SUBSCRIPTION_LIVE` ·
   archiMap `public/app.js`의 `SOLO_PLUS_FREE`. 한쪽만 뒤집으면 두 사이트 말이 어긋난다.

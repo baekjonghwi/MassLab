@@ -31,9 +31,12 @@ const LINKS = [
 //      next.config.ts 에서 홈으로 돌아가므로, 메뉴에 두면 죽은 링크가 된다.
 //   2) **로그인한 사람에게만.** 로그아웃한 사람에게는 남의 구독 화면으로 가는
 //      문일 뿐이고, 눌러도 /login 으로 튕긴다.
-//   ⚠️조건 2 를 빠뜨리면 로그아웃한 사람 눈에 [My Plan]과 [Sign in]이 나란히 뜬다
+//   ⚠️조건 2 를 빠뜨리면 로그아웃한 사람 눈에 [My Plan]과 [Login]이 나란히 뜬다
 //     — 지운 HomeView 의 막대가 실제로 그랬다(2026-08-26).
-const MY_PLAN = { href: "/account", ko: "내 구독", en: "My Plan" };
+// 🔴이름은 화면 제목과 한 벌이다(2026-09-05 사용자 지시) — 메뉴가 "내 구독"인데
+//   눌러서 간 화면 제목이 "내 계정"이면 다른 데로 온 줄 안다. 셋을 함께 볼 것:
+//   여기 · app/account 의 title · components/LandingView 의 상단 고리.
+const MY_PLAN = { href: "/account", ko: "내 계정", en: "My account" };
 
 export const HEADER_CSS = `
   .hnav-link {

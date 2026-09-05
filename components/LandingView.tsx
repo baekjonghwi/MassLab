@@ -7,6 +7,7 @@ import { useLanguage, useT, trPick, TRich, fmt, type Lang } from "@/lib/i18n";
 import LanguageMenu from "@/components/LanguageMenu";
 import { t } from "@/lib/translations";
 import { useSignedIn } from "@/lib/use-signed-in";
+import { useMyPlan } from "@/lib/use-my-plan";
 import { SUBSCRIPTION_LIVE, PER_PIECE_ON_HOME, PLUS_FREE_PROMO } from "@/lib/interim";
 import { TIER_KEYS } from "@/lib/plans";
 import { ARCHIMAP, COLORGRAM, LASERFISH, withLang } from "@/lib/products";
@@ -231,6 +232,13 @@ const LANDING_CSS = `
            다시 easymap 처럼 색이 화면을 끌고 가는 얼굴이 된다. */
     --acc:  #e8802e;
     --accx: #140f0a;   /* 주황 위에 얹는 글자색 */
+    /* 🔴할인 기간의 등급 기둥을 칠하는 색.
+       🔴테두리는 투명도를 안 쓴다(2026-09-05 사용자 지시) — 통색이다. 알파로 두면
+         뒤에 뭐가 깔리느냐에 따라 진하기가 달라지고, 어두운 바탕 위에서 흐리게
+         뜬다. 바탕색만 옅게 깔아 칸을 물들인다.
+       ⚠️--acc 를 바꾸면 이 둘도 손으로 함께 바꿀 것 — 저절로 안 따라온다. */
+    --accw: rgba(232,128,46,0.09);   /* 칸 바탕 — 여기는 옅게 깔아야 글자가 산다 */
+    --accw2:#8a5227;                 /* 칸 테두리 — 통색 */
     /* 🔴커서를 올린 칸이 "떠오르는" 값 한 벌(2026-08-27).
          ⚠️translateY 만으로는 떠오른 게 안 보인다 — 바닥에 지는 그림자가 있어야
            눈이 높이를 읽는다. 뒤의 옅은 주황 무리는 테두리 색과 이어져
@@ -538,26 +546,55 @@ const LANDING_CSS = `
   }
   .lp-tier-head b { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.16em; color: var(--mut); }
   .lp-tier-head span { font-size: 1rem; font-weight: 800; letter-spacing: -0.03em; color: var(--acc); }
-  .lp-tier-lab { display: flex; align-items: center; font-size: 0.71rem; color: var(--mut); padding: 0 2px; }
-  /* 프로그램 이름 줄 — 표 전체를 가로지른다(어느 사양이 어느 프로그램의 것인지
-     알려 주는 유일한 단서다). grid-column: 1/-1 이라 등급 칸 수가 바뀌어도 따라간다. */
+  /* 🔴2026-09-05 — 프로그램 하나가 **줄 하나**다(사용자 지시, /account 의 짜임).
+       전에는 사양마다 줄이 하나씩이고 프로그램 이름이 구분선으로 끼어 있었는데,
+       그러면 프로그램이 늘 때마다 표가 세로로 길어지고 "어느 사양이 어느
+       프로그램의 것인가"를 이름줄 하나에 기대야 했다. 이제 왼쪽에 프로그램
+       이름 카드가 서고, 그 프로그램의 사양은 등급 칸 **안에** 쌓인다.
+     🔴디자인은 홈 그대로다 — /account 는 흰 표, 여기는 어두운 결이다. */
   .lp-tier-prog {
-    grid-column: 1 / -1; display: flex; align-items: center; gap: 10px;
+    background: var(--bg2); border: 1px solid var(--line); border-radius: var(--r);
+    display: flex; align-items: center; justify-content: center; padding: 12px 10px;
     font-size: 0.78rem; font-weight: 800; letter-spacing: -0.02em; color: var(--acc);
-    padding: 14px 2px 4px;
+    text-align: center;
   }
-  .lp-tier-prog::after { content: ""; flex: 1; height: 1px; background: var(--line); }
-  /* 🔴할인 기간에 동그라미가 쳐지는 등급 — 2026-09-05 사용자 지시.
-     ⚠️ring 은 box-shadow 로 바깥에 그린다. border 로 주면 그 칸만 커져 머리줄이 어긋난다. */
-  .lp-tier-head.promo { box-shadow: 0 0 0 2px var(--acc), 0 0 0 4px var(--bg), 0 0 0 6px var(--acc); }
+  /* 칸 안의 사양 한 줄 — 이름표는 흐리게, 값은 또렷하게. 위아래로 쌓인다. */
+  .lp-tier-line { display: flex; flex-direction: column; gap: 2px; text-align: left; width: 100%; }
+  .lp-tier-line span { font-size: 0.63rem; font-weight: 600; color: var(--dim); letter-spacing: 0; }
+  .lp-tier-line b { font-size: 0.75rem; font-weight: 700; color: var(--tx); letter-spacing: -0.01em; }
+  /* 이름표가 없는 사양(LaserFish — 열리냐 마느냐뿐이다)은 값을 가운데 세운다. */
+  .lp-tier-line.solo { text-align: center; }
+  .lp-tier-line.solo b { font-size: 0.78rem; }
+  /* ○ 는 글자가 아니라 표시다 — 크게 띄워야 옆 칸의 말과 같은 무게로 읽힌다.
+     ⚠️동그라미만 키운다. 뒤에 붙는 괄호("○(한시적)")까지 키우면 칸이 꽉 찬다. */
+  .lp-tier-line b.mark { text-align: center; }
+  .lp-tier-line b.mark em { font-style: normal; font-size: 1.6em; line-height: 1; vertical-align: -0.1em; }
+  /* 🔴**이 사람이 쓰는 등급**의 기둥을 통째로 칠한다 — 2026-09-05 사용자 지시.
+       머리 카드에만 표시하면 "값만 다르다"로 읽힌다. 그 등급이 덮는 것은 사양
+       전부라, 그 말을 하려면 기둥이 통째로 달라 보여야 한다.
+     🔴테두리를 두르지 않는다(먼저 그렇게 해 봤다). 격자 칸들은 각자 서 있고 사이에
+       gap 이 있어 한 덩이로 묶으려면 칸 위에 줄을 따로 얹어야 하는데, 그 줄은
+       제 자리를 넘기 쉽고(절대배치의 auto 끝선) 머리 카드의 테두리와 겹쳐
+       이중선이 된다. 칸이 제 몫만 칠하면 그 사고가 아예 안 난다.
+     ⚠️바탕만으로는 .off(점선 칸)와 헷갈릴 만큼 옅어서 테두리도 함께 물들이고
+       2px 로 굵힌다. 배경을 진하게 칠하지는 않는다 — 값을 읽는 글자가 묻힌다.
+     ⚠️굵혀도 칸 크기는 그대로다(테일윈드 preflight 의 box-sizing:border-box).
+       그게 없으면 이 기둥만 2px 씩 커져 옆 기둥과 줄이 어긋난다. */
+  .lp-tier-head.mine, .lp-tier-cell.mine {
+    background: var(--accw); border-color: var(--accw2); border-width: 2px;
+  }
+  /* 왼쪽 프로그램 이름 카드는 등급이 없는 칸이라 안 칠한다. */
   .lp-tier-head.promo span { color: var(--dim); text-decoration: line-through; text-decoration-thickness: 1.5px; }
   .lp-tier-promo { font-family: var(--mono); font-size: 0.56rem; letter-spacing: 0.12em; color: #ffd76a; }
+  /* ⚠️사양이 여러 줄 쌓이므로 세로로 늘어난다 — align-items 를 stretch 로 두고
+       (격자 기본값) 줄들을 가운데로 모은다. min-height 는 사양 하나짜리
+       프로그램(LaserFish)이 너무 납작해지지 않게 잡아 준다. */
   .lp-tier-cell {
     background: var(--bg2); border: 1px solid var(--line); border-radius: var(--r);
     padding: 11px 9px; font-size: 0.72rem; font-weight: 600; text-align: center;
-    display: flex; align-items: center; justify-content: center; min-height: 44px;
+    display: flex; flex-direction: column; justify-content: center; gap: 7px; min-height: 44px;
   }
-  .lp-tier-cell.off { color: #3f3f3d; border-style: dashed; }
+  .lp-tier-cell.off { color: #3f3f3d; border-style: dashed; align-items: center; }
   .lp-tier-cta { display: flex; }
   .lp-tier-cta a, .lp-tier-cta span {
     width: 100%; text-align: center; border-radius: var(--r); padding: 11px 8px;
@@ -598,8 +635,10 @@ const LANDING_CSS = `
     .lp-prices.one .lp-tier-head { padding: 17px 12px; gap: 6px; }
     .lp-prices.one .lp-tier-head b { font-size: 0.78rem; }
     .lp-prices.one .lp-tier-head span { font-size: 1.32rem; }
-    .lp-prices.one .lp-tier-lab { font-size: 0.83rem; }
-    .lp-prices.one .lp-tier-cell { font-size: 0.83rem; padding: 14px 12px; min-height: 56px; }
+    .lp-prices.one .lp-tier-prog { font-size: 0.92rem; padding: 16px 14px; }
+    .lp-prices.one .lp-tier-cell { font-size: 0.83rem; padding: 15px 14px; min-height: 56px; gap: 9px; }
+    .lp-prices.one .lp-tier-line span { font-size: 0.7rem; }
+    .lp-prices.one .lp-tier-line b { font-size: 0.85rem; }
     .lp-prices.one .lp-tier-cta a,
     .lp-prices.one .lp-tier-cta span { font-size: 0.83rem; padding: 15px 10px; }
   }
@@ -923,7 +962,16 @@ export default function LandingView() {
   //   덮으므로, 표에 한 프로그램만 서 있으면 그 말이 거짓이 된다.
   const tiers = TIERS.filter((tier) => tier.key !== "free");
   // 할인 기간에 동그라미가 쳐지는 등급. 판정은 lib/interim 한 곳이다.
+  // 🔴"(할인 기간)" 배지와 그은 값. 보는 사람과 무관하다 — 값 이야기라 PLUS 에 붙는다.
   const isPromo = (key: string) => PLUS_FREE_PROMO && key === "plus";
+  // 🔴칠하는 기둥은 **이 사람이 쓰는 등급**이다(2026-09-05 사용자 지시).
+  //   ⛔등급을 손으로 못박지 말 것. 전에는 단추가 tier.key === "plus" 로 박혀 있어
+  //     MAX 를 쓰는 사람에게도 PLUS 칸에 "이용 중"이 떴다. 지금 free 인 사람에게
+  //     PLUS 가 켜지는 것은 PLUS 를 골라서가 아니라 **할인 기간이라 free 가 plus 로
+  //     올라가서**다 — 그 판정은 lib/interim 의 effectivePlan 한 곳이 한다.
+  //   ⚠️ready 전에는 아무 칸도 안 켠다. 먼저 켰다가 옮겨 붙으면 깜빡인다.
+  const { ready: planReady, plan: myPlan } = useMyPlan();
+  const isMine = (key: string) => planReady && myPlan === key;
 
   return (
     <main className="lp" id="top">
@@ -1155,7 +1203,7 @@ export default function LandingView() {
                 /* 🔴2026-09-05 — "archiMap PLUS"가 아니라 그냥 PLUS 다. LaserFish 도
                      같은 문턱 안으로 들어와서(lib/plans 의 MIN_PLAN), 로그인 하나로
                      두 프로그램이 함께 열린다. */
-                : (T("할인 기간입니다. 지금은 로그인만 하면 PLUS 를 무료로 사용합니다.", "Promotional period — just sign in and PLUS is free."))}
+                : (T("할인 기간입니다. 지금은 로그인만 하면 PLUS 를 무료로 사용합니다.", "Promotional period — just log in and PLUS is free."))}
           </p>
 
           <div className={PER_PIECE_ON_HOME ? "lp-prices" : "lp-prices one"}>
@@ -1172,7 +1220,7 @@ export default function LandingView() {
                 <div className="lp-tier-grid">
                   <div />
                   {tiers.map((tier) => (
-                    <div className={`lp-tier-head${isPromo(tier.key) ? " promo" : ""}`} key={tier.key}>
+                    <div className={`lp-tier-head${isPromo(tier.key) ? " promo" : ""}${isMine(tier.key) ? " mine" : ""}`} key={tier.key}>
                       <b>{tier.label}</b>
                       <span>{tier.price}</span>
                       {isPromo(tier.key) && (
@@ -1181,28 +1229,58 @@ export default function LandingView() {
                     </div>
                   ))}
 
-                  {/* 🔴프로그램마다 이름 줄 하나 + 사양 줄들. PROGRAMS 를 그대로
-                        훑으므로 프로그램이 늘면 이 화면은 손대지 않아도 된다.
-                      ⚠️LaserFish 의 사양 줄은 이름표가 비어 있다(열리냐 마느냐뿐이라
-                        PlanTable 이 일부러 비워 뒀다). 그 줄은 이름표 칸을 비우고
-                        칸만 그린다 — 여기서 "전 기능 이용" 같은 말을 새로 지으면
-                        저쪽 표와 갈라진다. */}
+                  {/* 🔴프로그램 하나가 줄 하나다 — 왼쪽에 이름 카드, 등급 칸마다
+                        그 프로그램의 사양이 통째로 쌓인다(2026-09-05, /account 의 짜임).
+                        PROGRAMS 를 그대로 훑으므로 프로그램이 늘어도 손댈 게 없다.
+                      ⚠️값이 없는 사양(null)은 줄째로 뺀다. 한 줄도 안 남으면 그 등급에서
+                        아예 안 열리는 프로그램이라 – 하나만 세운다.
+                      ⚠️LaserFish 는 이름표가 비어 있다(열리냐 마느냐뿐이라 PlanTable 이
+                        일부러 비워 뒀다) — 여기서 "전 기능 이용" 같은 말을 새로 지으면
+                        저쪽 표와 갈라진다. 이름표가 없으면 값을 가운데 세운다. */}
                   {PROGRAMS.map((p) => (
                     <div style={{ display: "contents" }} key={p.name}>
                       <div className="lp-tier-prog">{p.name}</div>
-                      {p.features.map((f, fi) => (
-                        <div style={{ display: "contents" }} key={f.label.en || fi}>
-                          <div className="lp-tier-lab">{trPick(lang, f.label)}</div>
-                          {tiers.map((tier) => {
-                            const txt = cellText(f.cells[TIER_KEYS.indexOf(tier.key)], lang);
-                            return (
-                              <div className={`lp-tier-cell${txt ? "" : " off"}`} key={tier.key}>
-                                {txt === "○" ? T("사용가능", "Available") : (txt ?? "×")}
+                      {tiers.map((tier) => {
+                        const lines = p.features
+                          .map((f) => ({
+                            label: trPick(lang, f.label),
+                            txt: cellText(f.cells[TIER_KEYS.indexOf(tier.key)], lang),
+                          }))
+                          .filter((l) => l.txt != null);
+
+                        if (lines.length === 0) {
+                          return (
+                            <div
+                              className={`lp-tier-cell off${isMine(tier.key) ? " mine" : ""}`}
+                              key={tier.key}
+                            >
+                              –
+                            </div>
+                          );
+                        }
+
+                        return (
+                          <div
+                            className={`lp-tier-cell${isMine(tier.key) ? " mine" : ""}`}
+                            key={tier.key}
+                          >
+                            {lines.map((l, i) => (
+                              <div className={`lp-tier-line${l.label ? "" : " solo"}`} key={i}>
+                                {l.label && <span>{l.label}</span>}
+                                {/* 🔴○ 는 말로 풀지 않는다(2026-09-05 사용자 지시) —
+                                      "열린다/안 열린다" 하나를 말하는 자리다.
+                                    ⚠️뒤에 괄호가 붙는 칸이 있다("○(한시적)"). "○ 인가"가
+                                      아니라 "○ 로 시작하는가"로 본다. */}
+                                <b className={l.txt!.startsWith("○") ? "mark" : undefined}>
+                                  {l.txt!.startsWith("○")
+                                    ? <><em>○</em>{l.txt!.slice(1)}</>
+                                    : l.txt}
+                                </b>
                               </div>
-                            );
-                          })}
-                        </div>
-                      ))}
+                            ))}
+                          </div>
+                        );
+                      })}
                     </div>
                   ))}
 
@@ -1210,22 +1288,22 @@ export default function LandingView() {
                   {tiers.map((tier) => (
                     <div className="lp-tier-cta" key={tier.key}>
                       {/* 🔴정기결제가 열리면(SUBSCRIPTION_LIVE=true) 세 칸 모두 /price 로 가는
-                            진짜 구독 버튼이 된다. 그 전까지는 PLUS 만 "지금은 무료"다 —
-                            archiMap 이 로그인만 하면 PLUS 로 열려 있기 때문(lib/interim.ts). */}
+                            진짜 구독 버튼이 된다. 그 전까지는 아래 세 갈래다.
+                          🔴"이용 중"은 **이 사람이 실제로 쓰는 등급** 칸에만 뜬다
+                            (2026-09-05 사용자 지시). 전에는 tier.key === "plus" 로
+                            박혀 있어서, MAX 를 쓰는 사람에게도 PLUS 칸에 떴다.
+                            지금 free 인 사람에게 PLUS 가 켜지는 것은 PLUS 를 골라서가
+                            아니라 할인 기간이라 free 가 plus 로 올라가서다 —
+                            그 판정은 lib/interim 의 effectivePlan 이 한다.
+                          ⚠️아직 모르는 동안(planReady=false)에는 단추 글자를 안 바꾼다.
+                            먼저 띄웠다 옮겨 붙으면 깜빡인다. 로그아웃한 사람에게는
+                            PLUS 칸이 "지금은 무료"로 로그인을 권한다. */}
                       {SUBSCRIPTION_LIVE ? (
                         <a href="/price">{T("구독하기", "Subscribe")}</a>
-                      ) : tier.key === "plus" ? (
-                        /* 🔴2026-09-05 — 로그인한 사람은 archiMap 으로 내보내지
-                             않는다. PLUS 가 archiMap 한 프로그램이 아니라 두
-                             프로그램을 함께 여는 등급이 되었으므로, 한쪽으로
-                             보내면 나머지 하나가 없는 것처럼 읽힌다.
-                           ⚠️signedIn 은 null(아직 모른다)일 수 있다 — 그때는
-                             단추 글자를 바꾸지 않는다(먼저 띄웠다 바꾸면 깜빡인다). */
-                        signedIn ? (
-                          <span>{T("이용 중", "Active")}</span>
-                        ) : (
-                          <a href="/login">{T("지금은 무료", "Free for now")}</a>
-                        )
+                      ) : isMine(tier.key) ? (
+                        <span>{T("이용 중", "Active")}</span>
+                      ) : tier.key === "plus" && planReady && !myPlan ? (
+                        <a href="/login">{T("지금은 무료", "Free for now")}</a>
                       ) : (
                         <span>{T("준비 중", "Coming soon")}</span>
                       )}

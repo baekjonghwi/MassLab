@@ -6,7 +6,7 @@ import { useLanguage, useTx, type Lang } from "@/lib/i18n";
 import PlanTable, { PLAN_CSS } from "@/components/PlanTable";
 import DarkTopBar, { DARK_TOPBAR_CSS, type DarkLink } from "@/components/DarkTopBar";
 import { LASERFISH_DOWNLOAD, LASERFISH_GUIDE } from "@/lib/products";
-import { PRICING_HREF } from "@/lib/interim";
+import { PRICING_HREF, effectivePlan } from "@/lib/interim";
 
 // ==========================================================================
 //  /account — 내 구독.
@@ -69,7 +69,7 @@ const day = (s: string | null, lang: Lang) =>
 const TX = {
   ko: {
     loading: "불러오는 중…",
-    title: "내 구독", logout: "로그아웃",
+    title: "내 계정", logout: "로그아웃",
     none: "미구독",
     subscribeBtn: "구독하기",
     // ── 닉네임(계정 하나에 하나, 모든 프로그램 공용) ──
@@ -111,7 +111,7 @@ const TX = {
   },
   en: {
     loading: "Loading…",
-    title: "My subscription", logout: "Sign out",
+    title: "My account", logout: "Log out",
     none: "Not subscribed",
     subscribeBtn: "Subscribe",
     // ── Nickname (one per account, shared by every program) ──
@@ -180,7 +180,10 @@ export default function AccountPage() {
       sb.from("subscriptions").select("*"),
       sb.from("profiles").select("display_name").eq("id", u.user.id).maybeSingle(),
     ]);
-    setPlan(typeof p === "string" ? p : "free");
+    // 🔴할인 기간에는 free 가 PLUS 다. 판정은 lib/interim 의 effectivePlan 한 곳이다 —
+    //   여기서 DB 값을 그대로 쓰면, 서버(entitlementOf)가 PLUS 라고 답한 사람에게
+    //   이 화면만 "구독 없음"이라고 말한다.
+    setPlan(effectivePlan(typeof p === "string" ? p : "free"));
     setSubs((rows ?? []) as Sub[]);
     setName(prof?.display_name ?? "");
     setReady(true);
@@ -440,6 +443,11 @@ function Shell({ children }: { children: React.ReactNode }) {
           --mut:  #8a8a86;
           --dim:  #555552;
           --acc:  #e8802e;
+          /* 🔴할인 기간의 등급 기둥을 칠하는 색 — 홈(LandingView)과 같은 값이다.
+               테두리는 통색이다: 알파로 두면 뒤에 뭐가 깔리느냐에 따라 진하기가 달라진다.
+             ⚠️--acc 를 바꾸면 이 둘도 손으로 함께 바꿀 것. */
+          --accw: rgba(232,128,46,0.09);
+          --accw2:#8a5227;
           --accx: #140f0a;
           --r:    2px;
           --mono: var(--font-geist-mono), ui-monospace, monospace;
@@ -486,6 +494,38 @@ function Shell({ children }: { children: React.ReactNode }) {
         .pg-cta button:hover, .pg-cta a:hover { background:var(--acc); filter:brightness(1.08); }
         .pg-cta button:disabled { background:#2a2a2d; color:var(--dim); }
         .pg-cta .using { color:var(--acc); }
+
+        /* ── 🔴2026-09-05 — 홈 가격표와 같은 결로 맞춘다(사용자 지시) ──
+             홈(components/LandingView 의 .lp-tier-*)과 이 표는 같은 것을 말하는데
+             글자 크기·모서리·간격이 서로 달라, 두 화면을 오가면 다른 표처럼 보였다.
+           ⛔값(가격)은 안 가져온다 — 여기는 "내가 무엇을 쓰고 있는가"를 말하는
+             화면이지 파는 화면이 아니다. variant="status" 라 가격 줄 자체가 안 그려지고,
+             위의 .pg-amt/.pg-per 는 /price 쪽 sell 표를 위해 남겨 둔 것이다.
+           ⚠️PLAN_CSS 를 직접 고치지 않는 이유는 위 주석과 같다 — /price 가 같이 바뀐다. */
+        .plan-grid { gap:8px; }
+        .pg-tier, .pg-prog, .pg-cell { border-radius:var(--r); }
+        .pg-tier { padding:17px 12px; }
+        .pg-tier b { font-family:var(--mono); font-size:0.78rem; letter-spacing:0.16em; color:var(--mut); }
+        .pg-tier .cur { font-family:var(--mono); font-size:0.6rem; letter-spacing:0.12em; }
+        /* 프로그램 이름 — 홈처럼 가운데, 주황. text-align 까지 주는 건 이름이
+           길어져 두 줄로 접힐 때 둘째 줄이 왼쪽에 붙지 않게 하려는 것이다. */
+        .pg-prog { align-items:center; justify-content:center; padding:16px 14px; }
+        .pg-prog-name { color:var(--acc); font-size:0.92rem; text-align:center; }
+        .pg-cell { padding:15px 14px; gap:9px; }
+        .pg-line span { font-size:0.7rem; }
+        .pg-line b { font-size:0.85rem; }
+        /* ○ 는 글자가 아니라 표시다. 동그라미만 크게 띄우고, 뒤에 붙는 괄호
+           ("○(한시적)")는 옆 칸의 글과 같은 크기로 둔다 — PLAN_CSS 의 b.mark em 규칙. */
+        /* ⛔색을 빠뜨리면 안 된다 — PLAN_CSS 의 .pg-line b.mark 에 color:#111 (검정)이
+             박혀 있고, 클래스가 둘이라 바로 위의 .pg-line b 덮어쓰기를 이긴다.
+             그래서 ○ 만 검은 글자로 어두운 바탕에 묻혀, 칸이 텅 빈 것처럼 보였다
+             (2026-09-05). 값 글자와 같은 색·같은 크기로 맞춘다. */
+        .pg-line b.mark { font-size:0.85rem; font-weight:700; color:var(--tx); }
+        /* 🔴내가 쓰는 등급의 기둥 칠하기(2026-09-05 사용자 지시). PLAN_CSS 의 .mine 은
+             흰 표용 색(#fdf4ec)이라 어두운 화면에서 하얗게 뜬다 — 여기서 덮는다.
+           ⚠️바로 위 .pg-tier/.pg-cell 덮어쓰기보다 뒤에, 그리고 클래스가 둘이라 이긴다.
+             순서를 바꾸면 칠이 조용히 사라진다. */
+        .pg-tier.mine, .pg-cell.mine { background:var(--accw); border-color:var(--accw2); border-width:2px; }
         .plan-fine { color:var(--dim); }
 
         .note { font-size:0.74rem; color:var(--dim); line-height:1.7; margin-top:8px; }

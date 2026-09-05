@@ -6,7 +6,7 @@ import { useLanguage, useT, TRich, fmt } from "@/lib/i18n";
 import PlanTable, { PLAN_CSS } from "@/components/PlanTable";
 import { PerPieceNote, PIECE_PRICES, PIECE_MIN_USD, PIECE_MAX_USD, useUsdToKrw } from "@/components/PerPiecePricing";
 import DarkTopBar, { DARK_TOPBAR_CSS, type DarkLink } from "@/components/DarkTopBar";
-import { SUBSCRIPTION_LIVE } from "@/lib/interim";
+import { SUBSCRIPTION_LIVE, effectivePlan } from "@/lib/interim";
 import { LASERFISH_DOWNLOAD, LASERFISH_GUIDE, withLang } from "@/lib/products";
 
 // ==========================================================================
@@ -71,7 +71,8 @@ function PriceContent() {
     if (!u.user) return;
     setSignedIn(true);
     const { data } = await sb.rpc("my_plan", { p_product: PRODUCT });
-    if (typeof data === "string") setPlan(data);
+    // 🔴할인 기간에는 free 가 PLUS 다 — 판정은 lib/interim 의 effectivePlan 한 곳.
+    setPlan(effectivePlan(typeof data === "string" ? data : "free"));
   }, []);
 
   useEffect(() => { load(); }, [load]);

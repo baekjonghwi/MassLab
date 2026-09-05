@@ -517,13 +517,13 @@ function PerPieceRetired() {
       <p style={{ fontSize: "0.86rem", color: "#666", lineHeight: 1.8, marginBottom: "10px" }}>
         {T(
           "이제 LaserFish 는 MassLabs 구독에 포함됩니다. 할인 기간 동안에는 로그인만 하면 무료입니다.",
-          "LaserFish is now part of the MassLabs subscription. During the promotional period it is free once you sign in.",
+          "LaserFish is now part of the MassLabs subscription. During the promotional period it is free once you log in.",
         )}
       </p>
       <p style={{ fontSize: "0.86rem", color: "#666", lineHeight: 1.8, marginBottom: "28px" }}>
         {T(
           "플러그인을 최신 버전으로 새로 받은 뒤 라이노에서 로그인해 주세요.",
-          "Please update the plug-in to the latest version and sign in from Rhino.",
+          "Please update the plug-in to the latest version and log in from Rhino.",
         )}
       </p>
       <div style={{ display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" }}>
@@ -543,7 +543,7 @@ function PerPieceRetired() {
             borderRadius: "8px", fontSize: "0.86rem", fontWeight: 600, textDecoration: "none",
           }}
         >
-          {T("로그인", "Sign in")}
+          {T("로그인", "Login")}
         </a>
       </div>
     </div>

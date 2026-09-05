@@ -52,7 +52,7 @@ const TX = {
     shortPw: "Password must be at least 6 characters.",
     samePw: "Please choose a password different from your current one.",
     weakPw: "That password is too easy to guess. Please choose another.",
-    reauth: "For safety, please sign in again before changing your password.",
+    reauth: "For safety, please log in again before changing your password.",
     expired: "That reset link has expired or isn't valid. Please request a new one.",
     linkExpired: "That reset link has expired. Please request a new email.",
     badLink: "That reset link isn't valid. Please use the button in the email itself.",

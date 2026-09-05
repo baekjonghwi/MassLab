@@ -1,6 +1,6 @@
 import { createHash, createSign, randomBytes } from "crypto";
 import { CENTRAL, minPlanOf, planAllows, sbFetch, type PlanKey } from "./subscription";
-import { PLUS_FREE_PROMO } from "./interim";
+import { effectivePlan } from "./interim";
 
 // ==========================================================================
 //  라이노 플러그인 신원 — 로그인 연결과 장기 토큰.
@@ -144,7 +144,7 @@ export async function entitlementOf(uid: string, product: string): Promise<Entit
   //  ⛔올리는 것은 free 뿐이다. 돈을 낸 pro·max 를 plus 로 끌어내리면 안 된다.
   //  ⚠️DB에는 안 적는다 — 진짜 등급은 free 그대로 두고, 답할 때만 올려 준다.
   //    적어 버리면 행사가 끝난 뒤에도 전원이 PLUS 로 남는다.
-  const plan = PLUS_FREE_PROMO && real === "free" ? "plus" : real;
+  const plan = effectivePlan(real);
   // 🔴"유료냐"가 아니라 "이 프로그램의 문턱을 넘느냐"다. 문턱은 lib/plans의
   //   MIN_PLAN 한 곳에만 둔다(2026-09-05 부터 laserfish 도 PLUS 다).
   const allowed = planAllows(plan, product);

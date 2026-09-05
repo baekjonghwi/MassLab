@@ -49,11 +49,22 @@ export const PLAN_CSS = `
   .pg-tier b { font-size: 0.92rem; font-weight: 800; letter-spacing: 0.06em; }
   .pg-tier .cur { font-size: 0.62rem; font-weight: 600; color: #b9b9b9; }
 
-  /* 🔴할인 기간에 동그라미가 쳐지는 등급(지금은 PLUS) — 2026-09-05 사용자 지시.
-       테두리 하나로만 표시한다. 배경까지 바꾸면 "이용 중"(.cur)과 헷갈린다.
-       ⚠️ring 은 바깥으로 그린다(box-shadow). border 로 주면 그 칸만 2px 커져
-         등급 머리줄의 밑선이 어긋난다. */
-  .pg-tier.promo { box-shadow: 0 0 0 2px #111, 0 0 0 4px #fff, 0 0 0 6px #111; }
+  /* 🔴**이 사람이 쓰는 등급**의 기둥을 통째로 칠한다 — 2026-09-05 사용자 지시.
+       머리 카드에만 표시하면 "값만 다르다"로 읽힌다. 그 등급이 덮는 것은 사양
+       전부라, 그 말을 하려면 기둥이 통째로 달라 보여야 한다.
+     🔴테두리를 두르지 않는다(먼저 그렇게 해 봤다) — 격자의 gap 때문에 칸 위에 줄을
+       따로 얹어야 하는데, 그 줄이 제 자리를 넘고 머리 카드 테두리와 겹쳐 이중선이
+       된다. 칸이 제 몫만 칠하면 그 사고가 아예 안 난다.
+     ⚠️이 표는 흰 바탕이라 회색으로 칠하면 .off(제공 안 함)와 같은 말이 된다.
+       그래서 홈과 같은 주황을 아주 옅게 쓴다.
+     ⚠️.pg-price.promo 는 다른 이야기다 — 값에 그은 줄이라 보는 사람과 무관하게
+       PLUS 에 붙는다. 칠하기(.mine)와 헷갈리지 말 것.
+     ⚠️테두리를 2px 로 굵혀도 칸 크기는 그대로다(box-sizing:border-box).
+       그게 없으면 이 기둥만 2px 씩 커져 옆 기둥과 줄이 어긋난다. */
+  .pg-tier.mine, .pg-cell.mine {
+    background: #fdf4ec; border-color: #f0d7bf; border-width: 2px;
+  }
+  .pg-price.promo { background: #fdf4ec; border-color: #f0d7bf; border-width: 2px; }
   .pg-tier .promo-tag {
     font-size: 0.6rem; font-weight: 700; letter-spacing: 0.02em; color: #ffd76a;
   }
@@ -82,7 +93,9 @@ export const PLAN_CSS = `
   .pg-line { display: flex; flex-direction: column; gap: 2px; }
   .pg-line span { font-size: 0.68rem; color: #a0a0a0; }
   .pg-line b { font-size: 0.82rem; font-weight: 700; color: #1a1a1a; letter-spacing: -0.01em; }
-  .pg-line b.mark { font-size: 1.05rem; text-align: center; color: #111; }
+  .pg-line b.mark { font-size: 0.82rem; text-align: center; color: #111; }
+  /* 동그라미만 크게. 뒤에 붙는 괄호까지 키우면 칸이 글자로 꽉 찬다. */
+  .pg-line b.mark em { font-style: normal; font-size: 1.6em; line-height: 1; vertical-align: -0.1em; }
 
   /* 아래 두 줄 — 가격, 구독 버튼 */
   .pg-price {
@@ -105,9 +118,13 @@ export const PLAN_CSS = `
   .pg-cta button:disabled { background: #ccc; cursor: not-allowed; }
   .pg-cta .using { font-size: 0.78rem; font-weight: 700; color: #2f855a; }
 
+
   /* 내 구독 화면 — 쓰고 있는 등급만 또렷하게 남기고 나머지는 물린다 */
   .pg-tier.dim, .pg-cell.dim, .pg-prog.dim { opacity: 0.38; }
-  .pg-cell.on { border-color: #111; }
+  /* ⛔"내가 쓰는 등급"을 여기서 또 표시하지 말 것 — .mine 하나가 그 일을 한다.
+       2026-08-21 에 .pg-cell.on 이 같은 자리에 검은 테두리를 두르고 있었는데,
+       .mine 과 조건도 같고 건드리는 것도 border-color 라 순서로만 안 겹쳤다.
+       어두운 화면(/account)에서 순서가 뒤집히면 검은 테두리가 조용히 돌아온다. */
 
   .plan-fine {
     font-size: 0.75rem; color: #aaa; line-height: 1.8; margin-top: 18px;
@@ -133,6 +150,23 @@ type Program = {
 //   그대로 끌어온다. 손으로 맞추면 표와 실제 권한이 언젠가 반드시 어긋난다.
 const gate = (product: string): [Cell, Cell, Cell, Cell] =>
   TIER_KEYS.map((t) => (planAllows(t, product) ? "○" : null)) as [Cell, Cell, Cell, Cell];
+
+// 🔴한 칸만 다른 말을 하게 한다 — 2026-09-05 사용자 지시.
+//   gate() 가 낸 ○("사용가능")를 그 자리에서만 딴 글로 바꾼다. 원본은 여전히
+//   MIN_PLAN 이라, 그 등급에서 아예 안 열리게 되면 이 글도 함께 사라진다
+//   (null 은 안 덮는다).
+//   ⚠️홈(LandingView)도 같은 PROGRAMS 를 읽는다 — 그래서 말을 여기 데이터에
+//     심는다. 화면 쪽에서 갈아 끼우면 두 표가 갈라진다.
+const say = (
+  cells: [Cell, Cell, Cell, Cell],
+  tier: (typeof TIER_KEYS)[number],
+  text: { ko: string; en: string },
+): [Cell, Cell, Cell, Cell] => {
+  const out = [...cells] as [Cell, Cell, Cell, Cell];
+  const i = TIER_KEYS.indexOf(tier);
+  if (out[i] != null) out[i] = text;
+  return out;
+};
 
 export const PROGRAMS: Program[] = [
   {
@@ -169,9 +203,15 @@ export const PROGRAMS: Program[] = [
       //   끌어온다 — 손으로 ○ 를 적지 않는다.
       // 🔴이름표를 비워 둔다 — 열리냐 마느냐뿐이라 "전 기능 이용: 사용가능"은
       //   같은 말을 두 번 하는 것이다. 빈 이름표는 렌더가 알아서 건너뛴다.
+      // 🔴PLUS 칸만 "한시적"이라고 적는다(2026-09-05 사용자 지시). 지금 PLUS 에서
+      //   LaserFish 가 열리는 것은 할인 기간에 얹힌 일이라, 그냥 "사용가능"이라고
+      //   적으면 값을 받기 시작한 뒤에도 같은 약속으로 읽힌다.
+      //   ⚠️PLUS_FREE_PROMO 가 꺼지면 이 말은 저절로 사라지고 "사용가능"으로 돌아간다.
       {
         label: { ko: "", en: "" },
-        cells: gate("laserfish"),
+        cells: PLUS_FREE_PROMO
+          ? say(gate("laserfish"), "plus", { ko: "○(한시적)", en: "○(Promotion)" })
+          : gate("laserfish"),
       },
     ],
   },
@@ -220,9 +260,22 @@ export default function PlanTable({ lang, currentPlan, onSubscribe, busy, varian
   const focus = variant === "status" && tiers.some((t) => t.key === currentPlan);
   const none  = variant === "status" && !focus;             // 미구독
   const faded = (key: string) => (none || (focus && key !== currentPlan) ? " dim" : "");
-  // 🔴행사 중인 등급. 파는 표(sell)에서만 표시한다 — /account 의 상태표에
-  //   "(할인 기간)"이 뜨면 지금 내 등급이 무엇인지를 말하는 화면에 광고가 섞인다.
-  const promo = (key: string) => variant === "sell" && PLUS_FREE_PROMO && key === "plus";
+  // 🔴칠하는 기둥은 **이 사람이 쓰고 있는 등급**이다(2026-09-05 사용자 지시).
+  //   ⛔등급을 손으로 못박지 말 것. 전에는 "plus" 로 박아 두어, MAX 를 쓰는
+  //     사람에게도 PLUS 칸에 불이 켜졌다. 지금 free 인 사람에게 PLUS 가 켜지는
+  //     것은 PLUS 를 골라서가 아니라 할인 기간이라 free 가 plus 로 올라가서다 —
+  //     그 판정은 이 파일이 아니라 lib/interim 의 effectivePlan 이 하고, 부르는
+  //     화면이 currentPlan 에 담아 넘긴다.
+  const mine = (key: string) => !!currentPlan && key === currentPlan;
+  // 🔴"(할인 기간)" 배지와 그은 값. 파는 표(sell)에서만 — 내 등급이 무엇인지를
+  //   말하는 화면에 광고 문구까지 섞으면 두 말이 겹쳐 읽힌다.
+  //   ⚠️이건 보는 사람과 무관하다. 값 이야기라 PLUS 에 그대로 붙는다.
+  const promoTag = (key: string) => variant === "sell" && PLUS_FREE_PROMO && key === "plus";
+  // 🔴"○" · "○(한시적)" 처럼 동그라미로 시작하는 칸은 글이 아니라 **표시**다.
+  //   동그라미만 크게 띄우고 뒤따르는 괄호는 제 크기로 둔다(.mark em).
+  const mark = (v: string) => v.startsWith("○");
+  const circled = (v: string) =>
+    mark(v) ? <><em>○</em>{v.slice(1)}</> : v;
   const at = (cells: readonly Cell[], key: string): Cell =>
     cells[TIER_KEYS.indexOf(key as (typeof TIER_KEYS)[number])] ?? null;
 
@@ -238,10 +291,10 @@ export default function PlanTable({ lang, currentPlan, onSubscribe, busy, varian
           // 🔴할인 기간에는 PLUS 에 동그라미를 치고 "(할인 기간)"을 적는다
           //   (2026-09-05 사용자 지시). 어느 등급이 공짜인지는 lib/plans 의
           //   DEFAULT_MIN_PLAN 이 아니라 **행사 대상**이라, 여기서만 plus 를 짚는다.
-          <div className={`pg-tier${promo(t.key) ? " promo" : ""}${faded(t.key)}`} key={t.key}>
+          <div className={`pg-tier${mine(t.key) ? " mine" : ""}${faded(t.key)}`} key={t.key}>
             <b>{t.label}</b>
             {currentPlan === t.key && <span className="cur">{T("이용 중", "Current")}</span>}
-            {promo(t.key) && <span className="promo-tag">{T("(할인 기간)", "(Promo)")}</span>}
+            {promoTag(t.key) && <span className="promo-tag">{T("(할인 기간)", "(Promo)")}</span>}
           </div>
         ))}
 
@@ -260,22 +313,26 @@ export default function PlanTable({ lang, currentPlan, onSubscribe, busy, varian
               // 한 줄도 없으면 그 등급에서는 안 열리는 프로그램이다.
               if (lines.length === 0) {
                 return (
-                  <div className={`pg-cell off${faded(t.key)}`} key={t.key}>
+                  <div className={`pg-cell off${mine(t.key) ? " mine" : ""}${faded(t.key)}`} key={t.key}>
                     <span className="pg-off-mark">–</span>
                   </div>
                 );
               }
 
               return (
-                <div className={`pg-cell${focus && t.key === currentPlan ? " on" : ""}${faded(t.key)}`} key={t.key}>
+                <div className={`pg-cell${mine(t.key) ? " mine" : ""}${faded(t.key)}`} key={t.key}>
                   {lines.map((l, i) => {
                     const v = typeof l.value === "string" ? l.value : L(l.value!);
                     return (
                       <div className="pg-line" key={i}>
                         {l.label && <span>{l.label}</span>}
-                        <b className={v === "○" ? "mark" : undefined}>
-                          {v === "○" ? T("사용가능", "Available") : v}
-                        </b>
+                        {/* 🔴○ 는 말로 풀지 않는다(2026-09-05 사용자 지시). "사용가능"
+                              이라고 적으면 칸마다 글이 서서 표가 글자로 꽉 차는데,
+                              여기서 말하려는 건 "열린다/안 열린다" 하나뿐이다.
+                            ⚠️뒤에 괄호가 붙는 칸이 있다("○(한시적)"). 그래서 "○ 인가"가
+                              아니라 "○ 로 시작하는가"로 본다 — 동그라미만 크게 띄우고
+                              괄호는 제 크기로 둔다. */}
+                        <b className={mark(v) ? "mark" : undefined}>{circled(v)}</b>
                       </div>
                     );
                   })}
@@ -298,12 +355,12 @@ export default function PlanTable({ lang, currentPlan, onSubscribe, busy, varian
           <>
             <div className="pg-corner" />
             {tiers.map((t) => (
-              <div className={`pg-price${promo(t.key) ? " promo" : ""}`} key={t.key}>
+              <div className={`pg-price${promoTag(t.key) ? " promo" : ""}`} key={t.key}>
                 <div className="pg-amt">
                   {t.price}
                   <span className="pg-per">/mon</span>
                 </div>
-                {promo(t.key) && (
+                {promoTag(t.key) && (
                   <div className="pg-promo-now">{T("지금은 무료", "Free for now")}</div>
                 )}
               </div>
