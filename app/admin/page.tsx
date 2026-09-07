@@ -98,7 +98,11 @@ export default async function AdminPage() {
     <>
       <nav className="adm-nav">
         <span className="strong">MassLabs 운영</span>
-        <Link href="/">홈</Link>
+        {/* 🔴여기 "홈"은 **운영 현황판의 홈**이다(사용자 결정 2026-09-06) — 바깥
+            홈페이지가 아니다. 전에는 "/" 로 나갔는데, 그러면 현황판을 보다가
+            한 번 누르는 순간 밖으로 튕겨 나가 주소를 다시 쳐야 했다.
+            ⚠️같은 주소라 누르면 새로 불러온다 — 숫자를 갱신하는 자리이기도 하다. */}
+        <Link href="/admin">홈</Link>
         <Link href="/review">후기</Link>
         <span className="spacer" />
         <span className="who">{who.email}</span>
