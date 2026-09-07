@@ -50,11 +50,18 @@ export function ProductPanel({ o }: { o: Overview }) {
                 <span className="t-cap tnum">/ 누적 {KO(p.users)}명</span>
               </div>
 
-              {/* 진한 부분 = 7일 활성, 연한 부분 = 누적. 같은 자에 겹쳐 잰다 */}
-              <div style={{ height: 10, borderRadius: 5, background: "var(--divider)", overflow: "hidden" }}>
-                <div style={{ height: 10, borderRadius: 5, width: `${(p.users / max) * 100}%`, background: color, opacity: 0.28 }}>
-                  <div style={{ height: 10, borderRadius: 5, width: p.users ? `${(p.users7 / p.users) * 100}%` : 0, background: color }} />
-                </div>
+              {/* 🔴연한 것이 누적, 진한 것이 7일 활성. 같은 자에 겹쳐 잰다.
+                  ⛔중첩으로 만들지 말 것 — 부모 opacity 가 자식까지 곱해져
+                    진한 막대가 사라진다(WorldPanel 과 같은 함정). 형제로 둔다. */}
+              <div style={{ position: "relative", height: 10, borderRadius: 5, background: "var(--divider)" }}>
+                <div style={{
+                  position: "absolute", left: 0, top: 0, height: 10, borderRadius: 5,
+                  background: color, opacity: 0.28, width: `${(p.users / max) * 100}%`,
+                }} />
+                <div style={{
+                  position: "absolute", left: 0, top: 0, height: 10, borderRadius: 5,
+                  background: color, width: `${(p.users7 / max) * 100}%`,
+                }} />
               </div>
 
               <p className="t-cap" style={{ margin: "6px 0 0" }}>

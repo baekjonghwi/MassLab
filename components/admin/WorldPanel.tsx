@@ -170,6 +170,17 @@ export default function WorldPanel({
           <span className="t-cap">{countries.length}개국</span>
         </header>
 
+        <div className="adm-legend" style={{ margin: "0 0 var(--s-sm)" }}>
+          <span>
+            <span style={{ display: "block", flex: "none", width: 16, height: 6, borderRadius: 3, background: "var(--primary)", opacity: 0.3 }} />
+            연한 막대 = 가입자
+          </span>
+          <span>
+            <span style={{ display: "block", flex: "none", width: 16, height: 6, borderRadius: 3, background: "var(--primary)" }} />
+            진한 막대 = 최근 7일 활성
+          </span>
+        </div>
+
         <ol style={{ listStyle: "none", margin: 0, padding: 0, columns: "3 240px", columnGap: "var(--s-xl)" }}>
           {countries.slice(0, 30).map((c, i) => (
             <li
@@ -194,11 +205,23 @@ export default function WorldPanel({
                   {countryName(c.code)}
                   <span className="t-micro">{c.code}</span>
                 </span>
-                {/* 막대는 가입자, 진한 부분은 7일 활성. 위 지도와 같은 이야기다 */}
-                <span style={{ display: "block", height: 4, marginTop: 4, borderRadius: 2, background: "var(--divider)" }}>
-                  <span style={{ display: "block", height: 4, borderRadius: 2, background: "var(--primary)", opacity: 0.35, width: `${(c.n / maxN) * 100}%` }}>
-                    <span style={{ display: "block", height: 4, borderRadius: 2, background: "var(--primary)", width: c.n ? `${(c.active7 / c.n) * 100}%` : 0 }} />
-                  </span>
+                {/* 🔴막대 둘을 같은 자에 **겹쳐** 놓는다 — 연한 것이 가입자,
+                    진한 것이 7일 활성. 둘 다 왼쪽에서 시작하고 같은 눈금(maxN)을
+                    쓰므로 "이만큼 중 이만큼"이 길이로 바로 읽힌다.
+                    ⛔중첩(부모-자식)으로 만들지 말 것. 부모에 opacity 를 주면
+                      **자식까지 곱해져** 진한 막대가 연한 막대와 같은 색이 된다
+                      (2026-09-06에 그래서 활성 막대가 안 보였다). 형제로 둔다. */}
+                <span style={{ position: "relative", display: "block", height: 6, marginTop: 5, borderRadius: 3, background: "var(--divider)" }}>
+                  <span style={{
+                    position: "absolute", left: 0, top: 0, height: 6, borderRadius: 3,
+                    background: "var(--primary)", opacity: 0.3,
+                    width: `${(c.n / maxN) * 100}%`,
+                  }} />
+                  <span style={{
+                    position: "absolute", left: 0, top: 0, height: 6, borderRadius: 3,
+                    background: "var(--primary)",
+                    width: `${(c.active7 / maxN) * 100}%`,
+                  }} />
                 </span>
               </span>
               <span className="tnum" style={{ fontSize: 13, textAlign: "right" }}>
