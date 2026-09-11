@@ -594,9 +594,11 @@ const LANDING_CSS = `
     font-size: 0.72rem; font-weight: 700; line-height: 1.35;
     display: flex; align-items: center; justify-content: center;
   }
-  .lp-tier-cta a { background: var(--acc); color: var(--accx); transition: filter .15s; }
+  .lp-tier-cta a { background: var(--acc); color: #fff; transition: filter .15s; }
   .lp-tier-cta a:hover { filter: brightness(1.08); }
   .lp-tier-cta span { border: 1px dashed var(--line); color: var(--dim); }
+  /* [이용 중] = 위의 내 등급 기둥(.mine)과 같은 칠 — 흰 글자 · 주황 테두리 */
+  .lp-tier-cta span.active { background: var(--accw); border: 2px solid var(--accw2); color: #fff; }
 
   .lp-piece { display: flex; flex-direction: column; gap: 6px; }
   .lp-piece-row {
@@ -1288,7 +1290,7 @@ export default function LandingView() {
                       {SUBSCRIPTION_LIVE ? (
                         <a href="/price">{T("구독하기", "Subscribe")}</a>
                       ) : isMine(tier.key) ? (
-                        <span>{T("이용 중", "Active")}</span>
+                        <span className="active">{T("이용 중", "Active")}</span>
                       ) : tier.key === "plus" && planReady && !myPlan ? (
                         <a href="/login">{T("지금은 무료", "Free for now")}</a>
                       ) : (

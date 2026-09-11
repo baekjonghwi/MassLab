@@ -4,8 +4,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { useLanguage, useTx, type Lang } from "@/lib/i18n";
 import PlanTable, { PLAN_CSS } from "@/components/PlanTable";
-import DarkTopBar, { DARK_TOPBAR_CSS, type DarkLink } from "@/components/DarkTopBar";
-import { LASERFISH_DOWNLOAD, LASERFISH_GUIDE } from "@/lib/products";
+import DarkTopBar, { DARK_TOPBAR_CSS } from "@/components/DarkTopBar";
 import { PRICING_HREF, effectivePlan } from "@/lib/interim";
 
 // ==========================================================================
@@ -26,15 +25,6 @@ type Sub = {
   currency: string; amount: number;
   next_billing_at: string | null; canceled_at: string | null;
 };
-
-// 어두운 상단 막대에 걸 링크 — 이 화면에서 갈 만한 곳들.
-// 🔴[다운로드]와 [사용방법]은 **밖으로 나간다** — 정본이 LaserFish 소개 사이트로
-//   옮겨 갔다(다운로드 2026-08-28, 사용방법 2026-08-29). [비용]만 MassLabs 안쪽이다.
-const ACCOUNT_LINKS: DarkLink[] = [
-  { href: LASERFISH_DOWNLOAD, ko: "다운로드", en: "Download" },
-  { href: LASERFISH_GUIDE, ko: "사용방법", en: "How to use" },
-  { href: PRICING_HREF, ko: "비용", en: "Pricing" },
-];
 
 // 🔴구독 상품은 하나뿐이다. 등급(plus/pro/max)이 모든 프로그램에 함께 적용된다.
 const PRODUCT = "all";
@@ -572,8 +562,11 @@ function Shell({ children }: { children: React.ReactNode }) {
       `}</style>
 
       {/* 🔴SiteHeader(밝은 막대) 대신 어두운 막대를 쓴다 — SiteHeader 는
-           /price · /download 등 밝은 화면들이 함께 쓰므로 건드리지 않는다. */}
-      <DarkTopBar links={ACCOUNT_LINKS} />
+           /price · /download 등 밝은 화면들이 함께 쓰므로 건드리지 않는다.
+          🔴링크는 없다 — 로고(홈)와 언어만 남는다(2026-09-12 사용자 지시로
+            [다운로드]·[사용방법]·[비용]을 걷어냈다). 구독하러 가는 문은 아래
+            [구독하기] 하나다. */}
+      <DarkTopBar />
       <div className="wrap">{children}</div>
     </main>
   );
