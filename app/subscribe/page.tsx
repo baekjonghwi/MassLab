@@ -5,7 +5,7 @@ import * as PortOne from "@portone/browser-sdk/v2";
 import { supabase } from "@/lib/supabase";
 import { useLanguage, trPick, fmt } from "@/lib/i18n";
 import { t } from "@/lib/translations";
-import { USE_TEST_CHANNELS, TEST_CHANNEL_INTL, TEST_CHANNEL_KRW } from "@/lib/interim";
+import { USE_TEST_CHANNELS, TEST_CHANNEL_INTL, TEST_CHANNEL_INICIS } from "@/lib/interim";
 
 // ==========================================================================
 //  구독 결제(빌링키 발급) — 로그인이 있는 제품 전용.
@@ -30,17 +30,20 @@ const STORE_ID = "store-ad54a018-057e-4d48-b98f-920b6d0fa05c";
 //   🔴lib/subscription.ts 에 같은 값이 있다(서버가 매달 청구할 때 쓴다) — 한쪽만
 //     고치면 발급과 청구가 다른 채널로 갈린다. 반드시 함께 바꿀 것.
 //
-//   🔴🔴두 값 다 **지금은 죽었다**(2026-09-02). 토스는 심사 중 해지했고, 해외는 애초에
-//     단건 채널 키다. MoR(Paddle·Creem 등)로 가기로 방향을 틀었다 —
+//   🔴🔴2026-09-11 — 국내는 KG이니시스다. 지금은 **테스트 채널**이 돈다(PG 심사 기간).
+//     아래 두 값은 실연동 자리다 — 이니시스는 비었고, 해외는 엑심베이 단건 키다.
 //     자세한 사정은 lib/subscription.ts 의 같은 자리에 적어 두었다.
-//     ⛔단건결제(/payment)의 갤럭시아 채널은 살아 있다 — 이 해지와 무관하다.
 const REAL_CHANNEL_INTL = "channel-key-796e8cff-cddb-4731-a364-910163f64bcb";
-const REAL_CHANNEL_TOSS = "channel-key-8ebc609c-5d56-429d-91f5-879c78abbf61";
+const REAL_CHANNEL_INICIS = "";
 // 🔴테스트 채널로 돌릴 때는 lib/interim.ts의 USE_TEST_CHANNELS 하나만 뒤집는다.
 //   서버(lib/subscription.ts의 BILLING_CHANNEL)도 같은 스위치를 보므로 발급과
 //   청구가 따로 놀지 않는다.
 const CHANNEL_BILLING_INTL = USE_TEST_CHANNELS ? TEST_CHANNEL_INTL : REAL_CHANNEL_INTL;
-const CHANNEL_BILLING_TOSS = USE_TEST_CHANNELS ? TEST_CHANNEL_KRW : REAL_CHANNEL_TOSS;
+const CHANNEL_BILLING_INICIS = USE_TEST_CHANNELS ? TEST_CHANNEL_INICIS : REAL_CHANNEL_INICIS;
+
+// 국내 휴대폰. 서버(/api/subscribe/buyer)와 같은 규칙이다 — 여기서 먼저 걸러 왕복을 줄인다.
+const PHONE_RE = /^01[016789]\d{7,8}$/;
+type Ch = "eximbay" | "inicis";
 
 // 🔴PayPal 빌링키는 엑심베이에 PayPal이 개통된 뒤에야 실제로 발급된다.
 //   개통 확인 후 이 값만 true로 바꾸면 해외 결제수단에 PayPal이 뜬다.
@@ -66,7 +69,7 @@ type SessionInfo = {
   email: string;
   country: string | null;
   countryKnown: boolean;
-  channel: "eximbay" | "toss";
+  channel: Ch;
   baseUsd: number;
   vat: number;
   vatCurrency: "USD" | "KRW";
@@ -83,10 +86,9 @@ type SessionInfo = {
 // ==========================================================================
 //  화면 문구
 //
-//  🔴언어는 **결제 채널이 정한다** — 국내(토스페이먼츠)는 한글, 해외(엑심베이)는 영어.
-//    건당 결제 페이지(/payment)와 같은 규칙이다. 결제수단·통화·세금이 지역으로
-//    갈리는데 문구만 따로 놀면 "내가 얼마를 어떤 카드로 내는가"가 흐려진다.
-//  ⚠️채널을 아직 모르는 동안(세션 조회 실패 등)에는 홈페이지에서 고른 언어를 쓴다.
+//  🔴언어는 **사람이 고른 언어**다(2026-09-11 사용자 결정). 전에는 결제 채널이 정했다
+//    (국내=한글, 해외=영어) — 로컬에서 언어를 바꿔도 결제 화면이 늘 한국어로 남는 걸
+//    보고 바꿨다. 한국어·영어 밖의 여섯 언어는 en 문장을 lib/i18n-dict 가 옮긴다.
 // ==========================================================================
 const TX = {
   ko: {
@@ -120,6 +122,19 @@ const TX = {
     processing: "처리 중…",
     payNow: "{amt} 결제하고 구독 시작",
     issueName: "{plan} 구독",
+    // 🔴KG이니시스는 결제창(PC)과 매달 청구 모두 구매자 이름·연락처가 필수다(2026-09-11).
+    buyerName: "이름",
+    buyerPhone: "휴대폰 번호",
+    // 🔴"수집하지 않습니다"라고 쓰지 말 것(2026-09-14 확인) — 매달 자동결제 요청에 포트원이
+    //   이름·연락처를 필수로 받는다(없으면 "customer.phoneNumber violated the rule REQUIRED").
+    //   그래서 저장할 수밖에 없고, 쓰는 곳은 그 요청 하나뿐이다. 그 사실만 적는다.
+    buyerHint: "결제 이외에는 다른 용도로 절대 사용하지 않습니다.",
+    badName: "이름을 입력해 주세요.",
+    badPhone: "휴대폰 번호를 확인해 주세요. (예: 010-1234-5678)",
+    buyerFail: "구매자 정보를 저장하지 못했습니다. 다시 시도해 주세요.",
+    notReady: "국내 결제를 준비하고 있습니다. 잠시 후 다시 시도해 주세요.",
+    testNotice: "테스트 결제입니다 — 실제로 돈이 빠져나가지 않습니다.",
+    toAccount: "내 구독 보기",
   },
   en: {
     badUrl: "This link isn't valid.",
@@ -151,6 +166,15 @@ const TX = {
     processing: "Processing…",
     payNow: "Pay {amt} and subscribe",
     issueName: "{plan} subscription",
+    buyerName: "Name",
+    buyerPhone: "Mobile number",
+    buyerHint: "It is never used for anything other than payment.",
+    badName: "Please enter your name.",
+    badPhone: "Please check your mobile number (e.g. 010-1234-5678).",
+    buyerFail: "Couldn't save your details. Please try again.",
+    notReady: "Domestic payment isn't ready yet. Please try again shortly.",
+    testNotice: "Test payment — no real money is charged.",
+    toAccount: "View my subscription",
   },
 };
 
@@ -168,17 +192,19 @@ function SubscribeContent() {
   const [termsOpen, setTermsOpen] = useState(false);
   const [done, setDone] = useState(false);
   // 국내/해외 채널. 기본은 가입 국가가 정하고, 국가를 모를 때만 사용자가 고른다.
-  const [channel, setChannel] = useState<"eximbay" | "toss">("eximbay");
+  const [channel, setChannel] = useState<Ch>("eximbay");
   const [method, setMethod] = useState<"CARD" | "PAYPAL">("CARD");
+  // 국내(이니시스) 구매자 정보. 저장은 서버 세션 행에만 한다 — 주소창에 싣지 않는다.
+  const [buyerName, setBuyerName] = useState("");
+  const [buyerPhone, setBuyerPhone] = useState("");
 
-  // 결제 채널(금액·수단·PG를 가른다)과 화면 언어를 이름부터 나눠 둔다.
-  // 세션을 읽고 나면 둘이 같은 값이지만, 읽기 전에는 언어만 홈페이지 설정을 따른다.
-  const isKrw = channel === "toss";
-  const isKo = info ? isKrw : lang === "ko";
-  // 🔴채널이 원화면 한국어로 말한다 — 원화로 물리는 사람은 한국 거주자다.
-  //   아니면 화면 언어를 따르되, 한국어 화면인데 달러로 물리는 경우만 영어로
-  //   내려간다(전부터 그랬다 — 금액·세금 표기가 달러 기준이라).
-  const x = isKo ? TX.ko : trPick(lang === "ko" ? "en" : lang, TX);
+  // 결제 채널(금액·수단·PG를 가른다)과 화면 언어는 **따로 논다**(2026-09-11).
+  const isKrw = channel === "inicis";
+  // 🔴화면 언어는 사람이 고른 언어 그대로다(2026-09-11 사용자 결정). 전에는 채널이
+  //   원화면 한국어로, 달러면 영어로 강제했다 — 한국에서 영어를 고른 사람도, 해외에서
+  //   한국어를 고른 사람도 제 언어를 못 봤다. 금액·통화는 여전히 채널이 정한다.
+  //   ⚠️PG 결제창 자체의 언어는 우리가 못 바꾼다(이니시스 창은 한국어로 뜬다).
+  const x = trPick(lang, TX);
 
   // --- 세션 조회 ---------------------------------------------------------
   useEffect(() => {
@@ -186,7 +212,9 @@ function SubscribeContent() {
     const m = trPick(lang, TX);
     if (!sid) { setFatal(m.badUrl); return; }
     // 🔴제품·등급은 쿼리가 아니라 세션 행에서 읽는다(쿼리면 사용자가 바꿔 넣을 수 있다).
-    fetch(`/api/subscribe/session?sid=${encodeURIComponent(sid)}`)
+    // 🔴lang 을 함께 보낸다 — 서버가 국가를 끝내 모를 때만 쓰는 힌트다. 채널과 금액을
+    //   서버가 한 자리에서 정해야 화면 값과 결제 값이 안 갈린다(2026-09-11).
+    fetch(`/api/subscribe/session?sid=${encodeURIComponent(sid)}&lang=${encodeURIComponent(lang)}`)
       .then(async (r) => {
         const d = await r.json();
         if (!r.ok) {
@@ -200,19 +228,17 @@ function SubscribeContent() {
           return;
         }
         setInfo(d as SessionInfo);
-        // 🔴국가를 아는 사람만 서버 판정을 따른다. 모르면 화면 언어로 정한다
-        //   (2026-08-18 결정 — 가입 때 거주 지역을 묻지 않기로 했다).
-        //   한국어로 보고 있으면 원화(토스페이먼츠), 영어면 달러(엑심베이).
-        //   ⚠️추정일 뿐이라 아래 결제 지역 토글은 그대로 남겨 둔다 — 사람이 뒤집을 수 있어야 한다.
-        const sess = d as SessionInfo;
-        setChannel(sess.countryKnown ? sess.channel : (lang === "ko" ? "toss" : "eximbay"));
+        // 🔴채널은 **서버가 정한 그대로** 쓴다(2026-09-11). 전에는 국가를 모르면 여기서
+        //   화면 언어로 채널만 바꿨는데, 금액은 서버가 다른 채널로 계산한 것이라 원화
+        //   결제창에 달러 금액이 실릴 수 있었다. 언어 힌트는 위 요청에 실어 보낸다.
+        setChannel((d as SessionInfo).channel);
       })
       .catch(() => setFatal(m.loadFail));
   }, [sid, product, lang]);
 
   // --- 빌링키 → 확정 -----------------------------------------------------
   const confirm = useCallback(
-    async (billingKey: string, ch: "eximbay" | "toss", methodLabel: string) => {
+    async (billingKey: string, ch: Ch, methodLabel: string) => {
       setLoading(true);
       const r = await fetch("/api/subscribe/confirm", {
         method: "POST",
@@ -231,6 +257,7 @@ function SubscribeContent() {
         setError(
           d.error === "charge_failed" ? fmt(x.chargeFail, { m: d.message ?? "" })
           : d.error === "save_failed" ? x.saveFail
+          : d.error === "buyer_missing" ? x.buyerFail
           : x.processFail);
         return;
       }
@@ -246,7 +273,7 @@ function SubscribeContent() {
     const code = sp.get("code");
     if (code) { setError(sp.get("message") || x.canceled); return; }
     if (bk && sid && !done) {
-      const ch = (sp.get("ch") as "eximbay" | "toss") ?? "eximbay";
+      const ch: Ch = sp.get("ch") === "inicis" ? "inicis" : "eximbay";
       confirm(bk, ch, sp.get("ml") ?? "");
     }
     // sp는 매 렌더 새 객체라 의존성에 넣지 않는다(무한 루프).
@@ -256,8 +283,35 @@ function SubscribeContent() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!info) return;
-    setLoading(true);
     setError("");
+
+    // 🔴국내(이니시스)는 결제창을 열기 **전에** 구매자 이름·연락처를 서버 세션에 적는다.
+    //   confirm 과 매달 크론이 그 값으로 긁는다. 모바일은 PG 창을 거쳐 돌아오며 이 화면
+    //   상태가 날아가므로, 여기서 먼저 적어 두는 것이 유일한 길이다.
+    const phoneDigits = buyerPhone.replace(/[\s-]/g, "");
+    const nameTrim = buyerName.trim();
+    if (isKrw) {
+      if (!CHANNEL_BILLING_INICIS) { setError(x.notReady); return; }
+      if (!nameTrim) { setError(x.badName); return; }
+      if (!PHONE_RE.test(phoneDigits)) { setError(x.badPhone); return; }
+    }
+    setLoading(true);
+    if (isKrw) {
+      const br = await fetch("/api/subscribe/buyer", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${(await supabase().auth.getSession()).data.session?.access_token ?? ""}`,
+        },
+        body: JSON.stringify({ sid, name: nameTrim, phone: phoneDigits }),
+      });
+      if (!br.ok) {
+        const bd = await br.json().catch(() => ({}));
+        setError(bd.error === "bad_phone" ? x.badPhone : bd.error === "bad_name" ? x.badName : x.buyerFail);
+        setLoading(false);
+        return;
+      }
+    }
 
     // 🔴DB(subscriptions.method_label)에 남는 값이라 **언어중립 코드**로 적는다.
     //   화면 언어로도 채널 언어로도 적지 않는다 — 어느 쪽으로 적어도 반대편
@@ -273,14 +327,17 @@ function SubscribeContent() {
       // 🔴서버가 내려준 값 그대로 쓴다. 여기서 sid로 만들면 매달 청구하는
       //   서버(customerIdOf(uid))와 값이 갈려, PG가 빌링키 주인을 못 맞춘다.
       customerId: info.customerId,
-      fullName: info.email.split("@")[0],
+      // 🔴이니시스는 이름·연락처·이메일이 필수다(PC). 해외는 이름이 없어 이메일 앞부분을 쓴다.
+      fullName: isKrw ? nameTrim : info.email.split("@")[0],
       email: info.email,
+      ...(isKrw ? { phoneNumber: phoneDigits } : {}),
     };
 
     try {
       // 🔴국내와 해외는 **호출하는 함수가 다르다.** PG 정책이 정반대라서다.
-      //   - 토스페이먼츠: 카드 빌링키를 **발급만** 한다. 첫 달 청구는 발급이 끝난 뒤
+      //   - KG이니시스: 카드 빌링키를 **발급만** 한다. 첫 달 청구는 발급이 끝난 뒤
       //     서버(/api/subscribe/confirm)가 그 빌링키로 따로 한다.
+      //     ⚠️issueId 는 ASCII 만 받는다(이니시스). issueName·issueId 둘 다 필수다.
       //   - 엑심베이: 발급만 하는 호출을 아예 지원하지 않는다. 실제로 부르면
       //     포트원이 "EXIMBAY_V2 에 대해 지원하지 않는 기능입니다"로 막는다.
       //     발급과 첫 결제가 한 번에 일어나야 한다.
@@ -289,14 +346,16 @@ function SubscribeContent() {
       const res = isKrw
         ? await PortOne.requestIssueBillingKey({
             storeId: STORE_ID,
-            channelKey: CHANNEL_BILLING_TOSS,
+            channelKey: CHANNEL_BILLING_INICIS,
             billingKeyMethod: "CARD",
             issueId,
             issueName: fmt(x.issueName, { plan: info.planLabel }),
-            // 표시용 금액. 실제 청구는 서버가 다시 계산해서 한다.
+            // 표시용 금액. 실제 청구는 서버가 같은 환율(세션에 고정)로 다시 계산한다.
             displayAmount: info.amount,
             currency: info.currency,
             customer,
+            // 🔴이니시스 **모바일** 빌링키 발급은 제공 기간이 필수다(PC 는 선택). 월 구독이다.
+            offerPeriod: { interval: "1m" },
             redirectUrl: back,
           } as unknown as Parameters<typeof PortOne.requestIssueBillingKey>[0])
         : await PortOne.requestIssueBillingKeyAndPay({
@@ -366,7 +425,15 @@ function SubscribeContent() {
         <p style={{ fontSize: "0.82rem", color: "#666", lineHeight: 1.7, marginBottom: 18 }}>
           {x.doneBody}
         </p>
-        <button className="pay-btn" onClick={() => window.close()}>{x.close}</button>
+        {/* 🔴홈 가격표에서 들어온 사람은 팝업이 아니라 같은 탭이다(2026-09-11) — 그때
+              window.close() 는 아무 일도 안 한다. 창을 연 쪽이 있을 때만 닫고, 아니면
+              내 구독 화면으로 보낸다(해지 단추도 거기 있다). */}
+        <button
+          className="pay-btn"
+          onClick={() => { if (window.opener) window.close(); else window.location.href = "/account"; }}
+        >
+          {typeof window !== "undefined" && window.opener ? x.close : x.toAccount}
+        </button>
       </Card>
     );
   if (!info) return <Card><p style={{ fontSize: "0.88rem", color: "#888" }}>{x.loading}</p></Card>;
@@ -376,6 +443,10 @@ function SubscribeContent() {
       <h1 style={{ fontSize: "1.3rem", fontWeight: 700, letterSpacing: "-0.02em", marginBottom: 4 }}>
         {info.product === "all" ? info.productLabel : `${info.productLabel} ${info.planLabel}`}
       </h1>
+
+      {/* 🔴테스트 채널이 도는 동안에는 반드시 밝힌다(2026-09-11, PG 심사 기간).
+            숨기면 테스트 카드로 "결제"한 사람이 돈을 냈다고 믿는다. */}
+      {USE_TEST_CHANNELS && <div className="test-note">{x.testNotice}</div>}
 
       {/* 정기결제 — 🔴체험이면 "지금 낼 돈"이 0이라는 것과 "언제 얼마가 빠지는지"를
           한 칸 안에서 같이 보여준다. 0원만 크게 띄우면 자동결제를 못 보고 지나간다. */}
@@ -403,6 +474,29 @@ function SubscribeContent() {
         <span style={{ fontSize: "0.78rem", color: "#1a1a1a" }}>{info.email || "—"}</span>
       </div>
 
+
+      {/* 국내(KG이니시스) 구매자 정보 — 🔴이니시스가 결제창(PC)과 매달 청구 모두 필수로
+            받는다. 해외(엑심베이)는 받지 않는다 — 필요 없는 개인정보를 모으지 않는다. */}
+      {isKrw && (
+        <div className="buyer">
+          <label>
+            <span>{x.buyerName}</span>
+            <input
+              className="buyer-input" type="text" autoComplete="name" maxLength={40}
+              value={buyerName} onChange={(e) => setBuyerName(e.target.value)}
+            />
+          </label>
+          <label>
+            <span>{x.buyerPhone}</span>
+            <input
+              className="buyer-input" type="tel" inputMode="numeric" autoComplete="tel"
+              placeholder="010-1234-5678" maxLength={13}
+              value={buyerPhone} onChange={(e) => setBuyerPhone(e.target.value)}
+            />
+          </label>
+          <p className="buyer-hint">{x.buyerHint}</p>
+        </div>
+      )}
 
       {/* 해외 결제수단 — PayPal 개통 전에는 카드 하나뿐이라 숨긴다 */}
       {!isKrw && PAYPAL_BILLING_ENABLED && (
@@ -487,6 +581,13 @@ function Card({ children }: { children: React.ReactNode }) {
         .pay-btn:hover { background:#333; }
         .pay-btn:disabled { background:#ccc; cursor:not-allowed; }
         .method-row { display:flex; gap:8px; margin-bottom:16px; }
+        .test-note { font-size:0.74rem; font-weight:600; color:#8a5810; background:#fbf1de; border-radius:8px; padding:9px 12px; margin:10px 0 14px; }
+        .buyer { display:flex; flex-direction:column; gap:8px; margin-bottom:16px; }
+        .buyer label { display:flex; flex-direction:column; gap:4px; }
+        .buyer label span { font-size:0.74rem; color:#666; }
+        .buyer-input { width:100%; padding:10px 12px; border:1.5px solid #e0e0e0; border-radius:8px; font-size:0.86rem; font-family:inherit; color:#1a1a1a; background:#fff; }
+        .buyer-input:focus { outline:none; border-color:#1a1a1a; }
+        .buyer-hint { font-size:0.7rem; color:#999; line-height:1.6; }
         .method-btn { flex:1; padding:11px 8px; border:1.5px solid #e0e0e0; border-radius:8px; background:#fff; font-size:0.82rem; font-weight:500; font-family:inherit; color:#555; cursor:pointer; transition:all .15s; }
         .method-btn:hover { border-color:#bbb; }
         .method-btn.active { border-color:#1a1a1a; background:#1a1a1a; color:#fff; }

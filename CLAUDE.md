@@ -23,6 +23,14 @@ MassLabs는 배포되는 프로젝트라 하위 폴더가 빌드 컨텍스트에
   ⛔제품 쪽에 로그인 폼, `/account`, 결제 화면을 만들지 말 것 (2026-08-17 통합 로그인 결정).
   제품은 `masslabs-archi.com/price`으로 내보내기만 한다.
 - 🔴**임시(2026-08-21 ~ 국내·해외 정기결제가 동시에 열릴 때까지)** — 구독을 안 판다.
+  🔴**2026-09-11 — PRO·MAX 결제창만 먼저 열었다**(PG 심사 요구). 국내 = **KG이니시스**,
+  해외 = 엑심베이, 둘 다 **테스트 채널**(`lib/interim.ts`의 `USE_TEST_CHANNELS=true`).
+  스위치는 `CHECKOUT_LIVE` — `SUBSCRIPTION_LIVE`와 **따로다**(그걸 켜면 PLUS 할인 행사가
+  끝난다). PLUS는 계속 공짜라 파는 단추가 없고 `/api/subscribe/start`도 막는다.
+  ⚠️테스트 결제로 생긴 구독은 `subscriptions.is_test`로 남는다 — 실연동 날 지운다
+  (`supabase/migrations/016_inicis_billing.sql` 머리말). 이니시스 테스트 채널키가 비어 있으면
+  국내 결제는 "준비 중"으로 멈춘다. 원화 값은 `lib/plans.ts`의 `krwTotal` 한 곳에서 나온다
+  (요금표와 결제창이 같은 식) — 체크아웃 환율은 세션 행(`krw_rate`)에 고정된다.
   🔴**2026-09-05 — LaserFish도 구독 안으로 들어왔다**(사용자 결정). 건당결제를 폐기하고
   `lib/plans.ts`의 `MIN_PLAN.laserfish`를 `pro`→**`plus`**로 내렸다. 이제 두 프로그램이
   같은 규칙 아래 선다: **로그인하면 PLUS, 당분간 공짜(할인 기간).**

@@ -60,14 +60,14 @@ export const t = {
     privacy: {
       back: "← Back",
       title: "Privacy Policy",
-      effectiveDate: "Effective: August 22, 2026 (revising the April 13, 2026 edition for unified accounts and subscriptions)",
+      effectiveDate: "Effective: September 11, 2026 (revising the August 22, 2026 edition to add the buyer name and mobile number collected for domestic card subscriptions)",
       sections: [
         {
           title: "Article 1 (Purpose of Processing Personal Data)",
           body: "MassLabs (the \"Company\") processes personal data for the purposes below. Data is not used for any purpose other than these, and if the purpose changes the Company will obtain separate consent and take any other measures required.",
           list: [
             "Account management: sign-up, sign-in, identity verification, and unified authentication across every program the Company provides",
-            "Service delivery: determining plan tier, managing credits, and linking devices for the Rhino plug-in",
+            "Service delivery: determining plan tier, managing monthly uses, and linking devices for the Rhino plug-in",
             "Payment processing: charging service fees, recurring billing, refunds, and sending receipts",
             "Customer support: receiving enquiries and communicating outcomes",
             "Service analytics: improving the service using country-level usage data",
@@ -78,8 +78,10 @@ export const t = {
           title: "Article 2 (Categories of Personal Data Collected)",
           list: [
             "Personal data: email address, and the account identifier supplied by Google if you signed up with Google",
-            "Usage data: plan tier, credit usage, country of access, and whether the free trial has been used",
+            "Usage data: plan tier, monthly uses consumed, country of access, and whether the free trial has been used",
             "Payment data: payment channel, currency and amount, payment method label, payment identifier, payment provider response records, and the billing key",
+            // 🔴2026-09-11 — KG이니시스가 빌링키 발급과 매달 청구에 필수로 요구한다. 해외 결제에서는 받지 않는다.
+            "Buyer data (domestic card subscriptions only): the buyer's name and mobile phone number, as required by the card payment provider for each charge",
             "Device linking data: device identifier, linking code, and device name",
             // 🔴프로그램을 가리지 않는다 — 한국어판과 같은 이유(위 주석 참고).
             "Data: output generated using MassLabs",
@@ -157,7 +159,7 @@ export const t = {
     terms: {
       back: "← Back",
       title: "Terms and Refund Policy",
-      effectiveDate: "Effective: August 22, 2026 (revising the August 19, 2026 edition to cover pay-per-piece)",
+      effectiveDate: "Effective: September 11, 2026 (revising the August 22, 2026 edition to rename credits as monthly uses)",
       sections: [
         {
           title: "Article 1 (Purpose)",
@@ -171,7 +173,8 @@ export const t = {
             "User — a person who uses the Service under these Terms",
             "Pay-per-piece — paying each time, based on the number of pieces generated. No account is required.",
             "Subscription — a monthly recurring plan. Scope and limits differ by tier (PLUS, PRO, MAX).",
-            "Credits — units that allow a set number of operations inside a program, granted monthly according to your tier.",
+            // 🔴"크레딧"이라 부르지 않는다(2026-09-11 PG 심사 지적) — 따로 사고파는 선불 수단처럼 읽힌다.
+            "Monthly uses — the number of times a feature inside a program can be used in a month, set by your tier and renewed each month.",
           ],
         },
         {
@@ -183,7 +186,7 @@ export const t = {
           body: "The Company provides programs that assist architectural and design work, and charges for them in the two ways below. Which of them is available is determined by what is shown on the pricing screen.",
           list: [
             "Pay-per-piece — you pay according to the number of pieces LaserFish generates. Pieces that fail to generate because of an error are never charged.",
-            "Subscription — billed monthly per account. One subscription covers the programs the Company provides. The programs and limits available (maximum working extent, monthly credits, and so on) differ by tier.",
+            "Subscription — billed monthly per account. One subscription covers the programs the Company provides. The programs and limits available (maximum working extent, monthly uses, and so on) differ by tier.",
           ],
           body2: "The Company may add programs to the Service; unless stated otherwise, added programs are included in existing subscriptions. The products and prices actually on sale are limited to those shown on the pricing screen.",
         },
@@ -333,14 +336,14 @@ export const t = {
     privacy: {
       back: "← 뒤로",
       title: "개인정보처리방침",
-      effectiveDate: "시행일: 2026년 8월 22일 (2026년 4월 13일 판을 통합 계정·구독 기준으로 개정)",
+      effectiveDate: "시행일: 2026년 9월 11일 (2026년 8월 22일 판에 국내 카드 정기결제의 구매자 정보 수집을 반영하여 개정)",
       sections: [
         {
           title: "제1조 (개인정보의 처리 목적)",
           body: "MassLabs(이하 \"회사\")는 다음의 목적을 위하여 개인정보를 처리합니다. 처리하는 개인정보는 아래 목적 이외의 용도로 이용되지 않으며, 이용 목적이 변경될 경우 별도의 동의를 받는 등 필요한 조치를 이행합니다.",
           list: [
             "계정 관리: 회원 가입·로그인·본인 확인, 회사가 제공하는 프로그램 전체에 대한 통합 인증",
-            "서비스 제공: 이용 등급 판정, 크레딧 관리, 라이노 플러그인의 기기 연결",
+            "서비스 제공: 이용 등급 판정, 월 이용 횟수 관리, 라이노 플러그인의 기기 연결",
             "결제 처리: 서비스 이용료 결제·정기결제·환불 처리 및 영수증 발송",
             "고객 응대: 문의 접수 및 처리 결과 안내",
             "서비스 통계 분석: 이용자 국가 정보를 활용한 서비스 개선",
@@ -351,8 +354,11 @@ export const t = {
           title: "제2조 (수집하는 개인정보 항목)",
           list: [
             "개인정보: 이메일 주소, 구글 계정으로 가입한 경우 구글이 제공하는 계정 식별자",
-            "이용 정보: 이용 등급, 크레딧 사용량, 접속 국가, 무료 체험 사용 여부",
+            "이용 정보: 이용 등급, 월 이용 횟수 사용량, 접속 국가, 무료 체험 사용 여부",
             "결제 정보: 결제 채널, 결제 통화 및 금액, 결제수단 표시명, 결제 식별자, 결제 대행사 응답 기록, 빌링키",
+            // 🔴2026-09-11 — KG이니시스가 빌링키 발급과 매달 청구에 필수로 요구한다. 해외 결제에서는 받지 않는다.
+            //   보유 기간은 결제 정보와 같다(제3조 — 전자상거래법 5년).
+            "구매자 정보(국내 카드 정기결제에 한함): 구매자 이름, 휴대폰 번호 — 카드 결제 대행사가 결제마다 요구하는 항목",
             "기기 연결 정보: 기기 식별자, 연결 코드, 기기 이름",
             // 🔴프로그램을 가리지 않는다 — LaserFish·archiMap 은 물론 앞으로 생길
             //   프로그램의 결과물도 여기에 들어온다. 프로그램이 늘 때마다 이 줄을
@@ -440,7 +446,7 @@ export const t = {
     terms: {
       back: "← 뒤로",
       title: "이용약관 및 환불정책",
-      effectiveDate: "시행일: 2026년 8월 22일 (2026년 8월 19일 판에 건당 결제를 반영하여 개정)",
+      effectiveDate: "시행일: 2026년 9월 11일 (2026년 8월 22일 판의 '크레딧'을 '월 이용 횟수'로 바꾸어 개정)",
       sections: [
         {
           title: "제1조 (목적)",
@@ -454,7 +460,8 @@ export const t = {
             "이용자 — 본 약관에 따라 서비스를 이용하는 자",
             "건당 결제 — 생성된 결과물의 수량에 따라 그때그때 값을 치르는 방식. 계정 없이도 이용할 수 있습니다.",
             "구독 — 매월 자동으로 결제되는 이용권. 등급(PLUS·PRO·MAX)에 따라 이용 범위와 한도가 다릅니다.",
-            "크레딧 — 프로그램 안에서 정해진 횟수만큼 기능을 사용할 수 있는 단위. 등급에 따라 매월 주어집니다.",
+            // 🔴"크레딧"이라 부르지 않는다(2026-09-11 PG 심사 지적) — 따로 사고파는 선불 수단처럼 읽힌다.
+            "월 이용 횟수 — 프로그램 안의 기능을 한 달 동안 사용할 수 있는 횟수. 등급에 따라 정해지며 매월 새로 주어집니다.",
           ],
         },
         {
@@ -466,7 +473,7 @@ export const t = {
           body: "회사는 건축·설계 작업을 돕는 프로그램을 제공하며, 아래 두 가지 방식으로 이용료를 받습니다. 어느 방식이 제공되는지는 요금제 화면에 표시된 내용에 따릅니다.",
           list: [
             "건당 결제 — LaserFish가 생성한 조각의 수량에 따라 결제합니다. 오류가 발생하여 생성되지 않은 부분은 청구하지 않습니다.",
-            "구독 — 계정 단위로 매월 결제하며, 하나의 구독으로 회사가 제공하는 프로그램을 함께 이용합니다. 등급에 따라 이용할 수 있는 프로그램과 한도(최대 작업 범위, 월 크레딧 등)가 다릅니다.",
+            "구독 — 계정 단위로 매월 결제하며, 하나의 구독으로 회사가 제공하는 프로그램을 함께 이용합니다. 등급에 따라 이용할 수 있는 프로그램과 한도(최대 작업 범위, 월 이용 횟수 등)가 다릅니다.",
           ],
           body2: "회사는 서비스에 프로그램을 추가할 수 있으며, 추가된 프로그램은 별도 안내가 없는 한 기존 구독에 포함됩니다. 실제로 판매되는 상품과 금액은 요금제 화면에 표시된 것에 한합니다.",
         },

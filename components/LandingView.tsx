@@ -8,10 +8,12 @@ import LanguageMenu from "@/components/LanguageMenu";
 import { t } from "@/lib/translations";
 import { useSignedIn } from "@/lib/use-signed-in";
 import { useMyPlan } from "@/lib/use-my-plan";
-import { SUBSCRIPTION_LIVE, PER_PIECE_ON_HOME, PLUS_FREE_PROMO } from "@/lib/interim";
+import { SUBSCRIPTION_LIVE, PER_PIECE_ON_HOME, PLUS_FREE_PROMO, CHECKOUT_LIVE } from "@/lib/interim";
+import { useStartCheckout } from "@/lib/use-checkout";
 import { TIER_KEYS } from "@/lib/plans";
 import { ARCHIMAP, COLORGRAM, LASERFISH, withLang } from "@/lib/products";
 import { TIERS, PROGRAMS } from "@/components/PlanTable";
+import { usePriceView, priceText } from "@/lib/use-price-view";
 import { PIECE_PRICES, PIECE_MIN_USD, PIECE_MAX_USD } from "@/components/PerPiecePricing";
 
 // ==========================================================================
@@ -539,6 +541,8 @@ const LANDING_CSS = `
   }
   .lp-tier-head b { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.16em; color: var(--mut); }
   .lp-tier-head span { font-size: 1rem; font-weight: 800; letter-spacing: -0.03em; color: var(--acc); }
+  /* 기간 표시(/달). 값보다 작고 흐리게 — 값을 가리지 않되 빠뜨려 읽히지 않게. */
+  .lp-tier-per { font-size: 0.62em; font-weight: 600; letter-spacing: 0; color: var(--mut); margin-left: 2px; }
   /* 🔴2026-09-05 — 프로그램 하나가 **줄 하나**다(사용자 지시, /account 의 짜임).
        전에는 사양마다 줄이 하나씩이고 프로그램 이름이 구분선으로 끼어 있었는데,
        그러면 프로그램이 늘 때마다 표가 세로로 길어지고 "어느 사양이 어느
@@ -596,6 +600,21 @@ const LANDING_CSS = `
   }
   .lp-tier-cta a { background: var(--acc); color: #fff; transition: filter .15s; }
   .lp-tier-cta a:hover { filter: brightness(1.08); }
+  /* 구독 단추 — <a> 와 한 모양. 링크가 아니라 결제를 시작하는 동작이라 <button> 이다. */
+  .lp-tier-cta button {
+    width: 100%; text-align: center; border-radius: var(--r); padding: 11px 8px;
+    font: inherit; font-size: 0.72rem; font-weight: 700; line-height: 1.35;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--acc); color: #fff; border: 0; cursor: pointer; transition: filter .15s;
+  }
+  .lp-tier-cta button:hover { filter: brightness(1.08); }
+  /* 내 등급보다 아래 등급의 '구독하기' = 검정 바탕 · 흰 글자(archiMap /main 과 같은 규칙) */
+  .lp-tier-cta button.below { background: #000; color: #fff; border: 1px solid var(--line); }
+  .lp-tier-cta button.below:hover { filter: none; border-color: var(--mut); }
+  .lp-tier-cta button:disabled { cursor: progress; filter: saturate(0.6); }
+  .lp-tier-cta button:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
+  .lp-price-note { margin-top: 14px; font-size: 0.7rem; color: var(--dim); line-height: 1.6; }
+  .lp-price-note.err { color: #e5484d; }
   .lp-tier-cta span { border: 1px dashed var(--line); color: var(--dim); }
   /* [이용 중] = 위의 내 등급 기둥(.mine)과 같은 칠 — 흰 글자 · 주황 테두리 */
   .lp-tier-cta span.active { background: var(--accw); border: 2px solid var(--accw2); color: #fff; }
@@ -635,6 +654,7 @@ const LANDING_CSS = `
     .lp-prices.one .lp-tier-line span { font-size: 0.7rem; }
     .lp-prices.one .lp-tier-line b { font-size: 0.85rem; }
     .lp-prices.one .lp-tier-cta a,
+    .lp-prices.one .lp-tier-cta button,
     .lp-prices.one .lp-tier-cta span { font-size: 0.83rem; padding: 15px 10px; }
   }
 
@@ -966,7 +986,15 @@ export default function LandingView() {
   //     올라가서**다 — 그 판정은 lib/interim 의 effectivePlan 한 곳이 한다.
   //   ⚠️ready 전에는 아무 칸도 안 켠다. 먼저 켰다가 옮겨 붙으면 깜빡인다.
   const { ready: planReady, plan: myPlan } = useMyPlan();
+  // 🔴한국 손님에게는 원화(부가세 포함)로 보여 준다 — 결제창과 같은 식·같은 기준이다.
+  const priceView = usePriceView(lang);
+  // 🔴PRO·MAX 구독 단추(CHECKOUT_LIVE). 로그인이 없으면 로그인 뒤 이 구역으로 돌아온다.
+  const checkout = useStartCheckout();
   const isMine = (key: string) => planReady && myPlan === key;
+  // 🔴내 등급보다 **아래** 등급의 '구독하기'는 검정 바탕(.below), 위는 주황(2026-09-12 사용자 지시,
+  //   archiMap /main 과 같은 규칙). 순서는 tiers 의 인덱스다. 모르는 동안·로그아웃·admin 처럼
+  //   표에 없는 값이면 -1 — 전부 '위'로 본다.
+  const myRank = planReady ? tiers.findIndex((t) => t.key === myPlan) : -1;
 
   return (
     <main className="lp" id="top">
@@ -1211,7 +1239,9 @@ export default function LandingView() {
                   {tiers.map((tier) => (
                     <div className={`lp-tier-head${isPromo(tier.key) ? " promo" : ""}${isMine(tier.key) ? " mine" : ""}`} key={tier.key}>
                       <b>{tier.label}</b>
-                      <span>{tier.price}</span>
+                      {/* 🔴값 뒤에 기간을 붙인다(2026-09-11 PG 심사 지적) — "$4.99"만
+                            있으면 한 번 내는 값인지 달마다 내는 값인지 알 수 없다. */}
+                      <span>{priceText(tier.key, priceView)}<small className="lp-tier-per">{T("/달", "/mo")}</small></span>
                       {isPromo(tier.key) && (
                         <em className="lp-tier-promo">{T("할인 기간", "PROMO")}</em>
                       )}
@@ -1274,7 +1304,7 @@ export default function LandingView() {
                   ))}
 
                   <div />
-                  {tiers.map((tier) => (
+                  {tiers.map((tier, ti) => (
                     <div className="lp-tier-cta" key={tier.key}>
                       {/* 🔴정기결제가 열리면(SUBSCRIPTION_LIVE=true) 세 칸 모두 /price 로 가는
                             진짜 구독 버튼이 된다. 그 전까지는 아래 세 갈래다.
@@ -1293,6 +1323,19 @@ export default function LandingView() {
                         <span className="active">{T("이용 중", "Active")}</span>
                       ) : tier.key === "plus" && planReady && !myPlan ? (
                         <a href="/login">{T("지금은 무료", "Free for now")}</a>
+                      ) : CHECKOUT_LIVE && tier.key !== "plus" ? (
+                        /* 🔴2026-09-11 — PRO·MAX 는 진짜로 판다(PG 심사 요구, lib/interim 의
+                             CHECKOUT_LIVE). PLUS 는 할인 기간이라 공짜로 주는 등급이어서
+                             파는 단추를 두지 않는다 — 서버(/api/subscribe/start)도 막는다.
+                           ⚠️<button> 이지만 <a> 와 같은 모양이다(아래 CSS). */
+                        <button
+                          type="button"
+                          className={ti < myRank ? "below" : undefined}
+                          disabled={!!checkout.busy}
+                          onClick={() => checkout.start(tier.key, "/#pricing")}
+                        >
+                          {checkout.busy === tier.key ? "…" : T("구독하기", "Subscribe")}
+                        </button>
                       ) : (
                         <span>{T("준비 중", "Coming soon")}</span>
                       )}
@@ -1300,6 +1343,21 @@ export default function LandingView() {
                   ))}
                 </div>
               </div>
+              {/* 🔴원화로 보이면 그게 부가세 포함 청구액이라는 것과 환율로 움직인다는 것을
+                    밝힌다(2026-09-11). 안 밝히면 오늘 본 값과 내일 결제창 값이 달라 보인다. */}
+              {priceView.krw && (
+                <p className="lp-price-note">
+                  {T("원화 가격은 부가세 10% 포함이며, 결제 시점 환율로 환산됩니다.",
+                     "KRW prices include 10% VAT and are converted at the exchange rate on the day of payment.")}
+                </p>
+              )}
+              {checkout.error && (
+                <p className="lp-price-note err" role="alert">
+                  {checkout.error === "bundle_active"
+                    ? T("이미 구독 중입니다.", "You already have an active subscription.")
+                    : T("결제 창을 열지 못했습니다. 잠시 후 다시 시도해 주세요.", "Couldn't open checkout. Please try again shortly.")}
+                </p>
+              )}
             </div>
 
             {/* ── 오른쪽 · LaserFish 건당 ──

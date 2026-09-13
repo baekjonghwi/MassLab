@@ -1,7 +1,5 @@
-import { cookies } from "next/headers";
-import { createServerClient } from "@supabase/ssr";
-import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "@/lib/supabase";
-import { bearerOf, uidFromAccessToken } from "@/lib/plugin-auth";
+import { callerUid } from "@/lib/caller-uid";
+import { USE_TEST_CHANNELS } from "@/lib/interim";
 import {
   CENTRAL, sbFetch, emailOf, syncPlanCache, planAmount, priceOf, productOf,
   chargeWithBillingKey, getPayment, customerIdOf, monthlyPaymentId, ymOf, addMonth, PLAN_LABEL,
@@ -27,28 +25,12 @@ import {
 type SessionRow = {
   id: string; user_id: string; product: string; plan: PlanKey;
   status: string; expires_at: string;
+  buyer_name: string | null; buyer_phone: string | null;
+  krw_rate: number | null;
 };
 
-// --------------------------------------------------------------------------
-//  부르는 사람이 누구인가 — 쿠키 세션이 먼저, 없으면 Bearer(쿠키 갱신은 안 한다).
-//  🔴없으면 null 이다. **없다고 막지 않는다** — 아래 주인 확인의 주석 참고.
-// --------------------------------------------------------------------------
-async function callerUid(request: Request): Promise<string | null> {
-  try {
-    const jar = await cookies();
-    const client = createServerClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-      cookies: { getAll: () => jar.getAll(), setAll: () => {} },
-    });
-    const { data } = await client.auth.getUser();
-    if (data.user?.id) return data.user.id;
-  } catch {
-    /* 쿠키가 없거나 깨졌다 — 아래 Bearer 로 넘어간다 */
-  }
-  // 화면(/subscribe)이 Authorization 도 함께 보낸다. 쿠키를 못 읽는 브라우저에서
-  // 주인 확인이 통째로 꺼지지 않게 하는 두 번째 줄이다.
-  return uidFromAccessToken(bearerOf(request));
-}
-
+// 부르는 사람이 누구인가는 lib/caller-uid 의 callerUid 가 답한다(buyer 라우트와 한 벌).
+// 🔴없으면 null 이다. 여기서는 **없다고 막지 않는다** — 아래 주인 확인의 주석 참고.
 async function closeSession(sid: string, status: string, note?: string) {
   await sbFetch(`checkout_sessions?id=eq.${encodeURIComponent(sid)}`, {
     method: "PATCH",
@@ -62,7 +44,7 @@ export async function POST(request: Request) {
   try { body = await request.json(); } catch { return Response.json({ error: "bad_json" }, { status: 400 }); }
 
   const { sid, billingKey, methodLabel } = body;
-  const channel: Channel = body.channel === "toss" ? "toss" : "eximbay";
+  const channel: Channel = body.channel === "inicis" ? "inicis" : "eximbay";
 
   if (!sid || !billingKey) return Response.json({ error: "bad_request" }, { status: 400 });
   if (!CENTRAL.serviceKey) return Response.json({ error: "server_misconfigured" }, { status: 500 });
@@ -107,11 +89,28 @@ export async function POST(request: Request) {
   // --- 이메일·환율 -------------------------------------------------------
   const email = await emailOf(s.user_id);
 
-  let krwRate = 1500;
-  try {
-    const r = await fetch(`${new URL(request.url).origin}/api/exchange-rate`, { cache: "no-store" });
-    if (r.ok) krwRate = ((await r.json()) as { rate?: number }).rate ?? 1500;
-  } catch { /* 기본값 */ }
+  // 🔴환율은 **결제 화면이 손님에게 보여 준 그 값**을 쓴다(2026-09-11). session 라우트가
+  //   처음 불릴 때 세션 행에 적어 둔다. 전에는 여기서 환율을 새로 읽어서, 결제 화면을
+  //   연 뒤 정각을 넘기면 화면의 원화와 실제 청구액이 몇 원씩 갈렸다 — PG 심사가
+  //   보는 "화면 값 = 결제 값"이 깨지는 자리였다.
+  //   ⚠️적힌 값이 없을 때(이 수정 전에 열린 세션)만 새로 읽는다.
+  // ⚠️numeric 칸이라 문자열로 올 수 있다 — 숫자로 바꿔 둔다.
+  let krwRate = Number(s.krw_rate) || 0;
+  if (!krwRate) {
+    krwRate = 1500;
+    try {
+      const r = await fetch(`${new URL(request.url).origin}/api/exchange-rate`, { cache: "no-store" });
+      if (r.ok) krwRate = ((await r.json()) as { rate?: number }).rate ?? 1500;
+    } catch { /* 기본값 */ }
+  }
+
+  // 🔴KG이니시스는 빌링키로 긁을 때도 구매자 이름·연락처가 필수다. 결제창을 열기 전에
+  //   /api/subscribe/buyer 가 세션 행에 적어 둔다. 없으면 **긁기 전에** 멈춘다 —
+  //   PG 가 거절할 것이 뻔한 요청을 보내 봐야 실패 로그만 쌓인다.
+  //   ⚠️빌링키는 이미 발급됐다. 세션을 닫지 않고 돌려보내 다시 시도하게 둔다.
+  if (channel === "inicis" && (!s.buyer_name || !s.buyer_phone)) {
+    return Response.json({ error: "buyer_missing" }, { status: 400 });
+  }
 
   const money = planAmount(s.product, s.plan, channel, krwRate)!;
   const now = new Date();
@@ -121,7 +120,7 @@ export async function POST(request: Request) {
   const nextBillingAt = addMonth(now);
 
   // --- 첫 달 청구 --------------------------------------------------------
-  // 🔴국내와 해외가 갈린다. 토스페이먼츠는 빌링키만 발급되므로 여기서 청구하고,
+  // 🔴국내와 해외가 갈린다. KG이니시스는 빌링키만 발급되므로 여기서 청구하고,
   //   엑심베이는 결제창에서 발급과 동시에 **이미 결제가 끝났다**. 해외에서 또
   //   청구하면 이중 청구가 되므로 조회해서 확인만 한다.
   let usedPaymentId = paymentId;
@@ -161,6 +160,8 @@ export async function POST(request: Request) {
       currency: money.currency,
       customerId: customerIdOf(s.user_id),
       email,
+      buyerName: s.buyer_name,
+      buyerPhone: s.buyer_phone,
     });
   }
 
@@ -201,6 +202,11 @@ export async function POST(request: Request) {
       canceled_at: null,
       retry_count: 0,
       updated_at: now.toISOString(),
+      // 🔴크론이 매달 이 값으로 긁는다(이니시스 필수). 해외는 null 이다.
+      buyer_name: s.buyer_name,
+      buyer_phone: s.buyer_phone,
+      // 🔴테스트 채널로 생긴 구독 — 실연동 날 지운다(016 머리말). 크론도 이걸 본다.
+      is_test: USE_TEST_CHANNELS,
     }),
     prefer: "resolution=merge-duplicates,return=minimal",
   });

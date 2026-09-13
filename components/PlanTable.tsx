@@ -4,6 +4,7 @@ import { Fragment } from "react";
 import { TIER_KEYS, planAllows } from "@/lib/plans";
 import { PLUS_FREE_PROMO } from "@/lib/interim";
 import { trs, trPick, type Lang } from "@/lib/i18n";
+import { usePriceView, priceText } from "@/lib/use-price-view";
 
 // ==========================================================================
 //  요금제 표 — MassLabs가 유일한 출처다.
@@ -176,13 +177,19 @@ export const PROGRAMS: Program[] = [
         label: { ko: "최대 직경", en: "Max diameter" },
         cells: ["200m", "1km", "2km", "3km"],
       },
+      // 🔴"크레딧"이라고 부르지 않는다(2026-09-11 PG 심사 지적). 크레딧·포인트는
+      //   따로 사고파는 선불 수단처럼 읽힌다 — 실제로는 등급에 딸린 **달마다의
+      //   생성 횟수**일 뿐이라 그 말 그대로 적는다. 단위(달)는 이름표가 이미
+      //   말하므로 칸에는 횟수만 둔다.
+      //   ⚠️영어는 숫자만 둔다 — 나머지 여섯 언어도 그대로 읽힌다(사전이 필요 없다).
+      //   ⚠️약관(lib/translations 의 terms)은 아직 "크레딧"이라는 말로 정의한다.
       {
-        label: { ko: "크레딧", en: "Credits" },
+        label: { ko: "월 횟수", en: "Monthly uses" },
         cells: [
-          { ko: "3 / 달",  en: "3 / mo" },
-          { ko: "10 / 달", en: "10 / mo" },
-          { ko: "15 / 달", en: "15 / mo" },
-          { ko: "20 / 달", en: "20 / mo" },
+          { ko: "3회",  en: "3" },
+          { ko: "10회", en: "10" },
+          { ko: "15회", en: "15" },
+          { ko: "20회", en: "20" },
         ],
       },
       {
@@ -219,14 +226,12 @@ export const PROGRAMS: Program[] = [
 
 // 🔴열 순서는 TIER_KEYS가 정한다 — cells 배열이 이 순서에 그대로 대응하므로,
 //   여기서 순서를 따로 적으면 언젠가 한 칸씩 밀린다.
-const TIER_PRICE: Record<(typeof TIER_KEYS)[number], string | null> = {
-  free: null, plus: "$4.99", pro: "$9.90", max: "$14.90",
-};
-
+// 🔴값은 여기 적지 않는다(2026-09-11). 전에는 "$4.99" 글자를 들고 있었는데, 한국
+//   손님에게 원화로 보여 줘야 하면서 결제창과 같은 식으로 계산해야 했다 —
+//   lib/use-price-view 의 priceText 가 lib/plans 의 PLAN_USD 에서 그린다.
 export const TIERS = TIER_KEYS.map((k) => ({
   key: k,
   label: k.toUpperCase(),
-  price: TIER_PRICE[k],
 }));
 
 type Props = {
@@ -247,6 +252,7 @@ type Props = {
 export default function PlanTable({ lang, currentPlan, onSubscribe, busy, variant = "sell" }: Props) {
   const L = (t: { ko: string; en: string }) => trPick(lang, t);
   const live = !!onSubscribe;
+  const priceView = usePriceView(lang);
   const T = (ko: string, en: string) => trs(lang, ko, en);
 
   // 🔴파는 등급만 싣는다. cells 배열은 free를 포함한 순서라 자리를 따로 찾는다.
@@ -357,8 +363,8 @@ export default function PlanTable({ lang, currentPlan, onSubscribe, busy, varian
             {tiers.map((t) => (
               <div className={`pg-price${promoTag(t.key) ? " promo" : ""}`} key={t.key}>
                 <div className="pg-amt">
-                  {t.price}
-                  <span className="pg-per">/mon</span>
+                  {priceText(t.key, priceView)}
+                  <span className="pg-per">{T("/달", "/mo")}</span>
                 </div>
                 {promoTag(t.key) && (
                   <div className="pg-promo-now">{T("지금은 무료", "Free for now")}</div>

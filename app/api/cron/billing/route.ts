@@ -3,6 +3,7 @@ import {
   customerIdOf, monthlyPaymentId, ymOf, addMonth, PLAN_LABEL,
   type PlanKey, type Channel,
 } from "@/lib/subscription";
+import { USE_TEST_CHANNELS } from "@/lib/interim";
 
 // ==========================================================================
 //  GET /api/cron/billing — 매일 도는 정기 청구(Vercel Cron).
@@ -37,6 +38,8 @@ type SubRow = {
   amount: number;
   next_billing_at: string;
   retry_count: number;
+  buyer_name: string | null;
+  buyer_phone: string | null;
 };
 
 async function patchSub(uid: string, product: string, body: Record<string, unknown>) {
@@ -86,8 +89,13 @@ export async function GET(request: Request) {
   // ---- ① 청구 ------------------------------------------------------------
   // 🔴active만 집는다. 첫 달은 confirm이 이미 받았으므로 여기 오는 건
   //   두 번째 달부터다.
+  // 🔴테스트 채널이 꺼져 있으면 테스트로 생긴 구독(is_test)은 집지 않는다(2026-09-11).
+  //   그 빌링키는 테스트 채널에서 발급된 것이라 실채널로는 긁히지 않는다 — 집으면
+  //   매일 실패하고 재시도하다 past_due 로 떨어진다. 실연동 날 016 머리말의 쿼리로 지운다.
   const dRes = await sbFetch(
-    `subscriptions?status=eq.active&next_billing_at=lte.${nowIso}&select=*`,
+    `subscriptions?status=eq.active&next_billing_at=lte.${nowIso}`
+      + (USE_TEST_CHANNELS ? "" : "&is_test=eq.false")
+      + "&select=*",
   );
   if (!dRes.ok) {
     console.error("[cron] 대상 조회 실패:", await dRes.text());
@@ -108,6 +116,9 @@ export async function GET(request: Request) {
       currency: s.currency,
       customerId: customerIdOf(s.user_id),
       email,
+      // KG이니시스는 빌링키 청구에도 구매자 이름·연락처가 필수다(confirm 이 적어 둔 값).
+      buyerName: s.buyer_name,
+      buyerPhone: s.buyer_phone,
     });
 
     await sbFetch("billing_events", {

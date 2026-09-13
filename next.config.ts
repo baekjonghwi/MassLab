@@ -1,5 +1,5 @@
 import type { NextConfig } from "next";
-import { SUBSCRIPTION_LIVE } from "./lib/interim";
+import { SUBSCRIPTION_LIVE, CHECKOUT_LIVE } from "./lib/interim";
 
 // 🔴CSP 는 **Report-Only** 로 시작한다 — 아무것도 차단하지 않고 위반만 /api/csp-report
 //   로 보고한다. 결제창(PortOne)이 여러 PG 도메인으로 튀어 script-src·frame-src 를
@@ -108,8 +108,13 @@ const nextConfig: NextConfig = {
       //     ⚠️열어도 안전한 이유 — /account 는 **보여 주기만** 하는 화면이다.
       //       결제를 시작하지 않는다(components/PlanTable 의 variant="status").
       //       /subscribe 는 **실제 결제 화면**이라 계속 막아 둔다.
-      ...(SUBSCRIPTION_LIVE ? [] : [
+      // 🔴2026-09-11 — /subscribe 는 CHECKOUT_LIVE 를 본다(PRO·MAX 결제창만 먼저 연다).
+      //   /price 는 여전히 SUBSCRIPTION_LIVE 다. 두 스위치를 한 조건으로 묶지 말 것 —
+      //   묶으면 PLUS 할인 행사를 끝내지 않고는 결제창을 열 수 없다.
+      ...(CHECKOUT_LIVE ? [] : [
         { source: "/subscribe", destination: "/", permanent: false },
+      ]),
+      ...(SUBSCRIPTION_LIVE ? [] : [
         // 🔴/price 도 접는다(2026-08-29 사용자 결정) — 구독을 안 파는 동안 그 화면이
         //   그리는 것은 건당표인데, 건당결제 안내의 정본은 LaserFish 소개 사이트로
         //   갔고 구독표는 홈 가격 구역 한 벌뿐이다. 값 이야기를 한 곳으로 모은다.

@@ -7,6 +7,8 @@ import PlanTable, { PLAN_CSS } from "@/components/PlanTable";
 import { PerPieceNote, PIECE_PRICES, PIECE_MIN_USD, PIECE_MAX_USD, useUsdToKrw } from "@/components/PerPiecePricing";
 import DarkTopBar, { DARK_TOPBAR_CSS, type DarkLink } from "@/components/DarkTopBar";
 import { SUBSCRIPTION_LIVE, effectivePlan } from "@/lib/interim";
+import { useStartCheckout } from "@/lib/use-checkout";
+import { usePriceView } from "@/lib/use-price-view";
 import { LASERFISH_DOWNLOAD, LASERFISH_GUIDE, withLang } from "@/lib/products";
 
 // ==========================================================================
@@ -62,8 +64,13 @@ function PriceContent() {
 
   const [plan, setPlan] = useState("free");
   const [signedIn, setSignedIn] = useState(false);
-  const [busy, setBusy] = useState("");
-  const [error, setError] = useState("");
+  const priceView = usePriceView(lang);
+  // 🔴결제 시작은 lib/use-checkout 한 곳이다(홈 가격 구역과 한 벌, 2026-09-11).
+  const checkout = useStartCheckout();
+  const busy = checkout.busy;
+  const error = checkout.error === "bundle_active"
+    ? T("이미 구독 중입니다.", "You already have an active subscription.")
+    : checkout.error ? T("결제 창을 열지 못했습니다.", "Couldn't open the checkout window.") : "";
 
   const load = useCallback(async () => {
     const sb = supabase();
@@ -77,32 +84,9 @@ function PriceContent() {
 
   useEffect(() => { load(); }, [load]);
 
-  const token = async () => (await supabase().auth.getSession()).data.session?.access_token ?? "";
-
-  // 로그인 안 했으면 로그인부터. 끝나면 이 화면으로 돌아온다.
-  const requireLogin = () => {
-    const here = `/plan${next !== "/" ? `?next=${encodeURIComponent(next)}` : ""}`;
-    window.location.href = `/login?next=${encodeURIComponent(here)}`;
-  };
-
-  const subscribe = async (tier: string) => {
-    if (!signedIn) return requireLogin();
-    setBusy(tier); setError("");
-    const r = await fetch("/api/subscribe/start", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${await token()}` },
-      body: JSON.stringify({ product: PRODUCT, plan: tier }),
-    });
-    const d = await r.json().catch(() => ({}));
-    setBusy("");
-    if (!r.ok) {
-      setError(d.error === "bundle_active"
-        ? (T("이미 구독 중입니다.", "You already have an active subscription."))
-        : (T("결제 창을 열지 못했습니다.", "Couldn't open the checkout window.")));
-      return;
-    }
-    window.location.href = d.url;
-  };
+  // 로그인 안 했으면 로그인부터(훅이 본다). 끝나면 이 화면으로 돌아온다.
+  const here = `/plan${next !== "/" ? `?next=${encodeURIComponent(next)}` : ""}`;
+  const subscribe = (tier: string) => checkout.start(tier, here);
 
   return (
     <>
@@ -124,7 +108,14 @@ function PriceContent() {
         busy={busy}
       />
 
-      <div className="plan-fine">{T("부가세 별도", "VAT not included")}</div>
+      {/* 🔴원화로 보이는 값은 부가세 포함 청구액이다(lib/plans 의 krwTotal) — "별도"라고
+            적으면 값이 두 번 붙는 것처럼 읽힌다(2026-09-11). */}
+      <div className="plan-fine">
+        {priceView.krw
+          ? T("원화 가격은 부가세 10% 포함이며, 결제 시점 환율로 환산됩니다.",
+              "KRW prices include 10% VAT and are converted at the exchange rate on the day of payment.")
+          : T("부가세 별도", "VAT not included")}
+      </div>
 
       <div className="prc-foot">
         {next !== "/" && <a href={next}>{T("← 돌아가기", "← Back")}</a>}

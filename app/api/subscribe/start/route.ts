@@ -2,6 +2,7 @@ import {
   CENTRAL, sbFetch, priceOf, productOf, hasActiveBundle, type PlanKey,
 } from "@/lib/subscription";
 import { bearerOf, uidFromAccessToken } from "@/lib/plugin-auth";
+import { PLUS_FREE_PROMO } from "@/lib/interim";
 
 // ==========================================================================
 //  POST /api/subscribe/start   { product, plan }
@@ -42,6 +43,12 @@ export async function POST(request: Request) {
   const plan = (body.plan ?? "plus") as PlanKey;
   // 🔴팔지 않는 조합이면 세션 자체를 만들지 않는다(예: 가격 미정인 번들).
   if (!product || priceOf(product.key, plan) == null) {
+    return Response.json({ error: "not_for_sale" }, { status: 409, headers: h });
+  }
+  // 🔴할인 기간에는 PLUS 를 팔지 않는다(2026-09-11). 로그인만 하면 공짜로 주는 등급을
+  //   돈 받고 팔면 손님이 공짜인 것에 돈을 낸 셈이 된다. 화면에는 단추가 없지만 이
+  //   주소는 누구나 부를 수 있으므로 여기서도 막는다. 판정은 lib/interim 한 곳.
+  if (PLUS_FREE_PROMO && plan === "plus") {
     return Response.json({ error: "not_for_sale" }, { status: 409, headers: h });
   }
 

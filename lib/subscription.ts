@@ -20,25 +20,23 @@ export const PORTONE_STORE_ID = "store-ad54a018-057e-4d48-b98f-920b6d0fa05c";
 //   🔴화면 쪽에도 같은 상수가 있다(app/subscribe/page.tsx) — 한쪽만 고치지 말 것.
 //     lib을 import하지 않는 이유는 이 파일이 서버 전용 키를 들고 있어서다.
 //
-//   🔴🔴국내(TOSS)·해외(INTL) **둘 다 지금은 죽은 값**이다. 배선은 다 돼 있지만 계약이 없다.
-//     지우지 않은 이유는 되살릴 때 이 줄만 갈아끼우면 나머지가 따라오기 때문이다.
+//   🔴🔴2026-09-11 — 국내는 **KG이니시스**다(사용자 결정). 토스는 심사 중 해지했고
+//     (2026-09-02, 33만원 환급) MoR 로 돌리던 계획도 접었다 — 이니시스가 가맹점
+//     아이디(MID)를 내 주면서 PG 쪽에서 **테스트 연동부터** 하라고 요구했다.
+//     ⇒ 지금은 lib/interim 의 USE_TEST_CHANNELS=true 로 **테스트 채널**이 돈다.
 //
-//   ⛔국내 = 토스페이먼츠 정기결제 채널. 2026-09-01 에 키를 받아 여기까지 붙였는데,
-//     **2026-09-02 심사 중 해지했다**(사용자 결정 — 그 시점에 해지하면 33만원을 돌려받는다).
-//     해지한 이유: ①토스로는 해외카드 정기결제가 안 된다 ②그런데 연회비가 따로 든다.
-//     ⇒ 국내·해외를 한 번에 덮는 **MoR(Paddle·Creem 등)을 먼저 붙이고**, 한국 회원이
-//       충분히 쌓이면(대략 1만 명 규모) 그때 국내 전용으로 토스를 다시 붙인다.
-//       그날 하는 일 = 토스 **신규 신청**(취소하면 상점아이디를 재사용할 수 없어 MID·채널키가
-//       새로 나온다) + 이 줄의 키 교체. 코드는 그대로 산다.
-//       ⚠️신규 신청이라 가입비·심사가 다시 붙는다 — 지금 돌려받는 33만원은 그때 다시 낸다.
-//     ⚠️단건결제(/payment)의 갤럭시아·카카오페이는 살아 있다 — 이 해지와 무관하다.
-//
-//   ⛔해외(INTL)는 애초에 **단건 채널 키**였다 — 자리만 잡아 둔 값이라 빌링키가 발급되지
-//     않는다. 엑심베이 토큰빌링을 기다리는 대신 MoR로 가기로 방향을 틀었다(2026-09-02).
-//     🔴MoR을 붙이는 날 이 파일이 크게 바뀐다 — 빌링키를 우리가 들고 매달 청구하는
-//       구조가 아니라, 그쪽이 구독을 관리하고 webhook 으로 알려주는 구조다.
+//   ⚠️아래 두 값은 **실연동용 자리**다. 둘 다 아직 비었거나 죽은 값이다:
+//     · INICIS — 비어 있다. 이니시스 전자계약·고객확인을 마친 뒤 포트원 콘솔
+//       [실연동]에 이니시스 **빌링용 MID**로 채널을 만들고 그 키를 넣는다.
+//       ⚠️이니시스는 일반결제 MID 와 빌링 MID 가 따로일 수 있다 — 받은 MID 가
+//         어느 쪽인지 이니시스에 확인할 것.
+//     · INTL  — 엑심베이 **단건** 채널 키다. 빌링키가 발급되지 않는다. 토큰빌링
+//       승인이 나면 그 채널 키로 바꾼다.
+//   🔴실연동으로 넘어가는 날 = 이 두 줄을 채우고 USE_TEST_CHANNELS 를 false 로.
+//   ⛔토스(channel-key-8ebc609c-…)는 해지돼 영영 죽은 키다. 되살리면 신규 신청이라
+//     MID·키가 새로 나온다.
 export const CHANNEL_BILLING_INTL = "channel-key-796e8cff-cddb-4731-a364-910163f64bcb";
-export const CHANNEL_BILLING_TOSS = "channel-key-8ebc609c-5d56-429d-91f5-879c78abbf61";
+export const CHANNEL_BILLING_INICIS = "";
 
 export const PORTONE_API = "https://api.portone.io";
 
@@ -47,22 +45,22 @@ export const PORTONE_API = "https://api.portone.io";
 export type { PlanKey } from "./plans";
 export { PLAN_LABEL, MIN_PLAN, DEFAULT_MIN_PLAN, minPlanOf, planAllows } from "./plans";
 import type { PlanKey } from "./plans";
-import { USE_TEST_CHANNELS, TEST_CHANNEL_INTL, TEST_CHANNEL_KRW } from "./interim";
+import { USE_TEST_CHANNELS, TEST_CHANNEL_INTL, TEST_CHANNEL_INICIS } from "./interim";
+import { PLAN_USD, VAT_RATE, krwTotal, krwVat } from "./plans";
+export { VAT_RATE };
 
 // 🔴이 값이 DB(subscriptions.channel)에 그대로 적힌다. 늘리거나 바꿀 때는 그 칸의
-//   CHECK 제약도 함께 고칠 것 — supabase/migrations/007_toss_billing_channel.sql.
-//   ⚠️'galaxia'는 2026-09-01에 없앴다(구독 국내 PG가 토스페이먼츠로 바뀌었다).
-//     단건결제는 여전히 갤럭시아지만 그쪽은 이 타입을 쓰지 않는다.
-export type Channel = "eximbay" | "toss";
+//   CHECK 제약도 함께 고칠 것 — 지금 모양은 supabase/migrations/016_inicis_billing.sql.
+//   ⚠️국내 이름은 galaxia → toss(2026-09-01) → inicis(2026-09-11)로 두 번 바뀌었다.
+//     셋 다 구독 0건일 때 바꿔서 옛 값이 DB에 남은 적은 없다.
+export type Channel = "eximbay" | "inicis";
 
 // 채널 이름(DB에 남는 값) → 포트원 채널 키. 🔴PG를 바꾸거나 늘릴 때 여기 한 줄만
 //   더하면 청구·발급이 함께 따라온다(분기를 코드 여기저기에 흩지 않는다).
 export const BILLING_CHANNEL: Record<Channel, string> = {
   eximbay: USE_TEST_CHANNELS ? TEST_CHANNEL_INTL : CHANNEL_BILLING_INTL,
-  toss: USE_TEST_CHANNELS ? TEST_CHANNEL_KRW : CHANNEL_BILLING_TOSS,
+  inicis: USE_TEST_CHANNELS ? TEST_CHANNEL_INICIS : CHANNEL_BILLING_INICIS,
 };
-
-export const VAT_RATE = 0.1;
 
 // --------------------------------------------------------------------------
 //  중앙 원장 — MassLabs 계정·구독
@@ -109,7 +107,8 @@ export const CATALOG: Record<string, ProductDef> = {
     key: "all",
     label: "MassLabs",
     returnOrigin: "https://masslabs-archi.com",
-    plans: { plus: 4.99, pro: 9.90, max: 14.90 },
+    // 🔴값의 원본은 lib/plans 의 PLAN_USD 다 — 요금표도 같은 것을 읽는다.
+    plans: { ...PLAN_USD },
   },
 };
 
@@ -248,9 +247,10 @@ export function planAmount(
 ): Money | null {
   const base = priceOf(productKey, plan);
   if (base == null) return null;             // 팔지 않는 조합
-  if (channel === "toss") {
-    // 토스페이먼츠는 KRW 전용이라 가입 시점 환율로 환산한다. 여기에만 부가세가 붙는다.
-    return { amount: Math.round(base * (1 + VAT_RATE) * krwRate), currency: "KRW" };
+  if (channel === "inicis") {
+    // 국내는 KRW 라 가입 시점 환율로 환산한다. 여기에만 부가세가 붙는다.
+    // 🔴식은 lib/plans 의 krwTotal 한 곳 — 요금표가 같은 함수로 원화를 그린다.
+    return { amount: krwTotal(base, krwRate), currency: "KRW" };
   }
   return { amount: Math.round(base * 100), currency: "USD" };
 }
@@ -261,17 +261,14 @@ export function planAmount(
 //   손님이 영수증을 못 읽는다.
 // 🔴총액에서 공급가액을 빼서 구한다. 부가세를 따로 반올림하면 공급가+부가세가
 //   실제 청구액과 1원씩 어긋나 계산이 안 맞는다.
-//   ⚠️여기 total 식은 planAmount 의 toss 갈래와 **반드시 같아야 한다** —
-//     한쪽만 고치면 화면의 부가세가 실제 청구액과 어긋난다.
+//   🔴식은 lib/plans 의 krwVat 한 곳이다(krwTotal 과 한 벌).
 export function vatOf(
   productKey: string, plan: PlanKey, channel: Channel, krwRate: number,
 ): Money | null {
   const base = priceOf(productKey, plan);
   if (base == null) return null;                       // 팔지 않는 조합
-  if (channel !== "toss") return { amount: 0, currency: "USD" };
-  const total = Math.round(base * (1 + VAT_RATE) * krwRate);
-  const supply = Math.round(base * krwRate);
-  return { amount: total - supply, currency: "KRW" };
+  if (channel !== "inicis") return { amount: 0, currency: "USD" };
+  return { amount: krwVat(base, krwRate), currency: "KRW" };
 }
 
 // --------------------------------------------------------------------------
@@ -332,9 +329,9 @@ export function addMonth(from: Date): Date {
 //   결제창 통화가 "옛날에 적어 둔 나라"로 뜨는 쪽이 더 자주, 더 아프게 틀렸다.
 export const KOREA = "KR";
 
-// 국가 → 결제 채널. 국내만 토스페이먼츠고 나머지는 전부 엑심베이다.
+// 국가 → 결제 채널. 국내만 KG이니시스고 나머지는 전부 엑심베이다.
 export function channelOf(country: string | null | undefined): Channel {
-  return country === KOREA ? "toss" : "eximbay";
+  return country === KOREA ? "inicis" : "eximbay";
 }
 
 // ⛔결제 원문에서 국가를 캐내던 countryOfPayment 는 지웠다(2026-09-05) — profiles.country
@@ -353,6 +350,11 @@ export type ChargeArgs = {
   currency: "USD" | "KRW";
   customerId: string;
   email: string;
+  // 🔴KG이니시스는 빌링키로 청구할 때도 **구매자 이름·연락처·이메일이 필수**다
+  //   (포트원 문서). 발급 때 받아 subscriptions 행에 적어 둔 값을 넘긴다.
+  //   엑심베이는 안 쓴다 — 없으면 안 보낸다.
+  buyerName?: string | null;
+  buyerPhone?: string | null;
 };
 
 // 🔴손님 화면에 나가는 결제 실패 문구는 이 한 줄뿐이다(2026-08-26 사용자 결정).
@@ -416,7 +418,12 @@ export async function chargeWithBillingKey(a: ChargeArgs): Promise<ChargeResult>
         storeId: PORTONE_STORE_ID,
         channelKey: BILLING_CHANNEL[a.channel],
         orderName: a.orderName,
-        customer: { customerId: a.customerId, email: a.email },
+        customer: {
+          customerId: a.customerId,
+          email: a.email,
+          ...(a.buyerName ? { name: { full: a.buyerName } } : {}),
+          ...(a.buyerPhone ? { phoneNumber: a.buyerPhone } : {}),
+        },
         amount: { total: a.amount },
         currency: a.currency,
       }),

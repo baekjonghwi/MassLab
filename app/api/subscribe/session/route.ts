@@ -22,6 +22,7 @@ type SessionRow = {
   plan: PlanKey;
   status: string;
   expires_at: string;
+  krw_rate: number | null;
 };
 
 export async function GET(request: Request) {
@@ -76,16 +77,37 @@ export async function GET(request: Request) {
     if (pRes.ok) country = ((await pRes.json()) as { country?: string }[])[0]?.country ?? null;
   }
 
-  const channel: Channel = channelOf(country);
+  // 🔴국가를 끝내 모르면 **화면이 알려 준 언어**로 정한다(?lang=ko). 2026-09-11 에 서버로
+  //   옮겼다 — 전에는 화면이 제 맘대로 채널만 원화로 바꾸고, 금액은 여기서 달러로 계산한
+  //   것을 그대로 썼다. 그래서 "원화 결제창에 달러 금액"이 나갈 수 있었다(로컬·헤더 없는
+  //   요청). 채널과 금액을 **한 자리에서** 정해야 화면 값과 결제 값이 안 갈린다.
+  //   ⚠️Accept-Language 가 아니다 — 사이트에서 사람이 고른 언어다(위 원칙 그대로).
+  const channel: Channel = country
+    ? channelOf(country)
+    : (url.searchParams.get("lang") === "ko" ? "inicis" : "eximbay");
 
   // 4) 환율 — 국내 청구는 KRW라 환산이 필요하다.
   //    🔴가입 시점 환율로 고정한다. 매달 다시 환산하면 청구액이 달마다 달라져
   //      "구독료가 왜 바뀌었냐"는 문의가 된다.
-  let krwRate = 1500;
-  try {
-    const r = await fetch(`${url.origin}/api/exchange-rate`, { cache: "no-store" });
-    if (r.ok) krwRate = ((await r.json()) as { rate?: number }).rate ?? 1500;
-  } catch { /* 기본값 유지 */ }
+  //    🔴🔴처음 한 번 읽은 값을 세션 행에 적고, 그 뒤로는 그 값만 쓴다(2026-09-11).
+  //      confirm 이 **이 값으로 청구한다** — 손님이 이 화면에서 본 원화가 곧 청구액이다.
+  //      전에는 두 라우트가 환율을 따로 읽어 정각(캐시 1시간)을 넘기면 갈렸다.
+  //      ⚠️새로고침해도 값이 안 바뀐다. 30분 세션이라 그 사이 환율 변동은 무시한다.
+  // ⚠️numeric 칸이라 문자열로 올 수 있다 — 숫자로 바꿔 둔다.
+  let krwRate = Number(s.krw_rate) || 0;
+  if (!krwRate) {
+    krwRate = 1500;
+    try {
+      const r = await fetch(`${url.origin}/api/exchange-rate`, { cache: "no-store" });
+      if (r.ok) krwRate = ((await r.json()) as { rate?: number }).rate ?? 1500;
+    } catch { /* 기본값 유지 */ }
+    // krw_rate=is.null 조건 — 두 요청이 겹쳐도 먼저 적은 값이 이긴다.
+    await sbFetch(`checkout_sessions?id=eq.${encodeURIComponent(sid)}&krw_rate=is.null`, {
+      method: "PATCH",
+      body: JSON.stringify({ krw_rate: krwRate }),
+      prefer: "return=minimal",
+    });
+  }
 
   const base = priceOf(s.product, s.plan)!;
   const money = planAmount(s.product, s.plan, channel, krwRate)!;

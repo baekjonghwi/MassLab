@@ -37,6 +37,35 @@ export const MIN_PLAN: Record<string, PlanKey> = {
   laserfish: "plus",
 };
 
+// ==========================================================================
+//  값 — 🔴표에 보이는 값과 결제창에 뜨는 값은 **이 함수들에서만** 나온다.
+//
+//  PG 심사는 "화면 값 = 결제 값"을 본다(2026-09-11 지적). 전에는 요금표가
+//  "$4.99"를 글자로 따로 들고 있었고, 원화 환산은 서버(lib/subscription)만 했다.
+//  그래서 한국 손님에게 표는 달러, 결제창은 원화를 보여 줬다.
+//  ⇒ 기준 달러가·부가세율·원화 환산식을 여기로 옮겼다. 이 파일은 서버 비밀이
+//    없어 화면도 서버도 같이 import 한다 — 식이 한 벌이라 둘이 갈릴 수 없다.
+//
+//  🔴기준가는 언제나 USD 다. KRW 는 **결제 시점 환율**로 환산한 값이다
+//    (원화 고정가는 2026-08-18 폐지 — 2026-09-11 에 다시 물어 환산 유지로 확인).
+//  🔴부가세 10% 는 국내(KRW)에만 붙는다. 해외는 영세율이다.
+// ==========================================================================
+export const PLAN_USD: Record<"plus" | "pro" | "max", number> = {
+  plus: 4.99, pro: 9.90, max: 14.90,
+};
+
+export const VAT_RATE = 0.1;
+
+/** 국내 청구액(부가세 포함, 원 단위 정수). ⛔반올림 자리를 바꾸면 표와 결제창이 1원씩 갈린다. */
+export function krwTotal(usd: number, krwRate: number): number {
+  return Math.round(usd * (1 + VAT_RATE) * krwRate);
+}
+
+/** 그 청구액에 든 부가세. 총액에서 공급가를 빼서 구한다 — 따로 반올림하면 합이 안 맞는다. */
+export function krwVat(usd: number, krwRate: number): number {
+  return krwTotal(usd, krwRate) - Math.round(usd * krwRate);
+}
+
 export function minPlanOf(product: string): PlanKey {
   return MIN_PLAN[product] ?? DEFAULT_MIN_PLAN;
 }
