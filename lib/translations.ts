@@ -159,7 +159,7 @@ export const t = {
     terms: {
       back: "← Back",
       title: "Terms and Refund Policy",
-      effectiveDate: "Effective: September 11, 2026 (revising the August 22, 2026 edition to rename credits as monthly uses)",
+      effectiveDate: "Effective: September 14, 2026 (revising the September 11, 2026 edition to remove pay-per-piece and per-program subscriptions, both discontinued)",
       sections: [
         {
           title: "Article 1 (Purpose)",
@@ -171,7 +171,6 @@ export const t = {
           list: [
             "Service — every program the Company provides, including programs that run in the browser (such as archiMap) and plug-ins you download and install (such as LaserFish).",
             "User — a person who uses the Service under these Terms",
-            "Pay-per-piece — paying each time, based on the number of pieces generated. No account is required.",
             "Subscription — a monthly recurring plan. Scope and limits differ by tier (PLUS, PRO, MAX).",
             // 🔴"크레딧"이라 부르지 않는다(2026-09-11 PG 심사 지적) — 따로 사고파는 선불 수단처럼 읽힌다.
             "Monthly uses — the number of times a feature inside a program can be used in a month, set by your tier and renewed each month.",
@@ -183,16 +182,16 @@ export const t = {
         },
         {
           title: "Article 4 (Service Description and How It Is Sold)",
-          body: "The Company provides programs that assist architectural and design work, and charges for them in the two ways below. Which of them is available is determined by what is shown on the pricing screen.",
+          // 🔴건당 결제는 2026-09-05 에 폐지됐다 — 약관에서도 걷어냈다(2026-09-14). 판매 방식은 구독 하나다.
+          body: "The Company provides programs that assist architectural and design work, and charges for them by subscription.",
           list: [
-            "Pay-per-piece — you pay according to the number of pieces LaserFish generates. Pieces that fail to generate because of an error are never charged.",
             "Subscription — billed monthly per account. One subscription covers the programs the Company provides. The programs and limits available (maximum working extent, monthly uses, and so on) differ by tier.",
           ],
           body2: "The Company may add programs to the Service; unless stated otherwise, added programs are included in existing subscriptions. The products and prices actually on sale are limited to those shown on the pricing screen.",
         },
         {
           title: "Article 5 (Accounts)",
-          body: "You sign up with an email address or a Google account, and a single account signs you in to every program the Company provides. If you only use pay-per-piece, you do not need to create an account.",
+          body: "You sign up with an email address or a Google account, and a single account signs you in to every program the Company provides.",
           list: [
             "You are responsible for managing your account credentials, and may not share or transfer them to a third party.",
           ],
@@ -205,7 +204,6 @@ export const t = {
           title: "Article 7 (Formation of Agreement)",
           list: [
             "The user agreement between you and the Company is formed when you create an account.",
-            "For pay-per-piece, an agreement for that transaction is formed when you complete payment. No account is required; in that case we only take the email address used to send your receipt.",
             "A paid subscription agreement is formed when you accept these Terms and register a payment method, at which point the first subscription fee is charged.",
           ],
         },
@@ -213,7 +211,6 @@ export const t = {
           title: "Article 8 (Fees and Payment)",
           body: "Fees are the amounts shown on the pricing screen.",
           list: [
-            "Pay-per-piece is charged once, at the amount displayed at the time of payment. Minimum and maximum order amounts apply as stated on the pricing screen.",
             "Subscription fees are charged automatically to your registered payment method on the same day each month and continue until you cancel.",
             "Payments made in the Republic of Korea include 10% VAT. Payments made outside the Republic of Korea are zero-rated, so no VAT is added.",
             "Payments are processed through payment providers designated by the Company, and the available payment methods are limited to those shown on the payment screen.",
@@ -226,8 +223,6 @@ export const t = {
           body: "You may cancel your subscription at any time from the My account screen.",
           list: [
             "After cancelling you are not charged from the next billing date, and you keep access until the period you have already paid for ends.",
-            "If you start an all-access subscription while individual program subscriptions are active, those individual subscriptions are cancelled immediately and merged into the all-access subscription; fees already paid for them are not refunded pro rata.",
-            "Pay-per-piece agreements end with each transaction, so there is nothing to cancel.",
           ],
         },
         {
@@ -238,7 +233,7 @@ export const t = {
             "The Service could not be used normally due to reasons attributable to the Company",
             "A duplicate or erroneous payment is confirmed",
           ],
-          body2: "For pay-per-piece, pieces that fail to generate because of an error are never charged in the first place.\nSend refund requests to masslabs.archi@gmail.com with the payment date, amount, and reason. Confirmed requests are processed within 3 to 5 business days.",
+          body2: "Send refund requests to masslabs.archi@gmail.com with the payment date, amount, and reason. Confirmed requests are processed within 3 to 5 business days.",
         },
         {
           title: "Article 11 (User Obligations)",
@@ -446,7 +441,7 @@ export const t = {
     terms: {
       back: "← 뒤로",
       title: "이용약관 및 환불정책",
-      effectiveDate: "시행일: 2026년 9월 11일 (2026년 8월 22일 판의 '크레딧'을 '월 이용 횟수'로 바꾸어 개정)",
+      effectiveDate: "시행일: 2026년 9월 14일 (2026년 9월 11일 판에서 폐지된 건당 결제와 개별 프로그램 구독을 걷어내어 개정)",
       sections: [
         {
           title: "제1조 (목적)",
@@ -458,7 +453,6 @@ export const t = {
           list: [
             "서비스 — 회사가 제공하는 프로그램 전체. 웹에서 실행되는 프로그램(archiMap 등)과 내려받아 설치하는 플러그인(LaserFish 등)을 포함합니다.",
             "이용자 — 본 약관에 따라 서비스를 이용하는 자",
-            "건당 결제 — 생성된 결과물의 수량에 따라 그때그때 값을 치르는 방식. 계정 없이도 이용할 수 있습니다.",
             "구독 — 매월 자동으로 결제되는 이용권. 등급(PLUS·PRO·MAX)에 따라 이용 범위와 한도가 다릅니다.",
             // 🔴"크레딧"이라 부르지 않는다(2026-09-11 PG 심사 지적) — 따로 사고파는 선불 수단처럼 읽힌다.
             "월 이용 횟수 — 프로그램 안의 기능을 한 달 동안 사용할 수 있는 횟수. 등급에 따라 정해지며 매월 새로 주어집니다.",
@@ -470,16 +464,16 @@ export const t = {
         },
         {
           title: "제4조 (서비스 내용 및 판매 방식)",
-          body: "회사는 건축·설계 작업을 돕는 프로그램을 제공하며, 아래 두 가지 방식으로 이용료를 받습니다. 어느 방식이 제공되는지는 요금제 화면에 표시된 내용에 따릅니다.",
+          // 🔴건당 결제는 2026-09-05 에 폐지됐다 — 약관에서도 걷어냈다(2026-09-14). 판매 방식은 구독 하나다.
+          body: "회사는 건축·설계 작업을 돕는 프로그램을 제공하며, 구독 방식으로 이용료를 받습니다.",
           list: [
-            "건당 결제 — LaserFish가 생성한 조각의 수량에 따라 결제합니다. 오류가 발생하여 생성되지 않은 부분은 청구하지 않습니다.",
             "구독 — 계정 단위로 매월 결제하며, 하나의 구독으로 회사가 제공하는 프로그램을 함께 이용합니다. 등급에 따라 이용할 수 있는 프로그램과 한도(최대 작업 범위, 월 이용 횟수 등)가 다릅니다.",
           ],
           body2: "회사는 서비스에 프로그램을 추가할 수 있으며, 추가된 프로그램은 별도 안내가 없는 한 기존 구독에 포함됩니다. 실제로 판매되는 상품과 금액은 요금제 화면에 표시된 것에 한합니다.",
         },
         {
           title: "제5조 (계정)",
-          body: "이용자는 이메일 또는 구글 계정으로 가입하며, 하나의 계정으로 회사가 제공하는 모든 프로그램에 로그인합니다. 건당 결제만 이용하는 경우에는 계정을 만들지 않아도 됩니다.",
+          body: "이용자는 이메일 또는 구글 계정으로 가입하며, 하나의 계정으로 회사가 제공하는 모든 프로그램에 로그인합니다.",
           list: [
             "계정 정보의 관리 책임은 이용자에게 있으며, 제3자와 공유하거나 양도할 수 없습니다.",
           ],
@@ -492,7 +486,6 @@ export const t = {
           title: "제7조 (이용계약의 성립)",
           list: [
             "계정을 만든 시점에 회사와 이용자 사이의 이용계약이 성립합니다.",
-            "건당 결제는 이용자가 결제를 완료한 시점에 그 건에 대한 계약이 성립합니다. 계정이 없어도 이용할 수 있으며, 이때는 영수증을 받을 이메일 주소만 받습니다.",
             "유료 구독 계약은 이용자가 본 약관에 동의하고 결제수단을 등록한 시점에 성립하며, 이때 첫 구독료가 청구됩니다.",
           ],
         },
@@ -500,7 +493,6 @@ export const t = {
           title: "제8조 (이용료 및 결제)",
           body: "이용료는 요금제 화면에 표시된 금액을 기준으로 합니다.",
           list: [
-            "건당 결제는 결제 시점에 화면에 표시된 금액을 1회 청구합니다. 최소·최대 주문 금액이 있으며, 그 기준은 요금제 화면에 따릅니다.",
             "구독료는 등록된 결제수단으로 매월 같은 날 자동으로 청구되며, 해지 전까지 계속됩니다.",
             "대한민국에서 결제하는 경우 결제 금액에 부가가치세 10%가 포함됩니다. 대한민국 외의 국가에서 결제하는 경우에는 영세율이 적용되어 부가가치세가 붙지 않습니다.",
             "결제는 회사가 지정한 결제 대행사를 통해 처리되며, 이용할 수 있는 결제수단은 결제 화면에 표시된 것에 한합니다.",
@@ -513,8 +505,6 @@ export const t = {
           body: "이용자는 언제든지 [내 계정] 화면에서 구독을 해지할 수 있습니다.",
           list: [
             "해지하면 다음 결제일부터 청구되지 않으며, 이미 결제한 기간이 끝날 때까지는 그대로 이용할 수 있습니다.",
-            "이용 중인 개별 프로그램 구독이 있는 상태에서 전체 구독을 시작하면 기존 개별 구독은 즉시 해지되어 전체 구독으로 합쳐지며, 이미 결제된 개별 구독료는 일할 계산하여 환불되지 않습니다.",
-            "건당 결제는 회차마다 계약이 끝나므로 해지할 것이 없습니다.",
           ],
         },
         {
@@ -525,7 +515,7 @@ export const t = {
             "회사의 귀책 사유로 서비스를 정상적으로 이용할 수 없었던 경우",
             "중복 결제 또는 오결제가 확인된 경우",
           ],
-          body2: "건당 결제의 경우, 오류가 발생하여 생성되지 않은 조각은 애초에 청구하지 않습니다.\n환불 요청은 masslabs.archi@gmail.com으로 결제일·결제 금액·환불 사유를 적어 접수해 주세요. 확인 후 영업일 기준 3~5일 이내에 처리됩니다.",
+          body2: "환불 요청은 masslabs.archi@gmail.com으로 결제일·결제 금액·환불 사유를 적어 접수해 주세요. 확인 후 영업일 기준 3~5일 이내에 처리됩니다.",
         },
         {
           title: "제11조 (이용자의 의무)",

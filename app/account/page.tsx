@@ -89,7 +89,7 @@ const TX = {
     // 🔴두 번 묻는다. 되돌릴 수 없는 일이라 한 번은 부족하다.
     confirmDelete1: `회원 탈퇴를 하면 계정과 함께 아래가 모두 사라지며, 되돌릴 수 없습니다.
 
-· 이용 등급과 남은 크레딧
+· 이용 등급과 남은 횟수
 · archiMap 에 저장한 스타일과 참고 이미지
 · 연결해 둔 기기와 플러그인 로그인
 
@@ -126,7 +126,7 @@ const TX = {
     deleteFail: "Couldn't close the account. Please try again in a moment.",
     confirmDelete1: `Closing your account permanently deletes it, along with:
 
-· your plan and any remaining credits
+· your plan and any remaining uses
 · the styles and reference images saved in archiMap
 · your linked devices and plugin sign-ins
 
