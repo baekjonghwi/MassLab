@@ -54,21 +54,28 @@ MassLabs는 배포되는 프로젝트라 하위 폴더가 빌드 컨텍스트에
   archiMap PLAN 창(`renderSubscription`), LaserFish 홈 비용 구역. 스위치를 내리면 함께 사라진다.
   구독 코드(`/account`·`/subscribe`·`PlanTable`·`/api/subscribe/*`)는 **하나도 안 지웠다** — 되돌리면 그대로 산다.
   🔴**2026-08-29 — 값 이야기를 홈 한 곳으로 모았다**(사용자 결정).
-  홈의 건당표는 감췄고(`PER_PIECE_ON_HOME`), 건당결제 안내의 정본은 LaserFish 소개 사이트다.
-  `/price`는 구독을 안 파는 동안 홈 가격 구역(`/#pricing`)으로 넘어간다(307, 화면 파일은 살아 있다).
+  `/price`는 구독을 안 파는 동안 홈 가격 구역(`/#pricing`)으로 넘어간다(307, 화면 파일은 살아 있다 —
+  구독표만 그린다).
   ⛔`/price`를 화면에 직접 적지 말 것 — 메뉴·단추가 보는 주소는 `lib/interim.ts`의 `PRICING_HREF` 한 곳이다.
   archiMap의 [구독 해지]는 `/account`로, LaserFish의 [자세히 보기]는 껐다(그쪽 `BUY_LIVE`).
   🔴**해지는 `/account` 한 곳에서만 한다** — 다른 화면에 해지 단추를 만들지 말 것.
-- ⛔**건당결제는 폐기됐다**(2026-09-05 사용자 결정). 스위치는 `lib/interim.ts`의 `PER_PIECE_LIVE`.
-  `/payment`는 결제창 대신 "이제 구독에 포함된다"는 안내문을 띄운다 — 화면을 지우지 않은 이유는
-  **배포된 옛 플러그인(2.2.3)이 그 주소를 직접 열기 때문**이다.
-  `/api/verify-payment`는 **살려 뒀다** — 스위치를 내린 순간 결제창을 이미 띄워 둔 사람의
-  폴링이 끝나야 한다. `/api/submit-review`(paymentId로 신원을 삼던 후기 저장)는 **지웠다.**
-  플러그인 쪽(`LaserCuttingDrawings`)에서도 `PaymentHandler` 호출을 걷어냈다 — 구독이 없으면 굽지 않는다.
+- ⛔**건당결제는 폐기됐다**(2026-09-05 사용자 결정) — **2026-09-14 에 코드까지 지웠다**
+  (결제 화면·`/payment/complete`·`/api/verify-payment`·`PerPiecePricing`·`PER_PIECE_*` 스위치).
+  `/payment`는 "이제 구독에 포함된다"는 **안내문 하나만** 남았다 — 배포된 옛 플러그인(≤2.2.5)이
+  그 주소를 직접 열기 때문이다. ⛔그 화면을 지우지 말 것. 옛 판이 폴링하던 `/api/verify-payment`는
+  이제 404 다 — 옛 판은 실패를 "아직 안 냄"으로 읽고 계속 묻다가, 2.2.3 이후 판은 15 분 뒤 멈춘다
+  (2.2.2 이하는 라이노를 끌 때까지 묻는다. 404 라 서버 일은 거의 없다).
+  플러그인 쪽(`LaserCuttingDrawings`)도 `PaymentHandler`·미리보기·사용 기록 전송을 지웠다.
+- ⛔**LaserFish 사용 기록은 모으지 않는다**(2026-09-14 사용자 결정). `laserfish` 스키마의
+  `LaserCut*` 표는 017 에서 지웠다. 빈 스키마는 Exposed schemas 에서 뺀 뒤 지운다(아래 후기 항목).
 - 🔴**후기(review)는 화면은 제품마다 따로, 글은 한 곳에 모은다**(2026-09-05 사용자 결정).
   · 쓰는 자리 — archiMap 상단 **[REVIEW]** 모달(HELP 오른쪽) · LaserFish **`/review`** 화면.
-  · 모이는 곳 — MassLabs **`/api/reviews`** 하나. 표는 `public.reviews`(product 칸으로 가른다,
-    `supabase/migrations/010_reviews.sql`). 표에 **쓰기 정책이 없다** — 브라우저가 직접 못 쓴다.
+  · 모이는 곳 — MassLabs **`/api/reviews`** 하나. 표는 **`review` 스키마의 제품별 표**다 —
+    `review.laserfish`·`review.archimap`·`review.colorgram`(2026-09-14 사용자 결정, 017).
+    전에는 `public.reviews` 한 표에 product 칸으로 갈랐다(010).
+    표는 **서비스 키에만** 열려 있다 — 브라우저는 읽지도 쓰지도 못한다.
+    🔴`review` 가 대시보드 Exposed schemas 에 있어야 한다(없으면 `/api/reviews` 가 406).
+    제품을 늘리는 일 = 017 의 배열에 표 하나 + `lib/reviews.ts`의 `REVIEW_PRODUCTS`.
   · MassLabs `/review`는 **읽기 전용 모음 화면**이다(제품 탭). 여기서는 후기를 안 쓴다.
   ⛔제품 저장소에서 Supabase에 후기를 직접 쓰지 말 것 — 신원·길이·중복 판정이 저장소 수만큼 갈라진다.
   🔴신원은 `.masslabs-archi.com` 쿠키(또는 Bearer)다. 로그인만 하면 쓴다(구독 여부는 안 본다).

@@ -90,8 +90,6 @@ export type Overview = {
   }[];
   anon_activity: {
     colorgram_palettes: number;
-    laserfish_cuts: number;
-    laserfish_cuts7: number;
   };
   /** 활동 추이. archimap 은 크레딧을 뺀 값이다 — credit 이 따로 서 있다. */
   use_daily: UsePoint[];

@@ -6,7 +6,8 @@
 //    · LaserFish — /review 화면 (그쪽 app/review)
 //    · MassLabs  — /review (제품 전부를 한 줄로 보는 자리. 여기서는 안 쓴다)
 //  🔴데이터와 판정은 **여기 한 곳**이다. MassLabs 의 /api/reviews 가 유일한 문이고,
-//    표(public.reviews)에는 쓰기 정책이 아예 없어 브라우저가 직접 못 쓴다.
+//    표(`review` 스키마의 제품별 표 — review.laserfish · review.archimap …)는
+//    서비스 키에만 열려 있어 브라우저가 직접 못 읽고 못 쓴다(017, 2026-09-14).
 //    ⛔제품 저장소에서 Supabase 에 후기를 직접 쓰지 말 것 — 신원·길이·중복 판정이
 //      세 벌이 되는 순간 반드시 갈라진다.
 //
@@ -23,7 +24,8 @@
 
 import { ROOT_DOMAIN } from "./supabase";
 
-/** 후기를 받는 프로그램. 🔴DB의 CHECK 제약과 같아야 한다(010_reviews.sql). */
+/** 후기를 받는 프로그램 = `review` 스키마의 표 이름. 🔴DB의 표 목록과 같아야 한다
+ *  (017_review_schema_and_drop_laserfish_data.sql 의 배열). 없는 이름이면 404 가 난다. */
 export const REVIEW_PRODUCTS = ["archimap", "laserfish", "colorgram"] as const;
 export type ReviewProduct = (typeof REVIEW_PRODUCTS)[number];
 
@@ -75,9 +77,9 @@ export function corsHeaders(origin: string | null): Record<string, string> {
 //  화면에 내려보내는 모양. ⛔user_id 는 절대 안 내려보낸다 — 후기 목록으로
 //  누가 어느 계정인지가 새면 안 된다. "내 것인가"는 mine 플래그로만 답한다.
 // --------------------------------------------------------------------------
+// 🔴표에는 product 칸이 없다 — 표가 곧 제품이다. 내려보낼 때 부른 쪽이 채운다.
 export type ReviewRow = {
   id: string;
-  product: string;
   user_id: string | null;
   nickname: string;
   rating: number | null;
@@ -97,9 +99,9 @@ export type ReviewOut = {
   mine: boolean;
 };
 
-export const toReviewOut = (r: ReviewRow, uid: string | null): ReviewOut => ({
+export const toReviewOut = (product: ReviewProduct, r: ReviewRow, uid: string | null): ReviewOut => ({
   id: r.id,
-  product: r.product,
+  product,
   nickname: r.nickname,
   rating: r.rating,
   body: r.body,

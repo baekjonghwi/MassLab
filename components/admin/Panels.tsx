@@ -72,11 +72,12 @@ export function ProductPanel({ o }: { o: Overview }) {
         })}
       </div>
 
-      {/* 🔴사람에 못 붙는 활동 — 숨기지 않고 따로 적는다. 위 숫자에 안 섞였다. */}
+      {/* 🔴사람에 못 붙는 활동 — 숨기지 않고 따로 적는다. 위 숫자에 안 섞였다.
+          ⛔LaserFish 도면 수(laserfish."LaserCut")는 2026-09-14 에 뺐다 — 사용 기록
+            수집을 끝내고 표를 지웠다. LaserFish 활동은 위 막대(plugin_tokens)가 센다. */}
       <p className="t-cap" style={{ margin: "var(--s-md) 0 0", paddingTop: "var(--s-sm)", borderTop: "1px solid var(--divider)" }}>
-        계정에 안 붙는 흔적(위 수치에 포함되지 않음) — LaserFish 도면{" "}
-        {KO(o.anon_activity.laserfish_cuts)}건(7일 {KO(o.anon_activity.laserfish_cuts7)}) ·
-        Colorgram 공개 팔레트 {KO(o.anon_activity.colorgram_palettes)}개
+        계정에 안 붙는 흔적(위 수치에 포함되지 않음) — Colorgram 공개 팔레트{" "}
+        {KO(o.anon_activity.colorgram_palettes)}개
       </p>
     </div>
   );

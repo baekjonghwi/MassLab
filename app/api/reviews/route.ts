@@ -2,7 +2,7 @@ import { CENTRAL, sbFetch } from "@/lib/subscription";
 import {
   BODY_MAX, LIST_MAX, NICKNAME_MAX, PHOTO_MAX_BYTES, PHOTO_TYPES,
   corsHeaders, isReviewProduct, toReviewOut,
-  type ReviewRow,
+  type ReviewProduct, type ReviewRow,
 } from "@/lib/reviews";
 import { uidFromReviewRequest } from "@/lib/reviews-auth";
 
@@ -19,14 +19,28 @@ import { uidFromReviewRequest } from "@/lib/reviews-auth";
 //  🔴신원은 본문에서 받지 않는다. 쿠키 세션이거나 Bearer 토큰이다 — 화면이
 //    "나는 아무개다"라고 말할 수 있으면 남의 이름으로 쓰는 길이 열린다.
 //
-//  🔴한 사람이 한 프로그램에 후기 하나다(DB의 reviews_one_per_user). 두 번째로
+//  🔴한 사람이 한 프로그램에 후기 하나다(DB의 <제품>_one_per_user). 두 번째로
 //    쓰면 새로 쌓지 않고 **고쳐 쓴다** — 그래서 POST 하나로 등록과 수정을 다 한다.
 //
-//  ⚠️옛 /api/submit-review 와는 다른 자리다. 그쪽은 건당결제 paymentId 로 신원을
-//    삼던 배선이라 결제가 폐기되면서 함께 죽었다(그 파일의 주석 참고).
+//  🔴2026-09-14 — 표가 `review` 스키마의 **제품별 표**가 되었다(017). 전에는
+//    public.reviews 한 표에 product 칸으로 갈랐다. 그래서 이제 product 는 조건이
+//    아니라 **표 이름**이다 — isReviewProduct 로 거른 값만 주소에 들어간다.
 // ==========================================================================
 
 export const dynamic = "force-dynamic";
+
+// --------------------------------------------------------------------------
+//  review 스키마로 가는 요청. 🔴머리가 없으면 PostgREST 는 public 에서 표를 찾다가
+//  404 를 낸다 — 읽기는 Accept-Profile, 쓰기·지우기는 Content-Profile 을 본다.
+//  ⚠️review 가 대시보드의 Exposed schemas 에 올라 있어야 한다. 없으면 406(PGRST106).
+// --------------------------------------------------------------------------
+const reviewFetch = (path: string, init: Parameters<typeof sbFetch>[1] = {}) =>
+  sbFetch(path, {
+    ...init,
+    headers: { "Accept-Profile": "review", "Content-Profile": "review" },
+  });
+
+const COLS = "id,user_id,nickname,rating,body,photo_url,created_at";
 
 const json = (body: unknown, status: number, origin: string | null) =>
   Response.json(body, { status, headers: corsHeaders(origin) });
@@ -55,8 +69,8 @@ export async function GET(request: Request) {
   // 로그인했으면 "내 후기"를 표시해 준다. 안 했으면 null 이고, 목록은 그대로 내려간다.
   const uid = await uidFromReviewRequest(request);
 
-  const r = await sbFetch(
-    `reviews?product=eq.${product}&status=eq.visible&select=id,product,user_id,nickname,rating,body,photo_url,created_at&order=created_at.desc&limit=${limit}`,
+  const r = await reviewFetch(
+    `${product}?status=eq.visible&select=${COLS}&order=created_at.desc&limit=${limit}`,
   );
   if (!r.ok) {
     console.error("[reviews] 목록 실패:", r.status, await r.text());
@@ -68,24 +82,22 @@ export async function GET(request: Request) {
   //   20개 밖으로 밀려난 순간 [고쳐쓰기]가 [새로쓰기]로 바뀌고 저장에서 튕긴다.
   //   목록 안에 있으면 그걸 쓰고(요청 한 번), 없을 때만 한 줄을 더 읽는다.
   const inList = uid ? rows.find((x) => x.user_id === uid) : undefined;
-  const mine = inList ? toReviewOut(inList, uid) : await fetchMine(product, uid);
+  const mine = inList ? toReviewOut(product, inList, uid) : await fetchMine(product, uid);
 
   return json(
-    { signedIn: !!uid, mine, reviews: rows.map((x) => toReviewOut(x, uid)) },
+    { signedIn: !!uid, mine, reviews: rows.map((x) => toReviewOut(product, x, uid)) },
     200,
     origin,
   );
 }
 
 // 목록 밖으로 밀려난 내 후기를 한 줄만 따로 읽는다. 로그인 안 했으면 안 부른다.
-async function fetchMine(product: string, uid: string | null) {
+async function fetchMine(product: ReviewProduct, uid: string | null) {
   if (!uid) return null;
-  const r = await sbFetch(
-    `reviews?product=eq.${product}&user_id=eq.${uid}&select=id,product,user_id,nickname,rating,body,photo_url,created_at&limit=1`,
-  );
+  const r = await reviewFetch(`${product}?user_id=eq.${uid}&select=${COLS}&limit=1`);
   if (!r.ok) return null;
   const rows = (await r.json()) as ReviewRow[];
-  return rows[0] ? toReviewOut(rows[0], uid) : null;
+  return rows[0] ? toReviewOut(product, rows[0], uid) : null;
 }
 
 // --------------------------------------------------------------------------
@@ -141,15 +153,15 @@ export async function POST(request: Request) {
 
   const now = new Date().toISOString();
   const payload: Record<string, unknown> = {
-    product, user_id: uid, nickname, rating, body, lang, updated_at: now,
+    user_id: uid, nickname, rating, body, lang, updated_at: now,
   };
   if (photoUrl !== undefined) payload.photo_url = photoUrl;
 
   const r = prev
-    ? await sbFetch(`reviews?id=eq.${prev.id}`, {
+    ? await reviewFetch(`${product}?id=eq.${prev.id}`, {
         method: "PATCH", body: JSON.stringify(payload), prefer: "return=minimal",
       })
-    : await sbFetch("reviews", {
+    : await reviewFetch(product, {
         method: "POST", body: JSON.stringify(payload), prefer: "return=minimal",
       });
 
@@ -174,7 +186,7 @@ export async function DELETE(request: Request) {
   const product = new URL(request.url).searchParams.get("product");
   if (!isReviewProduct(product)) return json({ error: "bad_product" }, 400, origin);
 
-  const r = await sbFetch(`reviews?product=eq.${product}&user_id=eq.${uid}`, {
+  const r = await reviewFetch(`${product}?user_id=eq.${uid}`, {
     method: "DELETE", prefer: "return=minimal",
   });
   if (!r.ok) {
