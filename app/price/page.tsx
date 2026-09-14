@@ -2,14 +2,13 @@
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { supabase, safeNext } from "@/lib/supabase";
-import { useLanguage, useT, TRich, fmt } from "@/lib/i18n";
+import { useLanguage, useT, TRich } from "@/lib/i18n";
 import PlanTable, { PLAN_CSS } from "@/components/PlanTable";
-import { PerPieceNote, PIECE_PRICES, PIECE_MIN_USD, PIECE_MAX_USD, useUsdToKrw } from "@/components/PerPiecePricing";
 import DarkTopBar, { DARK_TOPBAR_CSS, type DarkLink } from "@/components/DarkTopBar";
-import { SUBSCRIPTION_LIVE, effectivePlan } from "@/lib/interim";
+import { effectivePlan } from "@/lib/interim";
 import { useStartCheckout } from "@/lib/use-checkout";
 import { usePriceView } from "@/lib/use-price-view";
-import { LASERFISH_DOWNLOAD, LASERFISH_GUIDE, withLang } from "@/lib/products";
+import { LASERFISH_DOWNLOAD, LASERFISH_GUIDE } from "@/lib/products";
 
 // ==========================================================================
 //  /price — 모든 프로그램이 공유하는 요금제 화면. 상단 메뉴의 "비용"이 여기다.
@@ -22,15 +21,12 @@ import { LASERFISH_DOWNLOAD, LASERFISH_GUIDE, withLang } from "@/lib/products";
 //  🔴로그인은 필수가 아니다. 안 한 사람도 표는 봐야 하고, 구독을 누를 때만
 //    로그인으로 보낸다.
 //
-//  🔴🔴임시(2026-08-21) — 정기결제가 열릴 때까지 이 화면은 **LaserFish 건당결제
-//    안내**로 되돌아가 있다(PriceContent 대신 PerPieceContent). 구독 코드는 아래에
-//    그대로 살아 있고, lib/interim.ts 의 SUBSCRIPTION_LIVE 하나로 돌아온다.
-//
-//  🔴🔴🔴2026-08-29 — **지금 이 주소는 아무도 못 연다.** SUBSCRIPTION_LIVE 가
-//    false 인 동안 next.config.ts 가 /price 를 홈의 가격 구역(`/#pricing`)으로
-//    넘긴다(307). 구독표가 홈에 한 벌뿐인데 여기는 건당표를 그려서, [구독하기]를
-//    누른 사람이 조각당 단가표 앞에 서는 일이 벌어졌다(사용자 확인).
-//    ⛔이 파일을 지우지 말 것 — 스위치를 켜는 순간 리다이렉트가 사라지고 위쪽
+//  🔴🔴🔴2026-08-29 — **지금 이 주소는 아무도 못 연다.** lib/interim.ts 의
+//    SUBSCRIPTION_LIVE 가 false 인 동안 next.config.ts 가 /price 를 홈의 가격
+//    구역(`/#pricing`)으로 넘긴다(307). 구독표는 홈에 한 벌이면 된다.
+//    ⚠️그 사이 이 자리에 서던 LaserFish 건당표(PerPieceContent)는 2026-09-14 에
+//      건당결제 코드와 함께 지웠다. 이제 이 화면이 그리는 것은 구독표 하나다.
+//    ⛔이 파일을 지우지 말 것 — 스위치를 켜는 순간 리다이렉트가 사라지고 아래
 //      PriceContent(구독표)가 이 자리에 선다. 그날 함께 볼 것:
 //        · lib/interim.ts 의 PRICING_HREF (메뉴·단추가 보는 주소)
 //        · app/sitemap.ts 의 /price 줄 · 아래 밝은 PlanTable 의 어두운 변형
@@ -39,7 +35,7 @@ import { LASERFISH_DOWNLOAD, LASERFISH_GUIDE, withLang } from "@/lib/products";
 //    /policy 와 같은 결이다. 값과 흐름은 하나도 안 바꿨다.
 //    ⚠️어두운 화면이므로 lib/dark-pages.ts 의 DARK_PAGES 에 "/price" 가 들어 있어야
 //      한다 — 빠지면 위에 흰 띠(LanguageBar)와 밝은 바닥글이 덧붙는다.
-//    ⚠️⚠️**구독표(PlanTable)는 아직 밝다.** 지금은 안 그려지지만 SUBSCRIPTION_LIVE
+//    ⚠️⚠️**구독표(PlanTable)는 아직 밝다.** 지금은 안 보이지만 SUBSCRIPTION_LIVE
 //      를 켜는 날 어두운 바탕에 흰 표가 뜬다. 그 표는 /account 도 함께 쓴다 —
 //      ⇒ 구독을 여는 날 PlanTable 에 어두운 변형을 **더하는** 식으로 풀 것
 //        (지금 것을 갈아엎으면 /account 가 같이 깨진다).
@@ -125,54 +121,6 @@ function PriceContent() {
   );
 }
 
-// --------------------------------------------------------------------------
-//  건당결제 안내(임시) — 로그인도 구독 상태도 묻지 않는다. 볼 것은 값뿐이다.
-//  ⚠️`next`는 그대로 받는다 — 라이노 플러그인이 /plan?next=… 로 들어온다.
-//
-//  🔴값(단가·최소·최대)과 환율 규칙은 components/PerPiecePricing 에서 읽는다.
-//    **여기서는 같은 값으로 어두운 카드를 다시 그린다.** 값이 아니라 그림만 두 벌이다.
-//    ⚠️저쪽의 밝은 카드(기본 export 인 PerPiecePricing · PIECE_CSS)는 /main 이
-//      쓰던 것이라 2026-08-28 부터 **아무도 안 쓴다.** 지울지 정하지 않았다.
-// --------------------------------------------------------------------------
-function PerPieceContent() {
-  const sp = useSearchParams();
-  const { lang } = useLanguage();
-  const T = useT();
-  const next = safeNext(sp.get("next"));
-  const usdToKrw = useUsdToKrw();
-
-  return (
-    <>
-      <div className="prc-eyebrow">{T("비용", "Pricing")}</div>
-      <h1 className="prc-title">
-        <TRich ko={"저렴한 *금액대*"} en={"Affordable *pricing*"} />
-      </h1>
-      <p className="prc-lede"><PerPieceNote lang={lang} /></p>
-
-      <div className="prc-cards">
-        {PIECE_PRICES.map((p) => (
-          <div className="prc-card" key={p.kind}>
-            <div className="prc-kind">{p.kind}</div>
-            <div className="prc-amount">${p.usd}</div>
-            <div className="prc-unit">
-              {T("조각당", "per piece")} (₩{Math.round(p.usd * usdToKrw).toLocaleString()})
-            </div>
-            <div className="prc-detail">
-              <div>{fmt(T("최소 주문 금액 ${min}", "Minimum order ${min}"), { min: PIECE_MIN_USD })}</div>
-              <div>{fmt(T("최대 주문 금액 ${max}", "Maximum order ${max}"), { max: PIECE_MAX_USD })}</div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="prc-foot">
-        {next !== "/" && <a href={next}>{T("← 돌아가기", "← Back")}</a>}
-        <a href={withLang(LASERFISH_DOWNLOAD, lang)}>{T("다운로드", "Download")}</a>
-      </div>
-    </>
-  );
-}
-
 // 🔴2026-08-28 이전에는 ?preview=1 로 들어온 사람의 로고와 [비용]을 /main
 //   (구독을 팔던 시절의 홈, PG 심사용)으로 돌려보냈다. /main 을 지우면서 없앴다.
 function Shell({ children }: { children: React.ReactNode }) {
@@ -222,30 +170,6 @@ function Shell({ children }: { children: React.ReactNode }) {
           border: 1px solid rgba(232,80,60,0.35); background: rgba(232,80,60,0.10); color: #f0a79c;
         }
 
-        /* 건당 카드 둘 — 값·차례·문구는 밝은 판(PerPiecePricing)과 같고 색만 다르다 */
-        .prc-cards { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 44px; }
-        .prc-card {
-          flex: 1; min-width: 240px; text-align: center;
-          border: 1px solid var(--line); border-radius: var(--r); background: var(--card);
-          padding: 40px 32px 32px;
-          transition: border-color .2s, transform .22s cubic-bezier(.22,.61,.36,1), box-shadow .22s;
-        }
-        .prc-card:hover {
-          border-color: var(--acc); transform: translateY(-6px);
-          box-shadow: 0 20px 44px rgba(0,0,0,0.62), 0 0 30px rgba(232,128,46,0.15);
-        }
-        .prc-kind {
-          font-family: var(--mono); font-size: 0.64rem; letter-spacing: 0.18em;
-          text-transform: uppercase; color: var(--mut); margin-bottom: 14px;
-        }
-        /* 금액은 강조 톤을 쓰는 정해진 자리 중 하나다 */
-        .prc-amount { font-size: 3.2rem; font-weight: 900; letter-spacing: -0.05em; line-height: 1; color: var(--acc); }
-        .prc-unit { font-size: 0.84rem; color: var(--dim); margin-top: 10px; }
-        .prc-detail {
-          border-top: 1px solid var(--line); margin-top: 26px; padding-top: 20px;
-          font-size: 0.8rem; color: var(--mut); line-height: 2;
-        }
-
         .prc-foot { display: flex; gap: 20px; justify-content: center; margin-top: 40px; }
         .prc-foot a {
           font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase;
@@ -255,10 +179,6 @@ function Shell({ children }: { children: React.ReactNode }) {
 
         @media (max-width: 720px) {
           .prc-wrap { padding-top: 148px; }
-          .prc-cards { flex-wrap: nowrap; gap: 10px; }
-          .prc-card { padding: 26px 14px 22px; min-width: 0; }
-          .prc-amount { font-size: 2rem; }
-          .prc-detail { font-size: 0.72rem; line-height: 1.8; }
         }
       `}</style>
 
@@ -272,7 +192,9 @@ export default function PricePage() {
   return (
     <Shell>
       <Suspense fallback={<p style={{ textAlign: "center", color: "#8a8a86" }}>Loading...</p>}>
-        {SUBSCRIPTION_LIVE ? <PriceContent /> : <PerPieceContent />}
+        {/* 🔴SUBSCRIPTION_LIVE 로 가르지 않는다 — 꺼져 있는 동안은 next.config.ts 가
+              이 주소를 통째로 넘기므로 여기까지 오지 않는다(2026-09-14). */}
+        <PriceContent />
       </Suspense>
     </Shell>
   );

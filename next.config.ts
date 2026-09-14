@@ -12,7 +12,9 @@ const CSP_REPORT_ONLY = [
   // 'unsafe-inline' 은 Next 의 부트스트랩·fb-pixel 인라인 때문에 아직 필요하다.
   // 다음 단계에서 nonce 로 좁힌다(그래야 인라인 주입 XSS 까지 막힌다).
   "script-src 'self' 'unsafe-inline' https://connect.facebook.net",
-  "connect-src 'self' https://api.portone.io https://tnadzbzvqwoxdghnesrl.supabase.co https://connect.facebook.net https://www.facebook.com https://open.er-api.com",
+  // ⚠️open.er-api.com 은 뺐다(2026-09-14) — 브라우저가 직접 부르던 곳은 건당표의
+  //   환율 훅뿐이었다. 환율은 이제 /api/exchange-rate 가 서버에서 받는다(CSP 밖).
+  "connect-src 'self' https://api.portone.io https://tnadzbzvqwoxdghnesrl.supabase.co https://connect.facebook.net https://www.facebook.com",
   "img-src 'self' data: blob: https://tnadzbzvqwoxdghnesrl.supabase.co https://www.facebook.com",
   "style-src 'self' 'unsafe-inline'",
   "font-src 'self' data:",
@@ -65,11 +67,10 @@ const nextConfig: NextConfig = {
   },
 
   // 🔴/plan 은 /price 로 이름이 바뀌었다(2026-08-19). 옛 이름을 받아 넘긴다.
-  //   ⚠️2026-08-29 확인 — **배포된 라이노 플러그인은 /plan 을 안 쓴다.** 그 주소를
-  //     문 PLAN_URL·Gate 는 LaserCuttingDrawings 의 **커밋 안 된 작업본**에만 있다
-  //     (릴리스된 2.2.3 은 /payment · /api/verify-payment 뿐인 건당결제다).
-  //     그러니 "옛 플러그인이 이 길로 들어온다"는 말은 사실이 아니다.
-  //   ⛔그래도 지우지 말 것 — 그 작업본을 배포하는 날 이 길이 필요하고, LaserFish
+  //   ⚠️**라이노 플러그인은 /plan 을 안 쓴다**(2026-09-14 확인) — 구독판 플러그인의
+  //     PLAN_URL 은 홈 가격 구역(`/#pricing`)이고, 옛 건당결제판(≤2.2.5)이 여는 것은
+  //     /payment 다(지금은 종료 안내뿐). "옛 플러그인이 이 길로 들어온다"는 말은 사실이 아니다.
+  //   ⛔그래도 지우지 말 것 — 옛 링크·즐겨찾기가 남아 있을 수 있고, LaserFish
   //     소개 사이트(lib/site.ts)도 /plan 을 옛 이름으로 적어 두고 있다.
   //     물음표 뒤 값(?next=…)은 Next가 알아서 넘겨 준다.
   async redirects() {
@@ -115,11 +116,11 @@ const nextConfig: NextConfig = {
         { source: "/subscribe", destination: "/", permanent: false },
       ]),
       ...(SUBSCRIPTION_LIVE ? [] : [
-        // 🔴/price 도 접는다(2026-08-29 사용자 결정) — 구독을 안 파는 동안 그 화면이
-        //   그리는 것은 건당표인데, 건당결제 안내의 정본은 LaserFish 소개 사이트로
-        //   갔고 구독표는 홈 가격 구역 한 벌뿐이다. 값 이야기를 한 곳으로 모은다.
+        // 🔴/price 도 접는다(2026-08-29 사용자 결정) — 구독을 안 파는 동안 구독표는
+        //   홈 가격 구역 한 벌이면 된다. 값 이야기를 한 곳으로 모은다.
         //   ⚠️307 이다. 308 로 캐시되면 구독을 다시 여는 날 /price 를 영영 못 연다.
         //   ⚠️화면 파일(app/price/page.tsx)은 그대로 있다 — 스위치를 켜면 산다.
+        //     (2026-09-14 부터 그 화면은 구독표만 그린다. 이 되돌림이 없으면 바로 보인다.)
         //   ⚠️/plan → /price → /#pricing 으로 두 번 튄다(옛 이름은 그대로 살아 있다).
         //   메뉴·단추가 보는 주소는 lib/interim.ts 의 PRICING_HREF 한 곳이다.
         { source: "/price", destination: "/#pricing", permanent: false },

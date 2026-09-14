@@ -154,8 +154,8 @@ export default function AccountPage() {
 
   // [구독하기]가 갈 곳. 🔴2026-08-28 이전에는 ?preview=1 로 들어온 사람을 /main
   //   (구독을 팔던 시절의 홈, PG 심사용)으로 돌려보냈다. /main 을 지우면서 없앴다.
-  // 🔴2026-08-29 — 주소를 lib/interim.ts 의 PRICING_HREF 에 맡겼다. 구독을 안 파는
-  //   동안 /price 는 건당표라, 여기서 [Subscribe]를 누른 사람이 구독표가 아니라
+  // 🔴2026-08-29 — 주소를 lib/interim.ts 의 PRICING_HREF 에 맡겼다. 그때 /price 는
+  //   건당표라(2026-09-14 지웠다), 여기서 [Subscribe]를 누른 사람이 구독표가 아니라
   //   조각당 단가표 앞에 서 있었다. 지금은 홈의 가격 구역(구독표)으로 간다.
   const toPrice = () => { window.location.href = PRICING_HREF; };
 

@@ -27,7 +27,7 @@ export default function robots(): MetadataRoute.Robots {
         "/api/",          // 서버 통로. 사람이 읽을 글이 없다
         "/auth/",         // 로그인 돌아오는 자리
         "/account",       // 로그인해야 열리는 내 정보 (아래 /security 까지 함께 걸린다)
-        "/payment",       // 결제 진행 화면 — 값이 물음표 뒤에 실려 다녀 주소가 무한히 늘어난다
+        "/payment",       // 옛 플러그인만 여는 건당결제 종료 안내 — 값이 물음표 뒤에 실려 와 주소가 무한히 늘어난다
         "/link",          // 기기연결. 일회용 주소다
         "/reset-password",
         "/subscribe",     // 🔴임시(2026-08-21) 구독을 안 파는 동안 홈으로 되돌려진다.

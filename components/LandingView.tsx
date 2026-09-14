@@ -3,18 +3,17 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import Image from "next/image";
-import { useLanguage, useT, trPick, TRich, fmt, type Lang } from "@/lib/i18n";
+import { useLanguage, useT, trPick, TRich, type Lang } from "@/lib/i18n";
 import LanguageMenu from "@/components/LanguageMenu";
 import { t } from "@/lib/translations";
 import { useSignedIn } from "@/lib/use-signed-in";
 import { useMyPlan } from "@/lib/use-my-plan";
-import { SUBSCRIPTION_LIVE, PER_PIECE_ON_HOME, PLUS_FREE_PROMO, CHECKOUT_LIVE } from "@/lib/interim";
+import { SUBSCRIPTION_LIVE, PLUS_FREE_PROMO, CHECKOUT_LIVE } from "@/lib/interim";
 import { useStartCheckout } from "@/lib/use-checkout";
 import { TIER_KEYS } from "@/lib/plans";
 import { ARCHIMAP, COLORGRAM, LASERFISH, withLang } from "@/lib/products";
 import { TIERS, PROGRAMS } from "@/components/PlanTable";
 import { usePriceView, priceText } from "@/lib/use-price-view";
-import { PIECE_PRICES, PIECE_MIN_USD, PIECE_MAX_USD } from "@/components/PerPiecePricing";
 
 // ==========================================================================
 //  홈(/) — MassLabs 제품 전체를 소개하는 어두운 랜딩.
@@ -23,10 +22,9 @@ import { PIECE_PRICES, PIECE_MIN_USD, PIECE_MAX_USD } from "@/components/PerPiec
 //    홈을 얼려 둔 /main(HomeView)이 PG 심사용으로 따로 있었는데, 심사 주소를 이
 //    화면으로 바꾸면서 지웠다. 짝을 맞춰야 할 다른 홈은 이제 없다.
 //
-//  🔴가격은 여기서 짓지 않는다. 세 곳에서 그대로 읽어 온다 —
+//  🔴가격은 여기서 짓지 않는다. 두 곳에서 그대로 읽어 온다 —
 //    · 구독 등급·가격 = components/PlanTable 의 TIERS
 //    · 프로그램별 사양 = components/PlanTable 의 PROGRAMS
-//    · LaserFish 단가  = components/PerPiecePricing 의 PIECE_PRICES (폐기된 건당결제)
 //
 //  🔴2026-09-05 — 가격 구역이 **구독 한 칸**이 되었다(사용자 결정).
 //    · 왼쪽 표가 archiMap 한 줄이 아니라 **PROGRAMS 전부**를 싣는다. LaserFish 가
@@ -36,9 +34,8 @@ import { PIECE_PRICES, PIECE_MIN_USD, PIECE_MAX_USD } from "@/components/PerPiec
 //        이 표에 구역 하나가 저절로 생긴다.
 //    · PLUS 에 동그라미와 "(할인 기간)"이 붙는다 — 판정은 lib/interim 의
 //      PLUS_FREE_PROMO 한 곳이고, 그 값이 false 가 되면 표시가 통째로 사라진다.
-//    🔴2026-08-29 부터 **오른쪽 건당표는 안 나온다** — lib/interim.ts 의
-//      PER_PIECE_ON_HOME 뒤에 숨어 있다. 2026-09-05 에 건당결제 자체가 폐기되어
-//      이제 되살릴 일이 없지만, 값과 그림은 지우지 않았다.
+//    ⛔오른쪽에 서던 LaserFish 건당표는 2026-09-14 에 지웠다(2026-08-29 부터 감춰
+//      두었고, 2026-09-05 건당결제 폐기). 가격 구역은 구독표 한 칸이다.
 //
 //  🔴사진 — 아직 없는 자리는 자리표시자가 대신 선다. 아래 데이터의 img 에 경로만
 //    적으면 그 자리가 저절로 채워진다. 지금 진짜 사진이 있는 건 LaserFish 뿐이다.
@@ -518,10 +515,9 @@ const LANDING_CSS = `
   .lp-tool .shot { margin: 22px -24px 0; border-top: 1px solid var(--line); flex: 1; min-height: 176px; }
 
   /* ── 5구역 · 가격 ── */
-  .lp-prices { display: grid; grid-template-columns: minmax(0,1.35fr) minmax(0,1fr); gap: 14px; margin-top: 52px; align-items: start; }
-  /* 건당 칸을 감췄을 때(PER_PIECE_ON_HOME=false) — 구독표 한 칸만 남는다.
-     자리를 통째로 물려받아 1240px 를 다 쓴다(2026-08-29 지시). */
-  .lp-prices.one { grid-template-columns: minmax(0,1fr); }
+  /* 구독표 한 칸 — 자리를 통째로 써 1240px 를 다 쓴다(2026-08-29 지시).
+     ⚠️전에는 오른쪽에 LaserFish 건당 칸이 섰다(2026-09-14 지웠다). */
+  .lp-prices { display: grid; grid-template-columns: minmax(0,1fr); gap: 14px; margin-top: 52px; align-items: start; }
   .lp-price-box { border: 1px solid var(--line); border-radius: var(--r); background: var(--card); padding: 26px; }
   .lp-price-top {
     display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
@@ -619,43 +615,28 @@ const LANDING_CSS = `
   /* [이용 중] = 위의 내 등급 기둥(.mine)과 같은 칠 — 흰 글자 · 주황 테두리 */
   .lp-tier-cta span.active { background: var(--accw); border: 2px solid var(--accw2); color: #fff; }
 
-  .lp-piece { display: flex; flex-direction: column; gap: 6px; }
-  .lp-piece-row {
-    display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
-    background: var(--bg2); border: 1px solid var(--line); border-radius: var(--r); padding: 15px 16px;
-  }
-  .lp-piece-row b { font-size: 0.85rem; font-weight: 700; }
-  .lp-piece-row span { font-size: 1.1rem; font-weight: 800; letter-spacing: -0.03em; }
-  .lp-piece-row span i { font-style: normal; font-family: var(--mono); font-size: 0.62rem; font-weight: 500; letter-spacing: 0.1em; color: var(--dim); margin-left: 6px; }
-  .lp-fine { color: var(--dim); font-size: 0.74rem; line-height: 1.85; margin-top: 16px; }
-  .lp-buy {
-    display: block; text-align: center; margin-top: 16px; border-radius: var(--r);
-    background: var(--acc); color: var(--accx); padding: 13px; font-size: 0.84rem; font-weight: 700;
-    transition: filter .15s;
-  }
-  .lp-buy:hover { filter: brightness(1.08); }
-
-  /* 홀로 남은 구독표를 키운다 — 넓은 화면에서만.
+  /* 홀로 선 구독표를 키운다 — 넓은 화면에서만.
      🔴min-width 로 감싼 이유: 좁은 화면에서 같이 커지면 등급 칸(min 108px)이
        늘어나 표가 가로로 넘치고, .lp-tier-scroll 이 손가락으로 미는 표가 된다.
        ⇒ 1081px 아래에서는 위의 기본 크기가 그대로 산다.
-     ⚠️두 칸(PER_PIECE_ON_HOME=true)으로 돌아가면 .one 이 안 붙어 저절로 꺼진다. */
+     ⚠️앞머리 .lp-prices 를 떼지 말 것 — 그게 있어야 .lp-tier-line.solo b 같은
+       같은 무게의 규칙을 이긴다. */
   @media (min-width: 1081px) {
-    .lp-prices.one .lp-price-box { padding: 34px 38px; }
-    .lp-prices.one .lp-price-top { padding-bottom: 18px; margin-bottom: 28px; }
-    .lp-prices.one .lp-price-top b { font-size: 1.34rem; }
-    .lp-prices.one .lp-price-kind { font-size: 0.66rem; }
-    .lp-prices.one .lp-tier-grid { grid-template-columns: 190px repeat(3, minmax(150px,1fr)); gap: 8px; }
-    .lp-prices.one .lp-tier-head { padding: 17px 12px; gap: 6px; }
-    .lp-prices.one .lp-tier-head b { font-size: 0.78rem; }
-    .lp-prices.one .lp-tier-head span { font-size: 1.32rem; }
-    .lp-prices.one .lp-tier-prog { font-size: 0.92rem; padding: 16px 14px; }
-    .lp-prices.one .lp-tier-cell { font-size: 0.83rem; padding: 15px 14px; min-height: 56px; gap: 9px; }
-    .lp-prices.one .lp-tier-line span { font-size: 0.7rem; }
-    .lp-prices.one .lp-tier-line b { font-size: 0.85rem; }
-    .lp-prices.one .lp-tier-cta a,
-    .lp-prices.one .lp-tier-cta button,
-    .lp-prices.one .lp-tier-cta span { font-size: 0.83rem; padding: 15px 10px; }
+    .lp-prices .lp-price-box { padding: 34px 38px; }
+    .lp-prices .lp-price-top { padding-bottom: 18px; margin-bottom: 28px; }
+    .lp-prices .lp-price-top b { font-size: 1.34rem; }
+    .lp-prices .lp-price-kind { font-size: 0.66rem; }
+    .lp-prices .lp-tier-grid { grid-template-columns: 190px repeat(3, minmax(150px,1fr)); gap: 8px; }
+    .lp-prices .lp-tier-head { padding: 17px 12px; gap: 6px; }
+    .lp-prices .lp-tier-head b { font-size: 0.78rem; }
+    .lp-prices .lp-tier-head span { font-size: 1.32rem; }
+    .lp-prices .lp-tier-prog { font-size: 0.92rem; padding: 16px 14px; }
+    .lp-prices .lp-tier-cell { font-size: 0.83rem; padding: 15px 14px; min-height: 56px; gap: 9px; }
+    .lp-prices .lp-tier-line span { font-size: 0.7rem; }
+    .lp-prices .lp-tier-line b { font-size: 0.85rem; }
+    .lp-prices .lp-tier-cta a,
+    .lp-prices .lp-tier-cta button,
+    .lp-prices .lp-tier-cta span { font-size: 0.83rem; padding: 15px 10px; }
   }
 
   /* ── 6구역 · 바닥글 ── */
@@ -756,7 +737,6 @@ const LANDING_CSS = `
   /* ── 좁은 화면 ── */
   @media (max-width: 1080px) {
     .lp-tools { grid-template-columns: repeat(2, minmax(0,1fr)); }
-    .lp-prices { grid-template-columns: minmax(0,1fr); }
   }
   @media (max-width: 900px) {
     html { scroll-snap-type: none; }   /* 좁은 화면에서는 물리지 않는다 */
@@ -1205,26 +1185,20 @@ export default function LandingView() {
       <section className="lp-sec" id="pricing" data-sec>
         <div className="lp-wrap">
           <div className="lp-eyebrow reveal" {...rv(0)}>{T("가격", "Pricing")}</div>
-          {/* 🔴머리말도 건당 칸을 따라간다 — 칸을 감춘 채로 "그리고 건당 결제"라고
-                말하면 없는 것을 가리키는 문장이 된다. */}
           <h2 className="lp-h2 reveal" {...rv(1)}>
-            {PER_PIECE_ON_HOME
-              ? <TRich ko={"구독 하나, *그리고 건당 결제.*"} en={"One subscription, *plus pay-per-piece.*"} />
-              : <TRich ko={"구독 하나로 *전부.*"} en={"One subscription, *everything.*"} />}
+            <TRich ko={"구독 하나로 *전부.*"} en={"One subscription, *everything.*"} />
           </h2>
           <p className="lp-lede lp-read reveal" {...rv(2)}>
-            {PER_PIECE_ON_HOME
-              ? (T("archiMap 과 LaserFish 는 당분간 분리해서 운영됩니다.", "For now, archiMap and LaserFish are run separately."))
-              : SUBSCRIPTION_LIVE
-                ? (T("구독 하나로 MassLabs 의 모든 프로그램을 사용합니다.", "One subscription covers every MassLabs program."))
-                /* 🔴2026-09-05 — "archiMap PLUS"가 아니라 그냥 PLUS 다. LaserFish 도
-                     같은 문턱 안으로 들어와서(lib/plans 의 MIN_PLAN), 로그인 하나로
-                     두 프로그램이 함께 열린다. */
-                : (T("할인 기간입니다. 지금은 로그인만 하면 PLUS 를 무료로 사용합니다.", "Promotional period — just log in and PLUS is free."))}
+            {SUBSCRIPTION_LIVE
+              ? (T("구독 하나로 MassLabs 의 모든 프로그램을 사용합니다.", "One subscription covers every MassLabs program."))
+              /* 🔴2026-09-05 — "archiMap PLUS"가 아니라 그냥 PLUS 다. LaserFish 도
+                   같은 문턱 안으로 들어와서(lib/plans 의 MIN_PLAN), 로그인 하나로
+                   두 프로그램이 함께 열린다. */
+              : (T("할인 기간입니다. 지금은 로그인만 하면 PLUS 를 무료로 사용합니다.", "Promotional period — just log in and PLUS is free."))}
           </p>
 
-          <div className={PER_PIECE_ON_HOME ? "lp-prices" : "lp-prices one"}>
-            {/* ── 왼쪽 · archiMap 구독 ── */}
+          <div className="lp-prices">
+            {/* ── MassLabs 구독 ── */}
             <div className="lp-price-box reveal" {...rv(3)}>
               {/* 🔴카드 이름이 프로그램이 아니라 **구독**이다(2026-09-05). 표가
                     프로그램 여럿을 싣게 되었으므로, 머리에 archiMap 이 남아 있으면
@@ -1359,39 +1333,6 @@ export default function LandingView() {
                 </p>
               )}
             </div>
-
-            {/* ── 오른쪽 · LaserFish 건당 ──
-                 🔴2026-08-29 부터 감춰져 있다(lib/interim.ts 의 PER_PIECE_ON_HOME).
-                   건당결제 안내의 정본은 LaserFish 소개 사이트다. 지우지 않았다 —
-                   그 값을 true 로 되돌리면 이 칸이 그대로 다시 선다. */}
-            {PER_PIECE_ON_HOME && (
-            <div className="lp-price-box reveal" {...rv(4)}>
-              <div className="lp-price-top">
-                <b>LaserFish</b>
-                <span className="lp-price-kind">{T("건당 결제", "pay per piece")}</span>
-              </div>
-              <div className="lp-piece">
-                {PIECE_PRICES.map((p) => (
-                  <div className="lp-piece-row" key={p.kind}>
-                    <b>{p.kind}</b>
-                    <span>
-                      ${p.usd}
-                      <i>{T("/ 조각", "/ piece")}</i>
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              <p className="lp-fine">
-                {fmt(T("최소 주문 ${min} · 최대 주문 ${max}", "Minimum order ${min} · Maximum order ${max}"),
-                  { min: PIECE_MIN_USD, max: PIECE_MAX_USD })}
-              </p>
-
-              <a className="lp-buy" href={withLang(LASERFISH, lang)}>
-                {T("플러그인 받기", "Get the plug-in")}
-              </a>
-            </div>
-            )}
           </div>
         </div>
       </section>

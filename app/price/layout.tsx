@@ -9,13 +9,11 @@
 
 import { pageMeta } from "@/lib/seo";
 
-// 🔴🔴설명이 **건당결제**를 말한다 — 지금 이 화면이 실제로 보여 주는 것이 그것이다
-//   (lib/interim.ts 의 SUBSCRIPTION_LIVE 가 false 라 page.tsx 가 PerPieceContent 를 그린다).
-//   ⛔구독(PLUS·PRO·MAX)을 여는 날 **이 글도 함께 바꿀 것.** 안 바꾸면 구독표가 뜨는
-//     화면인데 검색결과는 건당결제라고 말하는, 눈에 안 보이는 거짓말이 남는다.
+// 🔴설명은 **구독**을 말한다 — 이 화면이 그리는 것이 구독표 하나다(2026-09-14, 건당결제
+//   코드를 걷어내면서 함께 고쳤다. 전에는 "조각 수로 값을 매긴다"는 건당결제 문구였다).
 export const metadata = pageMeta({
   title: "Pricing",
-  desc: "LaserFish is priced by the number of pieces. Pay only for what you need and get your cut-ready drawings right away.",
+  desc: "One MassLabs subscription covers every program, including archiMap and LaserFish. Compare the PLUS, PRO and MAX plans.",
   path: "/price",
 });
 
