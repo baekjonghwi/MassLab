@@ -67,12 +67,12 @@ MassLabs는 배포되는 프로젝트라 하위 폴더가 빌드 컨텍스트에
   (2.2.2 이하는 라이노를 끌 때까지 묻는다. 404 라 서버 일은 거의 없다).
   플러그인 쪽(`LaserCuttingDrawings`)도 `PaymentHandler`·미리보기·사용 기록 전송을 지웠다.
 - ⛔**LaserFish 사용 기록은 모으지 않는다**(2026-09-14 사용자 결정). `laserfish` 스키마의
-  `LaserCut*` 표는 017 에서 지웠다. 빈 스키마는 Exposed schemas 에서 뺀 뒤 지운다(아래 후기 항목).
+  `LaserCut*` 표는 017 에서 지웠고, 빈 스키마도 Exposed schemas 에서 뺀 뒤 지웠다(019).
 - 🔴**후기(review)는 화면은 제품마다 따로, 글은 한 곳에 모은다**(2026-09-05 사용자 결정).
   · 쓰는 자리 — archiMap 상단 **[REVIEW]** 모달(HELP 오른쪽) · LaserFish **`/review`** 화면.
   · 모이는 곳 — MassLabs **`/api/reviews`** 하나. 표는 **`review` 스키마의 제품별 표**다 —
     `review.laserfish`·`review.archimap`·`review.colorgram`(2026-09-14 사용자 결정, 017).
-    전에는 `public.reviews` 한 표에 product 칸으로 갈랐다(010).
+    전에는 `public.reviews` 한 표에 product 칸으로 갈랐다(010 — 그 표는 019 에서 지웠다).
     표는 **서비스 키에만** 열려 있다 — 브라우저는 읽지도 쓰지도 못한다.
     🔴`review` 가 대시보드 Exposed schemas 에 있어야 한다(없으면 `/api/reviews` 가 406).
     제품을 늘리는 일 = 017 의 배열에 표 하나 + `lib/reviews.ts`의 `REVIEW_PRODUCTS`.
